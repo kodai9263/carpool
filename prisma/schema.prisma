@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 管理者テーブル
+model Admin {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  teams     Team[]
+}
+
+// チームテーブル
+model Team {
+  id          Int      @id @default(autoincrement())
+  teamName    String
+  teamCode    String   @unique
+  memberCount Int
+  adminId     Int
+  admin       Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     Member[]
+  rides       Ride[]
+}
+
+// 保護者テーブル
+model Member {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  teamId              Int
+  team                Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  children            Child[]
+  availabilityDrivers AvailabilityDriver[]
+}
+
+// 子供テーブル
+model Child {
+  id              Int      @id @default(autoincrement())
+  name            String
+  memberId        Int      
+  member          Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  rideAssignments RideAssignment[]
+}
+
+// 配車テーブル
+model Ride {
+  id                  Int      @id @default(autoincrement())
+  date                DateTime
+  destination         String
+  teamId              Int
+  team                Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  rideAssignments     RideAssignment[]
+  availabilityDrivers AvailabilityDriver[]
+}
+
+// 配車可能保護者テーブル
+model AvailabilityDriver {
+  id           Int      @id @default(autoincrement())
+  availability Boolean  @default(false)
+  seats        Int      @default(0)
+  rideId       Int
+  ride         Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  memberId     Int
+  member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  driver       Driver?
+}
+
+// 配車実施保護者テーブル
+model Driver {
+  id                   Int                @id @default(autoincrement())
+  availabilityDriverId Int                @unique
+  availabilityDriver   AvailabilityDriver @relation(fields: [availabilityDriverId], references: [id], onDelete: Cascade)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  rideAssignments      RideAssignment[]
+}
+
+// 乗車子供テーブル
+model RideAssignment {
+  id        Int     @id @default(autoincrement())
+  rideId    Int
+  ride      Ride    @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  driverId  Int
+  driver    Driver  @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  childId   Int
+  child     Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
