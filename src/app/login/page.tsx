@@ -3,6 +3,7 @@
 import { supabase } from "@/src/utils/supabase"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function Page() {
@@ -12,20 +13,34 @@ export default function Page() {
       password: ''
     }
   });
+  const [disable, setDisable] = useState(false);
   const router = useRouter();
 
   const onSubmit = async (data: { email: string; password: string}) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    setDisable(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
-    });
-
-    if (error) {
-      alert('ログインに失敗しました。')
-    } else {
-      router.replace("/admin/top") //TODO 管理者トップ作成
+      });
+      if (error) {
+        alert('ログインに失敗しました。')
+        console.error(error.message);
+      } else {
+        router.replace("/admin/top") //TODO 管理者トップ作成
+      }
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+      console.error('予期せぬエラー', e.message);
+      } else {
+        console.error('予期せぬエラー', e);
+      }
+      alert('通信エラーが発生しました。時間をおいて再度お試しください。');
+    } finally {
+      setDisable(false);
     }
-  };
+  }  
 
   return (
     <div className="flex justify-center min-h-screen">
@@ -48,6 +63,7 @@ export default function Page() {
               id="email"
               className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
               placeholder="example@mail.com"
+              disabled={disable}
             />
           </div>
           <div>
@@ -66,6 +82,7 @@ export default function Page() {
               id="password"
               placeholder="•••••••"
               className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
+              disabled={disable}
             />
           </div>
 
@@ -83,7 +100,7 @@ export default function Page() {
               type="submit"
               className="w-full bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
             >
-              ログイン
+              {disable ? 'ログイン中...' : 'ログイン'}
             </button>
           </div>
         </form>

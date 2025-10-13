@@ -12,12 +12,14 @@ export default function Page() {
     event.preventDefault();
     setDisable(true);
 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
     try {
       const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: 'http://localhost:3000/login',
+        emailRedirectTo: `${baseUrl}/login`,
       },
       });
       if (error) {
