@@ -119,7 +119,7 @@ export default function Page() {
                   htmlFor="confirmPassword"
                   className="block text-sm font-medium mb-2"
                 >
-                  新しいパスワード
+                  新しいパスワード(確認)
                 </label>
                 <input 
                   type="password"

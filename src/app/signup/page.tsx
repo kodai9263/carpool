@@ -6,10 +6,17 @@ import { useState } from "react";
 export default function Page() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [disable, setDisable] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert('パスワードが一致しません。');
+      return;
+    }
+
     setDisable(true);
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
@@ -28,6 +35,7 @@ export default function Page() {
       } else {
         setEmail('');
         setPassword('');
+        setConfirmPassword('');
         alert('確認メールを送信しました。');
       }
     } catch (e: unknown) {
@@ -82,6 +90,25 @@ export default function Page() {
               required
               onChange={(e) => setPassword(e.target.value)}
               value={password}
+              disabled={disable}
+            />
+          </div>
+          <div>
+            <label 
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium mb-2"
+            >
+              パスワード(確認)
+            </label>
+            <input 
+              type="password"
+              name="confirmPassword"
+              id="confirmPassword"
+              placeholder="••••••••"
+              className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
+              required
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={confirmPassword}
               disabled={disable}
             />
           </div>
