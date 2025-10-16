@@ -10,6 +10,7 @@ type Phase = 'request' | 'reset';
 interface FormInput {
   email: string;
   password: string;
+  confirmPassword: string; // 確認用パスワード
 }
 
 export default function Page() {
@@ -17,7 +18,7 @@ export default function Page() {
   const [phase, setPhase] = useState<Phase>('request');
   const router = useRouter();
   const {register, handleSubmit, reset } =useForm<FormInput>({
-    defaultValues: { email: '', password: ''},
+    defaultValues: { email: '', password: '', confirmPassword: ''},
   });
 
   // パスワード再設定メールのリンク経由で戻ったとき、Supabase が "PASSWORD_RECOVERY" イベントを発火するので、パスワード入力フェーズへ切り替える
@@ -35,7 +36,7 @@ export default function Page() {
   const redirectUrl = new URL('/reset-password', siteUrl).toString();
 
   // 送信処理（フェーズで処理を分岐）
-  const onSubmit: SubmitHandler<FormInput> = async ({ email, password }) => {
+  const onSubmit: SubmitHandler<FormInput> = async ({ email, password, confirmPassword }) => {
     setDisable(true);
     try {
       if (phase === 'request') {
@@ -45,9 +46,13 @@ export default function Page() {
         });
         if (error) throw error;
         alert('パスワード再設定用のメールを送信しました。');
-        reset({ email: '', password: ""}); //入力をクリア
+        reset({ email: '', password: '', confirmPassword: ''}); //入力をクリア
       } else {
-        // フェーズ2: 新しいパスワードに更新
+        // フェーズ2: パスワードチェックをクリアした後、新しいパスワードに更新
+        if (password !== confirmPassword) {
+          alert('パスワードが一致しません。');
+          return;
+        }
         const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
         alert('パスワードを更新しました。ログインしてください。');
@@ -88,28 +93,54 @@ export default function Page() {
               />
             </div>
           ) : (
-            <div>
-              <label 
-                htmlFor="password"
-                className="block text-sm font-medium mb-2"
-              >
-                新しいパスワード
-              </label>
-              <input 
-                type="password"
-                id="password"
-                placeholder="••••••••"
-                className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
-                required
-                disabled={disable}
-                {...register('password', { required: true })}
-              />
+            <div className="space-y-4">
+              <div>
+                <label 
+                  htmlFor="password"
+                  className="block text-sm font-medium mb-2"
+                >
+                  新しいパスワード
+                </label>
+                <input 
+                  type="password"
+                  id="password"
+                  placeholder="••••••••"
+                  className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
+                  required
+                  disabled={disable}
+                  {...register('password', { 
+                    required: 'パスワードを入力してください。'
+                  })}
+                />
+              </div>
+
+              <div>
+                <label 
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium mb-2"
+                >
+                  新しいパスワード
+                </label>
+                <input 
+                  type="password"
+                  id="confirmPassword"
+                  placeholder="もう一度入力"
+                  className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
+                  required
+                  disabled={disable}
+                  {...register('confirmPassword', { 
+                    required: '確認用のパスワードを入力してください。',
+                  })}
+                />
+              </div>
             </div>
+            
           )}
           
           <div>
             <button
               type="submit"
+              disabled={disable}
               className="w-full bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
             >
               {disable ? '送信中...' : phase === 'request' ? 'メールを送信' : 'パスワードを更新'}
