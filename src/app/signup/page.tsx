@@ -1,9 +1,11 @@
 'use client';
 
-import { supabase } from "@/src/utils/supabase";
+
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Page() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,25 +21,24 @@ export default function Page() {
 
     setDisable(true);
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
     try {
-      const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${baseUrl}/login`,
-      },
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
       });
-      if (error) {
-        alert('登録に失敗しました。');
-        console.error(error.message);
-      } else {
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        alert('確認メールを送信しました。');
+      const json = await res.json().catch(() => ({}));
+      
+      if (!res.ok) {
+        alert(json?.error || '登録に失敗しました。');
+        return;
       }
+
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      alert('確認メールを送信しました。');
+      router.push('/login');
     } catch (e: unknown) {
       if (e instanceof Error) {
         console.error('予期せぬエラー', e.message);

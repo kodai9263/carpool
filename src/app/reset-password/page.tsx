@@ -1,6 +1,6 @@
 'use client';
 
-import { supabase } from "@/src/utils/supabase";
+import { supabase } from "@/utils/supabase"; 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
