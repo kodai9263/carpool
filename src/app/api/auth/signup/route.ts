@@ -17,11 +17,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "emailとpasswordは必須です"}, { status: 400 });
     }
 
+    const redirectTo = 
+      process.env.NEXT_PUBLIC_SITE_URL
+        ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+        : undefined;
+
     // サーバーででユーザー作成
-    const { data, error } = await supabase.auth.admin.createUser({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      email_confirm: false,
+      options: { emailRedirectTo: redirectTo },
     });
     if (error || !data.user) {
       return NextResponse.json({ error: error?.message || "ユーザーの作成に失敗しました" }, { status: 400 });
@@ -29,6 +34,7 @@ export async function POST(request: Request) {
 
     const user = data.user;
     
+    // Adminレコード作成
     const admin = await prisma.admin.create({
       data: {
         email: user.email ?? email,
@@ -39,6 +45,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, adminId: admin.id }, { status: 201 });
   } catch (e: unknown) {
+    console.error(e);
     console.error(e);
     return NextResponse.json({ error: "サーバー内部でエラーが発生しました" }, { status: 500 });
   }

@@ -1,5 +1,6 @@
 
-import { checkAuth } from "@/utils/auth";
+import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response"; 
+import { checkAuth, getAuthAdminId } from "@/utils/auth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,18 +11,19 @@ export const GET = async (request: NextRequest) => {
   const authError = await checkAuth(request);
   if (authError) return authError;
 
+  // ログイン中のユーザーを取得
+  const adminId = await getAuthAdminId(request);
+  if (!adminId) return NextResponse.json({ status: "権限がありません" }, { status: 401 });
+
   try {
     const teams = await prisma.team.findMany({
-      select: {
-        teamName: true
-      },
-      orderBy: {
-        teamName: 'asc'
-      },
+      where: { adminId },
+      select: { teamName: true },
+      orderBy: { teamName: 'asc' },
     });
     const teamNames = teams.map((t: { teamName: string; }) => t.teamName);
 
-    return NextResponse.json({ status: 'OK', teamNames }, { status: 200 });
+    return NextResponse.json({ status: 'OK', teamNames } satisfies TeamsListResponse, { status: 200 });
   } catch (e: unknown) {
     if (e instanceof Error)
       return NextResponse.json({ status: e.message }, { status: 400 });
@@ -40,9 +42,13 @@ export const POST = async (request: NextRequest) => {
   const authError = await checkAuth(request);
   if (authError) return authError;
 
+  // ログイン中のユーザーを取得
+  const adminId = await getAuthAdminId(request);
+  if (!adminId) return NextResponse.json({ status: "権限がありません" }, { status: 401 });
+
   try {
     // リクエストボディを取得
-    const body = await request.json().catch(() => null);
+    const body = await request.json().catch(() => null) as Partial<CreateTeamRequestBody> | null;
     if (!body) {
       return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
     }
@@ -51,13 +57,12 @@ export const POST = async (request: NextRequest) => {
 
     const name = teamName?.trim();
     const code = teamCode?.trim();
-    const adminIdNum = Number(adminId);
 
     if (!name || !code) {
-      return NextResponse.json({ status: "teamName と teamCode は必須です" }, { status: 400 });
+      return NextResponse.json({ status: "チーム名とチームIDは必須です" }, { status: 400 });
     }
-    if (!Number.isInteger(adminIdNum)) {
-      return NextResponse.json({ status: "adminId が不正です" }, { status: 400});
+    if (!Number.isInteger(adminId)) {
+      return NextResponse.json({ status: "IDが不正です" }, { status: 400});
     }
 
     // チームをDBに生成
@@ -66,13 +71,13 @@ export const POST = async (request: NextRequest) => {
         teamName: name,
         teamCode: code,
         memberCount: 0,
-        admin: { connect: { id: adminIdNum } },
+        admin: { connect: { id: adminId } },
       },
       select: { id: true, teamName: true, teamCode: true },
     });
 
     return NextResponse.json(
-      { status: 'OK', message: '作成しました', id: data.id },
+      { status: 'OK', message: '作成しました', id: data.id } satisfies CreateTeamResponse,
       { status: 201 }
     );
   } catch (e: any) {
@@ -80,7 +85,7 @@ export const POST = async (request: NextRequest) => {
       return NextResponse.json({ status: "チームIDが存在します" }, { status: 409 });
     }
     if (e?.code === "P2025") {
-      return NextResponse.json({ status: "指定したadminが見つかりません"}, { status: 404 });
+      return NextResponse.json({ status: "指定したIDが見つかりません"}, { status: 404 });
     }
     return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
   }
