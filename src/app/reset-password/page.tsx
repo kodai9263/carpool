@@ -1,6 +1,7 @@
 'use client';
 
-import { supabase } from "@/utils/supabase"; 
+import { supabase } from "@/src/utils/supabase";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -147,6 +148,22 @@ export default function Page() {
             </button>
           </div>
         </form>
+
+        <div className="flex justify-center">
+          <Link
+          href="/login"
+          className="block mt-6 mx-4 text-sm text-gray-700 hover:underline"
+          >
+            ログインに戻る
+          </Link>
+
+        <Link
+          href="/"
+          className="block mt-6 mx-4 text-sm text-gray-700 hover:underline"
+          >
+            ホームに戻る
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -105,6 +105,13 @@ export default function Page() {
             </button>
           </div>
         </form>
+
+        <Link
+          href="/"
+          className="text-center block mt-6 text-sm text-gray-700 hover:underline"
+          >
+            ホームに戻る
+          </Link>
       </div>
     </div>
   );
