@@ -1,4 +1,4 @@
-import { supabase } from "@/src/utils/supabase";
+import { supabase } from "@/utils/supabase";
 import { Session } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
