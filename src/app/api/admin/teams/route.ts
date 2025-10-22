@@ -18,12 +18,12 @@ export const GET = async (request: NextRequest) => {
   try {
     const teams = await prisma.team.findMany({
       where: { adminId },
-      select: { teamName: true },
+      select: { id:true, teamName: true },
       orderBy: { teamName: 'asc' },
     });
     const teamNames = teams.map((t: { teamName: string; }) => t.teamName);
 
-    return NextResponse.json({ status: 'OK', teamNames } satisfies TeamsListResponse, { status: 200 });
+    return NextResponse.json({ status: 'OK', teams } satisfies TeamsListResponse, { status: 200 });
   } catch (e: unknown) {
     if (e instanceof Error)
       return NextResponse.json({ status: e.message }, { status: 400 });

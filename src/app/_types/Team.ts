@@ -3,5 +3,4 @@ export interface Team {
   teamName: string;
   teamCode: string;
   memberCount: number;
-  adminId: number;
 }

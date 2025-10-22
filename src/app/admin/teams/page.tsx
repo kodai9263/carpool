@@ -3,14 +3,15 @@
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Team } from "@/app/_types/Team";
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { Users, ChevronRight } from "lucide-react";
+import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 
 export default function Page() {
   const { data, error, isLoading } = useFetch("/api/admin/teams");
 
   const teams = data?.teams || [];
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
 
   return (
@@ -30,11 +31,22 @@ export default function Page() {
           {teams.map((team: Team) => {
             return (
               <div key={team.id} className="flex justify-between items-center border-t border-[#5d9b94] pt-3">
-                <div className="flex items-center gap-2">
-                  <Users size={28} className="text-2xl" />
-                  <Link href={`/admin/teams/${team.id}`} className="text-lg font-medium">{team.teamName}</Link>
-                  <Link href={`/admin/teams/${team.id}/rides`} className="text-[#2f6f68] font-medium hover:underline">配車一覧</Link>
+                <div className="flex justify-between items-center gap-2">
+                  <Users size={28} className="text-2xl mr-8" />
+                  <Link 
+                    href={`/admin/teams/${team.id}`} 
+                    className="text-lg font-medium"
+                  >
+                    {team.teamName}
+                  </Link>
                 </div>
+                <Link 
+                  href={`/admin/teams/${team.id}/rides`}
+                  className="flex items-center gap-1 text-[#2f6f68] font-medium hover:underline"
+                >
+                  配車一覧
+                  <ChevronRight size={20} />
+                </Link>
               </div>
             )
           })}
