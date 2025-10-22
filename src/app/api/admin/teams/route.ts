@@ -34,7 +34,6 @@ export const GET = async (request: NextRequest) => {
 interface CreateTeamRequestBody {
   teamName: string;
   teamCode: string;
-  adminId: number;
 };
 
 // チーム作成
@@ -53,7 +52,7 @@ export const POST = async (request: NextRequest) => {
       return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
     }
 
-    const { teamName, teamCode, adminId } = body as Partial<CreateTeamRequestBody>;
+    const { teamName, teamCode } = body as Partial<CreateTeamRequestBody>;
 
     const name = teamName?.trim();
     const code = teamCode?.trim();

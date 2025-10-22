@@ -1,8 +1,8 @@
 'use client';
 
 import Link from "next/link";
-import { supabase } from "@/src/utils/supabase";
-import { Home, Car, User, Users, LogOut } from 'lucide-react';
+import { supabase } from "@/utils/supabase"; 
+import { Home, Car, User, Users, LogOut } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const handleLogout = async () => {

@@ -15,7 +15,8 @@
     "next": "14.2.16",
     "react": "^18",
     "react-dom": "^18",
-    "react-hook-form": "^7.65.0"
+    "react-hook-form": "^7.65.0",
+    "swr": "^2.3.6"
   },
   "devDependencies": {
     "@types/node": "^20",

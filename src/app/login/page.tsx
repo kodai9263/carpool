@@ -28,7 +28,7 @@ export default function Page() {
         alert('ログインに失敗しました。')
         console.error(error.message);
       } else {
-        router.replace("/admin/top") //TODO 管理者トップ作成
+        router.replace("/admin/teams")
       }
     } catch (e: unknown) {
       if (e instanceof Error) {
