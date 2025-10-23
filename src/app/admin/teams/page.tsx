@@ -5,11 +5,19 @@ import { Team } from "@/app/_types/Team";
 import Link from "next/link";
 import { Users, ChevronRight } from "lucide-react";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
+import { useMemo, useState } from "react";
+import PaginationNav from "@/app/_components/PaginationNav";
 
 export default function Page() {
-  const { data, error, isLoading } = useFetch("/api/admin/teams");
+  const [page, setPage] = useState(1);
+  const perPage = 5;
 
-  const teams = data?.teams || [];
+  // ページ番号が押されたときだけレンダリングしたいので、useMemoを使用
+  const url = useMemo(() => `/api/admin/teams?page=${page}&perPage=${perPage}`, [page, perPage]);
+  const { data, error, isLoading } = useFetch(url);
+
+  const teams = (data?.teams || []) as Team[];
+  const totalPages = data?.totalPages || 1;
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
@@ -50,6 +58,16 @@ export default function Page() {
               </div>
             )
           })}
+        </div>
+
+        <div className="mt-10">
+          {totalPages > 1 && (
+          <PaginationNav 
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        )}
         </div>
       </div>
     </div>

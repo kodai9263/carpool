@@ -1,6 +1,10 @@
 export interface TeamsListResponse {
   status: 'OK';
   teams: { id: number; teamName: string }[];
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface CreateTeamResponse {

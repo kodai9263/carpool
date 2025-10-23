@@ -31,7 +31,7 @@ export default function TeamForm() {
       }
 
       const { id } = await res.json();
-      router.push(`/admin/teams/${id}`);
+      router.push(`/admin/teams/`);
       alert('チームを作成しました。');
     } catch (e: unknown) {
       console.log(e);
