@@ -31,10 +31,10 @@ export default function TeamForm() {
       }
 
       const { id } = await res.json();
-      router.push(`/admin/teams/`);
+      router.push(`/admin/teams/${id}/rides`);
       alert('チームを作成しました。');
     } catch (e: unknown) {
-      console.log(e);
+      console.error(e);
       alert('作成中にエラーが発生しました。');
     } finally {
       setDisable(false);

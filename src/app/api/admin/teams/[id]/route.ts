@@ -42,6 +42,7 @@ export const GET = async (
 
 interface UpdateTeamBody {
   teamName: string;
+  teamCode: string;
 }
 
 // チーム更新(自分のチームのみ)
@@ -65,13 +66,14 @@ export const PUT = async (
 
   const body = await request.json().catch(() => null) as Partial<UpdateTeamBody> | null;
   const name = body?.teamName?.trim();
+  const code = body?.teamCode?.trim();
   if (!name) return NextResponse.json({ status: "チーム名は必須です" }, { status: 400 });
 
   try {
     const team = await prisma.team.update({
       where: { id: teamId, adminId },
-      data: { teamName: name },
-      select: { id: true, teamName: true, memberCount: true, adminId: true },
+      data: { teamName: name, teamCode: code },
+      select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true },
     });
     return NextResponse.json({ status: 'OK', message: '更新しました', team }, { status: 200 });
   } catch (e: any) {
