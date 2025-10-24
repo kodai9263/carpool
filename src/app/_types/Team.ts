@@ -4,3 +4,7 @@ export interface Team {
   teamCode: string;
   memberCount: number;
 }
+export interface TeamFormValues {
+  teamName: string;
+  teamCode: string;
+}

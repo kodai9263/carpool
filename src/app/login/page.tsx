@@ -3,21 +3,15 @@
 import { supabase } from "@/utils/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function Page() {
-  const { register, handleSubmit } = useForm({
-    defaultValues: {
-      email: '',
-      password: ''
-    }
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm({
+    defaultValues: { email: '', password: '' }
   });
-  const [disable, setDisable] = useState(false);
   const router = useRouter();
 
   const onSubmit = async (data: { email: string; password: string}) => {
-    setDisable(true);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -31,14 +25,9 @@ export default function Page() {
         router.replace("/admin/teams")
       }
     } catch (e: unknown) {
-      if (e instanceof Error) {
-      console.error('予期せぬエラー', e.message);
-      } else {
-        console.error('予期せぬエラー', e);
-      }
-      alert('通信エラーが発生しました。時間をおいて再度お試しください。');
-    } finally {
-      setDisable(false);
+      const message = e instanceof Error ? e.message : '通信エラーが発生しました。';
+      alert(message);
+      console.error(e);
     }
   }  
 
@@ -63,7 +52,7 @@ export default function Page() {
               id="email"
               className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
               placeholder="example@mail.com"
-              disabled={disable}
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -82,7 +71,7 @@ export default function Page() {
               id="password"
               placeholder="•••••••"
               className="w-full rounded-lg px-4 py-2 border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
-              disabled={disable}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -98,10 +87,10 @@ export default function Page() {
           <div>
             <button
               type="submit"
-              disabled={disable}
+              disabled={isSubmitting}
               className="w-full bg-teal-700 text-white py-2 px-4 rounded-md hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
             >
-              {disable ? 'ログイン中...' : 'ログイン'}
+              {isSubmitting ? 'ログイン中...' : 'ログイン'}
             </button>
           </div>
         </form>
