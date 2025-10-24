@@ -16,14 +16,30 @@ export const GET = async (request: NextRequest) => {
   if (!adminId) return NextResponse.json({ status: "権限がありません" }, { status: 401 });
 
   try {
-    const teams = await prisma.team.findMany({
-      where: { adminId },
-      select: { teamName: true },
-      orderBy: { teamName: 'asc' },
-    });
-    const teamNames = teams.map((t: { teamName: string; }) => t.teamName);
+    const { searchParams } = new URL(request.url); // URL解析
+    const p = Number(searchParams.get("page")); // ページ番号取得
+    const pp = Number(searchParams.get("perPage")); // 件数取得
+    const page = Number.isFinite(p) && p > 0 ? Math.floor(p) : 1; // ページ番号検証
+    const perPage = Number.isFinite(pp) && pp > 0 ? Math.min(50, Math.floor(pp)) : 5; // 件数検証
+    const skip = (page - 1) * perPage; // DBクエリ用スキップ
 
-    return NextResponse.json({ status: 'OK', teamNames } satisfies TeamsListResponse, { status: 200 });
+    const [total, teams] = await Promise.all([
+      prisma.team.count({ where: { adminId } }),
+      prisma.team.findMany({
+        where: { adminId },
+        select: { id: true, teamName: true },
+        orderBy: { teamName: 'asc'},
+        skip,
+        take: perPage,
+      }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    
+    return NextResponse.json(
+      { status: "OK", teams, page, perPage, total, totalPages } satisfies TeamsListResponse,
+      { status: 200 }
+    );
   } catch (e: unknown) {
     if (e instanceof Error)
       return NextResponse.json({ status: e.message }, { status: 400 });
@@ -34,7 +50,6 @@ export const GET = async (request: NextRequest) => {
 interface CreateTeamRequestBody {
   teamName: string;
   teamCode: string;
-  adminId: number;
 };
 
 // チーム作成
@@ -53,7 +68,7 @@ export const POST = async (request: NextRequest) => {
       return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
     }
 
-    const { teamName, teamCode, adminId } = body as Partial<CreateTeamRequestBody>;
+    const { teamName, teamCode } = body as Partial<CreateTeamRequestBody>;
 
     const name = teamName?.trim();
     const code = teamCode?.trim();
