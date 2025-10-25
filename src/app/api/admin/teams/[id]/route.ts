@@ -1,6 +1,5 @@
 
 import { TeamResponse } from "@/app/_types/response";
-import { checkAuth, getAuthAdminId } from "@/utils/auth";
 import { withAuthTeam } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
