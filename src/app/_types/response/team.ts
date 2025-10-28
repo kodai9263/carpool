@@ -23,3 +23,15 @@ export interface TeamResponse {
     adminId: number;
   }
 }
+
+export interface UpdateTeamResponse {
+  status: 'OK';
+  message: string;
+  team: {
+    id: number;
+    teamName: string;
+    teamCode: string;
+    memberCount: number;
+    adminId: number;
+  }
+}

@@ -1,6 +1,6 @@
 
-import { TeamResponse } from "@/app/_types/response";
-import { withAuthTeam } from "@/utils/withAuth";
+import { TeamResponse, UpdateTeamResponse } from "@/app/_types/response/team"; 
+import { withAuthEntry } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 // チーム詳細取得(自分のチームのみ)
 export const GET = (request: NextRequest, ctx: { params: { id: string } }) =>
-  withAuthTeam(request, async ({ adminId, teamId }) => {
+  withAuthEntry(request, async ({ adminId, teamId }) => {
     try {
       const team = await prisma.team.findFirst({
         where: { id: teamId, adminId },
@@ -19,10 +19,10 @@ export const GET = (request: NextRequest, ctx: { params: { id: string } }) =>
       if (!team) return NextResponse.json({ status: "not found" }, { status: 404});
       return NextResponse.json({ status: "OK", team } satisfies TeamResponse, { status: 200 });
     } catch (e: any) {
-      console.error("GET /api/admin/teams/[id] error", e);
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
+
 interface UpdateTeamBody {
   teamName: string;
   teamCode: string;
@@ -30,7 +30,7 @@ interface UpdateTeamBody {
 
 // チーム更新(自分のチームのみ)
 export const PUT = (request: NextRequest, ctx: { params: { id: string } }) =>
-  withAuthTeam(request, async ({ adminId, teamId }) => {
+  withAuthEntry(request, async ({ adminId, teamId }) => {
     const body = await request.json().catch(() => null) as Partial<UpdateTeamBody> | null;
     const name = body?.teamName?.trim();
     const code = body?.teamCode?.trim();
@@ -42,27 +42,27 @@ export const PUT = (request: NextRequest, ctx: { params: { id: string } }) =>
         data: { teamName: name, teamCode: code },
         select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true },
       });
-      return NextResponse.json({ status: 'OK', message: '更新しました', team }, { status: 200 });
+      return NextResponse.json({ status: 'OK', message: '更新しました', team } satisfies UpdateTeamResponse, { status: 200 });
     } catch (e: any) {
-      if (e?.code === "P2025") 
+      if (e?.code === "P2025") {
         return NextResponse.json({ status: "not found" }, { status: 404 });
-      console.error("PUT /api/admin/teams/[id] error", e);
+      }
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
 
 // チーム削除(自分のチームのみ)
 export const DELETE = (request: NextRequest, ctx: { params: { id: string } }) =>
-  withAuthTeam(request, async ({ adminId, teamId }) => {
+  withAuthEntry(request, async ({ adminId, teamId }) => {
     try {
       await prisma.team.deleteMany({
         where: { id: teamId, adminId },
       });
       return NextResponse.json({ status: 'OK', message: '削除しました' }, { status: 200 });
-    } catch (e:any) {
-      if (e?.code === "P2025")
+    } catch (e: any) {
+      if (e?.code === "P2025") {
         return NextResponse.json({ status: "not found"}, { status: 400 });
-      console.error("DELETE /api/admin/teams/[id] error", e);
+      }
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
