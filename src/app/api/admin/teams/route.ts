@@ -54,15 +54,15 @@ export const POST = (request: NextRequest) => {
   return withAuth(request, async (adminId) => {
     try {
       // リクエストボディを取得
-      const body = await request.json().catch(() => null) as Partial<CreateTeamRequestBody> | null;
+      const body = await request.json().catch(() => null) as CreateTeamRequestBody | null;
       if (!body) {
         return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
       }
 
-      const { teamName, teamCode } = body as Partial<CreateTeamRequestBody>;
+      const { teamName, teamCode } = body as CreateTeamRequestBody;
 
-      const name = teamName?.trim();
-      const code = teamCode?.trim();
+      const name = teamName.trim();
+      const code = teamCode.trim();
 
       if (!name || !code) {
         return NextResponse.json({ status: "チーム名とチームIDは必須です" }, { status: 400 });

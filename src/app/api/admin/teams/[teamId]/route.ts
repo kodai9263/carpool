@@ -31,9 +31,12 @@ interface UpdateTeamBody {
 // チーム更新(自分のチームのみ)
 export const PUT = (request: NextRequest, ctx: { params: { id: string } }) =>
   withAuthEntry(request, async ({ adminId, teamId }) => {
-    const body = await request.json().catch(() => null) as Partial<UpdateTeamBody> | null;
-    const name = body?.teamName?.trim();
-    const code = body?.teamCode?.trim();
+    const body = await request.json().catch(() => null) as UpdateTeamBody | null;
+    if (!body) {
+      return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
+    }
+    const name = body.teamName.trim();
+    const code = body.teamCode.trim();
     if (!name) return NextResponse.json({ status: "チーム名は必須です" }, { status: 400 });
 
     try {
@@ -44,7 +47,7 @@ export const PUT = (request: NextRequest, ctx: { params: { id: string } }) =>
       });
       return NextResponse.json({ status: 'OK', message: '更新しました', team } satisfies UpdateTeamResponse, { status: 200 });
     } catch (e: any) {
-      if (e?.code === "P2025") {
+      if (e.code === "P2025") {
         return NextResponse.json({ status: "not found" }, { status: 404 });
       }
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
@@ -60,7 +63,7 @@ export const DELETE = (request: NextRequest, ctx: { params: { id: string } }) =>
       });
       return NextResponse.json({ status: 'OK', message: '削除しました' }, { status: 200 });
     } catch (e: any) {
-      if (e?.code === "P2025") {
+      if (e.code === "P2025") {
         return NextResponse.json({ status: "not found"}, { status: 400 });
       }
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });

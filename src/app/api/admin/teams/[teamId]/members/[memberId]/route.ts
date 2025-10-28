@@ -30,15 +30,18 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
   // メンバー更新(自分のチームのみ)
   export const PUT = (request: NextRequest, ctx: { params: { teamId: string; memberId: string } }) =>
     withAdminTeamMember(request, async({ adminId, teamId, memberId }) => {
-      const body = await request.json().catch(() => null) as Partial<UpdateMemberBody> | null;
-      const memberName = body?.memberName?.trim();
+      const body = await request.json().catch(() => null) as UpdateMemberBody | null;
+      if (!body) {
+        return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
+      }
+      const memberName = body.memberName.trim();
       if (!memberName) return NextResponse.json({ status: "名前は入力してください"}, { status: 400 });
 
       let children: string[] | null = null;
 
-      if (Array.isArray(body?.children)) {
+      if (Array.isArray(body.children)) {
         const cleaned = body.children
-          .map((c) => c?.childName?.trim())
+          .map((c) => c.childName.trim())
           .filter((name): name is string => !!name);
 
         children = [...new Set(cleaned)];
@@ -113,7 +116,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           });
           return NextResponse.json({ status: 'OK', message: '削除しました' }, { status: 200 });
         } catch (e: any) {
-          if (e?.code === "P2025") {
+          if (e.code === "P2025") {
             return NextResponse.json({ status: "not found"}, { status: 400 });
           }
           return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });

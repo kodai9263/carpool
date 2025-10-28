@@ -55,19 +55,17 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
   export const POST = (request: NextRequest, ctx: {params: { teamId: string }}) =>
     withAuthTeam(request, async({ adminId, teamId }) => {
       try {
-        const body = await request.json().catch(() => null) as Partial<CreateMemberRequestBody> | null;
+        const body = await request.json().catch(() => null) as CreateMemberRequestBody | null;
         if (!body) {
           return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
         }
-        const { memberName, children } = body as Partial<CreateMemberRequestBody>;
-
-        const name = body.memberName?.trim();
+        const name = body.memberName.trim();
         if (!name) {
           return NextResponse.json({ status: "メンバー名が必須です" }, { status: 400 });
         }
 
         // 子供のデータが配列か確認
-        let rawChildren: { id?: number; childName?: string }[] = [];
+        let rawChildren: { id: number; childName: string }[] = [];
         if (Array.isArray(body.children)) {
           rawChildren = body.children;
         }
