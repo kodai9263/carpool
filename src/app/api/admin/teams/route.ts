@@ -1,5 +1,5 @@
 
-import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response"; 
+import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/team"; 
 import { withAuth } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
 // チーム一覧取得
-export const GET = async (request: NextRequest) => {
+export const GET = (request: NextRequest) => {
   return withAuth(request, async (adminId) => {
     try {
       const { searchParams } = new URL(request.url); // URL解析
@@ -50,19 +50,19 @@ interface CreateTeamRequestBody {
 };
 
 // チーム作成
-export const POST = async (request: NextRequest) => {
+export const POST = (request: NextRequest) => {
   return withAuth(request, async (adminId) => {
     try {
       // リクエストボディを取得
-      const body = await request.json().catch(() => null) as Partial<CreateTeamRequestBody> | null;
+      const body = await request.json().catch(() => null) as CreateTeamRequestBody | null;
       if (!body) {
         return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
       }
 
-      const { teamName, teamCode } = body as Partial<CreateTeamRequestBody>;
+      const { teamName, teamCode } = body as CreateTeamRequestBody;
 
-      const name = teamName?.trim();
-      const code = teamCode?.trim();
+      const name = teamName.trim();
+      const code = teamCode.trim();
 
       if (!name || !code) {
         return NextResponse.json({ status: "チーム名とチームIDは必須です" }, { status: 400 });
@@ -83,7 +83,7 @@ export const POST = async (request: NextRequest) => {
       });
 
       return NextResponse.json(
-        { status: 'OK', message: '作成しました', id: data.id } satisfies CreateTeamResponse,
+        { status: "OK", message: "作成しました", id: data.id } satisfies CreateTeamResponse,
         { status: 201 }
       );
     } catch (e: any) {
