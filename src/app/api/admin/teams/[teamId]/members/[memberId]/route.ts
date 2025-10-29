@@ -38,14 +38,12 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
       if (!memberName) return NextResponse.json({ status: "名前は入力してください"}, { status: 400 });
 
       let children: string[] | null = null;
+      
+      const cleaned = body.children
+        .map((c) => c.childName.trim())
+        .filter((name): name is string => !!name);
 
-      if (Array.isArray(body.children)) {
-        const cleaned = body.children
-          .map((c) => c.childName.trim())
-          .filter((name): name is string => !!name);
-
-        children = [...new Set(cleaned)];
-      }
+      children = [...new Set(cleaned)];
 
       try {
         const member = await prisma.$transaction(async (tx) => {

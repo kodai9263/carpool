@@ -1,4 +1,3 @@
-
 import { TeamResponse, UpdateTeamResponse } from "@/app/_types/response/team"; 
 import { withAuthEntry } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
