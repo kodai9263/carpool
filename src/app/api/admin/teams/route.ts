@@ -1,4 +1,3 @@
-
 import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/team"; 
 import { withAuth } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
