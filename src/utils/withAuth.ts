@@ -45,7 +45,7 @@ export async function withAuthEntry(
 export async function withAuthTeam(
   request: NextRequest,
   handler: (ctx: { adminId: number; teamId: number }) => Promise<NextResponse>,
-  { params } : { params: { id: string } }
+  { params } : { params: { teamId: string } }
 ): Promise<NextResponse> {
   const authError = await checkAuth(request);
   if (authError) return authError;
@@ -55,7 +55,7 @@ export async function withAuthTeam(
     return NextResponse.json({ status: "権限がありません" }, { status: 401 })
   }
 
-  const teamId = Number(params.id);
+  const teamId = Number(params.teamId);
   if (!Number.isInteger(teamId)) {
     return NextResponse.json({ status: "IDが正しくありません"}, { status: 400 });
   }

@@ -42,13 +42,13 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   },
-  { params: { id: ctx.params.teamId } }
+  ctx
 );
 
   // メンバー作成のリグエストボディの型
   interface CreateMemberRequestBody {
     memberName: string;
-    children: { id: number, childName: string }[];
+    children: { childName: string }[];
   };
 
   // メンバー作成
@@ -65,7 +65,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         }
 
         // 子供のデータが配列か確認
-        let rawChildren: { id: number; childName: string }[] = [];
+        let rawChildren: { childName: string }[] = [];
         if (Array.isArray(body.children)) {
           rawChildren = body.children;
         }
@@ -121,5 +121,5 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
       }
     },
-    { params: { id: ctx.params.teamId } }
+    ctx
   );

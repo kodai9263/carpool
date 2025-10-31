@@ -32,7 +32,7 @@ export default function TeamForm() {
     }
   };
 
-  return(
+  return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
         <label 
