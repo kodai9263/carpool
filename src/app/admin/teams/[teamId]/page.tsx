@@ -14,11 +14,11 @@ export default function Page() {
     defaultValues: { teamName: '', teamCode: '' }
   });
   
-  const { id } = useParams();
+  const { teamId } = useParams<{ teamId?: string }>();
   const router = useRouter();
   const { token } = useSupabaseSession();
 
-  const { data, error, isLoading } = useFetch(`/api/admin/teams/${id}`);
+  const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}`);
   const memberCount = data?.team?.memberCount ?? 0;
 
   // 既存内容を表示
@@ -36,7 +36,7 @@ export default function Page() {
     // チーム情報更新
     try {
       await api.put(
-        `/api/admin/teams/${id}`, 
+        `/api/admin/teams/${teamId}`, 
         { teamName: data.teamName, teamCode: data.teamCode },
         token,
       );
@@ -54,7 +54,7 @@ export default function Page() {
     if (!token) return;
 
     try {
-      await api.delete(`/api/admin/teams/${id}`, token);
+      await api.delete(`/api/admin/teams/${teamId}`, token);
 
       alert('チームを削除しました。');
 

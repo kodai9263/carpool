@@ -10,10 +10,9 @@ import PaginationNav from "@/app/_components/PaginationNav";
 
 export default function Page() {
   const [page, setPage] = useState(1);
-  const perPage = 5;
 
   // ページ番号が押されたときだけレンダリングしたいので、useMemoを使用
-  const url = useMemo(() => `/api/admin/teams?page=${page}&perPage=${perPage}`, [page, perPage]);
+  const url = useMemo(() => `/api/admin/teams?page=${page}`,[page]);
   const { data, error, isLoading } = useFetch(url);
 
   const teams = (data?.teams || []) as Team[];
