@@ -59,7 +59,7 @@ export default function MemberForm() {
         <input 
           type="text"
           id="name"
-          className="w-[290px] rounded-lg px-4 py-2  border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
+          className="w-[265px] rounded-lg px-4 py-2  border-none bg-white/70 focus:ring-2 focus:ring-[#356963]"
           {...register("name", { required: true })}
           disabled={isSubmitting}
         />
@@ -82,7 +82,7 @@ export default function MemberForm() {
               <button 
                 type="button"
                 onClick={() => remove(index)}
-                className="text-gray-600 hover:text-red-400 transition"
+                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
               >
                 <X size={24} />
               </button>
@@ -90,11 +90,11 @@ export default function MemberForm() {
           ))}
         </div>
 
-        <div className="flex justify-center mt-3">
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => append({ name: '' })}
-            className="bg-white hover:bg-[#356963] hover:text-white transition ml-[-28px]"
+            className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition mt-4"
           >
             <Plus size={24} />
           </button>

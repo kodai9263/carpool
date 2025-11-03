@@ -43,11 +43,11 @@ export default function Page() {
               {members.map((member: Member) => {
                 return (
                   <div key={member.id} className="flex justify-between items-center border-t border-[#5d9b94] pt-3">
-                    <div className="flex justify-between items-center gap-2">
-                      <User size={28} className="text-2xl mr-8" />
+                    <div className="flex w-full items-center gap-2">
+                      <User size={28} className="text-2xl" />
                       <Link 
                         href={`/admin/teams/${teamId}/members/${member.id}`} 
-                        className="text-lg font-medium"
+                        className="flex-1 text-center text-lg font-medium"
                       >
                         {member.name}
                       </Link>

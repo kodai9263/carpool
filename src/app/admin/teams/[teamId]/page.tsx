@@ -30,7 +30,7 @@ export default function Page() {
     });
   },[data]);
 
-  const onSubmit = async (data: TeamFormValues) =>{
+  const onSubmit = async (data: TeamFormValues) => {
     if (!token) return;
 
     // チーム情報更新

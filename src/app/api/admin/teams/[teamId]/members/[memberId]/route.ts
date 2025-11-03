@@ -12,8 +12,14 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
   withAdminTeamMember(request, async({ adminId, teamId, memberId }) => {
     try {
       const member = await prisma.member.findFirst({
-      where: { id: memberId, teamId },
-      select: { id: true, name: true },
+        where: { id: memberId, teamId },
+        select: { 
+          id: true,
+          name: true,
+          children: {
+            select: { id: true, name: true },
+          }
+        },
       });
       if (!member) return NextResponse.json({ status: "not found" }, { status: 404 });
       return NextResponse.json({ status: "OK", member } satisfies MemberResponse, { status: 200 });
