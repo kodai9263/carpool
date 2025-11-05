@@ -1,5 +1,6 @@
 'use client';
 
+import { FormButton } from "@/app/_components/Formbutton";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/Member";
 import { api } from "@/utils/api";
@@ -101,15 +102,11 @@ export default function MemberForm() {
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-[120px] bg-teal-700 text-white mt-4 py-2 px-4 rounded-md hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors ml-[-28px]"
-        >
-          {isSubmitting ? '登録中...' : '登録'}
-        </button>
-      </div>
+      <FormButton
+        label="登録"
+        loadingLabel="登録中..."
+        isSubmitting={isSubmitting}
+      />
     </form>
   )
 }

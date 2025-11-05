@@ -1,5 +1,6 @@
 'use client';
 
+import { FormButton } from "@/app/_components/Formbutton";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { TeamFormValues } from "@/app/_types/Team";
 import { api } from "@/utils/api";
@@ -65,15 +66,11 @@ export default function TeamForm() {
         />
       </div>
 
-      <div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-teal-700 text-white mt-4 py-2 px-4 rounded-md hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
-        >
-          {isSubmitting ? '登録中...' : '登録'}
-        </button>
-      </div>
+      <FormButton 
+        label="登録"
+        loadingLabel="登録中..."
+        isSubmitting={isSubmitting}
+      />
     </form>
   );
 }

@@ -7,6 +7,7 @@ import { Users, ChevronRight } from "lucide-react";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useMemo, useState } from "react";
 import PaginationNav from "@/app/_components/PaginationNav";
+import { NewButton } from "./_components/NewButton";
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -26,12 +27,9 @@ export default function Page() {
       <div className="w-[380px] p-6 rounded-md shadow-lg">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-center flex-1 -ml-6">チーム一覧</h1>
-          <Link 
+          <NewButton 
             href="/admin/teams/new"
-            className="bg-[#2f6f68] text-white px-4 py-2 rounded-lg hover:bg-[#2a5f5a]"
-          >
-            ＋ 新規作成
-          </Link>
+          />
         </div>
 
         <div className="space-y-3">

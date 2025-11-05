@@ -8,6 +8,7 @@ import { api } from "@/utils/api";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { UpdateDeleteButtons } from "../_components/UpdateDeleteButtons";
 
 export default function Page() {
   const  { register, handleSubmit, formState: { isSubmitting }, reset } = useForm<TeamFormValues>({
@@ -97,23 +98,11 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="flex gap-6 mt-8">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-green-700 text-white px-8 py-2 mx-4 rounded-lg hover:bg-green-800 transition"
-          >
-            {isSubmitting ? '更新中...' : '編集'}
-          </button>
-          <button 
-            type="button"
-            onClick={handleDeleteTeam}
-            disabled={isSubmitting}
-            className="bg-red-600 text-white px-8 py-2 mx-4 rounded-lg hover:bg-red-700 transition"
-          >
-            削除
-          </button>
-        </div>
+        <UpdateDeleteButtons
+          onUpdate={handleSubmit(onSubmit)}
+          onDelete={handleDeleteTeam}
+          isSubmitting={isSubmitting}
+        />
       </form>
     </div>
   );
