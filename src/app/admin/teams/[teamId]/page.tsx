@@ -9,6 +9,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { UpdateDeleteButtons } from "../_components/UpdateDeleteButtons";
+import { EditInput } from "../_components/EditInput";
 
 export default function Page() {
   const  { register, handleSubmit, formState: { isSubmitting }, reset } = useForm<TeamFormValues>({
@@ -74,24 +75,22 @@ export default function Page() {
       <h1 className="text-3xl font-bold mb-8 mt-10">チーム詳細</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center space-y-8">
         <div className="bg-white p-6 rounded-xl shadow-md w-[400px] space-y-8">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold whitespace-nowrap">チーム名</h2>
-            <input 
-              type="text"
-              className="border border-gray-400 rounded px-2 py-1 mt-1 w-full text-center"
-              {...register("teamName", { required: true })}
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold whitespace-nowrap">チームID</h2>
-            <input 
-              type="text"
-              className="border border-gray-400 rounded px-2 py-1 mt-1 w-full text-center"
-              {...register("teamCode", { required: true })}
-              disabled={isSubmitting}
-            />
-          </div>
+          <EditInput
+            label="チーム名"
+            name="teamName"
+            disabled={isSubmitting}
+            register={register}
+            rules={{ required: true }}
+          />
+
+          <EditInput
+            label="チームID"
+            name="teamCode"
+            disabled={isSubmitting}
+            register={register}
+            rules={{ required: true }}
+          />
+
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-bold">メンバー数</h2>
             <p className="mt-1 font-bold text-center flex-1">{memberCount}人</p>

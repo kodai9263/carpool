@@ -10,6 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
+import { EditInput } from "../../../_components/EditInput";
 
 export default function Page() {
   const  { register, handleSubmit, formState: { isSubmitting }, reset, control } = useForm<MemberFormValues>({
@@ -91,24 +92,23 @@ export default function Page() {
       <h1 className="text-3xl font-bold mb-8 mt-10">メンバー詳細</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center space-y-886">
         <div className="bg-white p-6 rounded-xl shadow-md w-[400px] space-y-8">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold whitespace-nowrap">大人 名前</h2>
-            <input 
-              type="text"
-              className="border border-gray-400 rounded px-2 py-1 mt-1 w-[188px] ml-[16px] text-center"
-              {...register("name", {required: true })}
-              disabled={isSubmitting}
-            />
-          </div>
+          <EditInput 
+            label="大人 名前"
+            name="name"
+            disabled={isSubmitting}
+            register={register}
+            rules={{ required: true }}
+            className="w-[187px] ml-[16px]"
+          />
 
           {fields.map((child, index) => (
-            <div key={child.id} className="flex items-center gap-3">
-              <h2 className="text-lg font-bold whitespace-nowrap">子供 名前 {index + 1}</h2>
-              <input 
-                type="text"
-                className="border border-gray-400 rounded px-2 py-1 mt-1 w-full text-center"
-                {...register(`children.${index}.name`)}
-                disabled={isSubmitting}/>
+            <EditInput 
+              key={child.id}
+              label={`子供 名前 ${index + 1}`}
+              name={`children.${index}.name`}
+              register={register}
+              disabled={isSubmitting}
+              right={
                 <button
                   type="button"
                   onClick={() => remove(index)}
@@ -117,7 +117,8 @@ export default function Page() {
                 >
                   <X size={24} />
                 </button>
-            </div>
+              }
+            />
           ))}
         
           <div className="flex justify-end">
