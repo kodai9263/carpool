@@ -48,10 +48,8 @@ export default function MemberForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <FormInput 
         label="メンバー名（保護者 or 指導者）"
-        name="name"
         disabled={isSubmitting}
-        register={register}
-        rules={{ required: "メンバー名を入力してください。"}}
+        {...register("name", { required: "メンバー名を入力してください。"})}
         className="w-[265px]"/>
       
       <div>

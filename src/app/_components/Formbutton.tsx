@@ -1,3 +1,5 @@
+'use client';
+
 import { ComponentProps } from "react";
 
 interface FormButtonProps extends ComponentProps<'button'> {
@@ -10,6 +12,7 @@ export const FormButton: React.FC<FormButtonProps> = ({
   label,
   loadingLabel = "送信中...",
   isSubmitting = false,
+  type = "submit",
   ...props
 }) => {
   return (

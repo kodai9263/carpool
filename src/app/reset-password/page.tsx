@@ -76,33 +76,27 @@ export default function Page() {
           {phase === "request" ? (
             <FormInput
               label="メールアドレス"
-              name="email"
               type="email"
               placeholder="example@mail.com"
               disabled={isSubmitting}
-              register={register}
-              rules={{ required: "メールアドレスは必須です。" }}
+              {...register("email", { required: "メールアドレスは必須です。" })}
               />
           ) : (
             <div className="space-y-4">
               <FormInput 
                 label="新しいパスワード"
-                name="password"
                 type="password"
                 placeholder="••••••••"
                 disabled={isSubmitting}
-                register={register}
-                rules={{ required: "パスワードを入力してください。" }}
+                {...register("password", { required: "パスワードを入力してください。" })}
               />
 
               <FormInput 
                 label="パスワード(確認)"
-                name="confirmPassword"
                 type="password"
                 placeholder="••••••••"
                 disabled={isSubmitting}
-                register={register}
-                rules={{ required: "確認用のパスワードを入力してください。" }}
+                {...register("confirmPassword", { required: "確認用のパスワードを入力してください。" })}
               />
             </div>
             

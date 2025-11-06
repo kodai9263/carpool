@@ -40,22 +40,18 @@ export default function Page() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <FormInput 
             label="メールアドレス"
-            name="email"
             type="email"
             placeholder="example@mail.com"
             disabled={isSubmitting}
-            register={register}
-            rules={{ required: "メールアドレスは必須です。" }}
+            {...register("email", { required: "メールアドレスは必須です。" })}
           />
 
           <FormInput 
             label="パスワード"
-            name="password"
             type="password"
             placeholder="••••••••"
             disabled={isSubmitting}
-            register={register}
-            rules={{ required: "パスワードを入力してください。" }}
+            {...register("password", { required: "パスワードを入力してください。" })}
           />
 
           <div className="text-center">

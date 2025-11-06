@@ -77,18 +77,14 @@ export default function Page() {
         <div className="bg-white p-6 rounded-xl shadow-md w-[400px] space-y-8">
           <EditInput
             label="チーム名"
-            name="teamName"
             disabled={isSubmitting}
-            register={register}
-            rules={{ required: true }}
+            {...register("teamName", { required: true })}
           />
 
           <EditInput
             label="チームID"
-            name="teamCode"
             disabled={isSubmitting}
-            register={register}
-            rules={{ required: true }}
+            {...register("teamCode", { required: true })}
           />
 
           <div className="flex items-center gap-3">

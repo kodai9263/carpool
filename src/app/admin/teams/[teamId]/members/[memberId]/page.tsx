@@ -90,10 +90,8 @@ export default function Page() {
         <div className="bg-white p-6 rounded-xl shadow-md w-[400px] space-y-8">
           <EditInput 
             label="大人 名前"
-            name="name"
             disabled={isSubmitting}
-            register={register}
-            rules={{ required: true }}
+            {...register("name", { required: true })}
             className="w-[187px] ml-[16px]"
           />
 
@@ -101,8 +99,7 @@ export default function Page() {
             <EditInput 
               key={child.id}
               label={`子供 名前 ${index + 1}`}
-              name={`children.${index}.name`}
-              register={register}
+              {...register(`children.${index}.name`, { required: true })}
               disabled={isSubmitting}
               right={
                 <button

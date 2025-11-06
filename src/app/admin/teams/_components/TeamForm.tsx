@@ -38,18 +38,14 @@ export default function TeamForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <FormInput
         label="チームID"
-        name="teamCode"
         disabled={isSubmitting}
-        register={register}
-        rules={{ required: "チームIDを入力してください。" }}
+        {...register("teamCode", { required: "チームIDを入力してください。" })}
       />
 
       <FormInput
         label="チーム名"
-        name="teamName"
         disabled={isSubmitting}
-        register={register}
-        rules={{ required: "チーム名を入力してください。" }}
+        {...register("teamName", { required: "チーム名を入力してください。" })}
       />
 
       <FormButton 
