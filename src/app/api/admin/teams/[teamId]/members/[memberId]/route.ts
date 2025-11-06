@@ -1,3 +1,4 @@
+import { MemberFormValues } from "@/app/_types/Member";
 import { MemberResponse, UpdateMemberResponse } from "@/app/_types/response/member";
 import { withAdminTeamMember } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
@@ -12,8 +13,14 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
   withAdminTeamMember(request, async({ adminId, teamId, memberId }) => {
     try {
       const member = await prisma.member.findFirst({
-      where: { id: memberId, teamId },
-      select: { id: true, name: true },
+        where: { id: memberId, teamId },
+        select: { 
+          id: true,
+          name: true,
+          children: {
+            select: { id: true, name: true },
+          }
+        },
       });
       if (!member) return NextResponse.json({ status: "not found" }, { status: 404 });
       return NextResponse.json({ status: "OK", member } satisfies MemberResponse, { status: 200 });
@@ -22,25 +29,20 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
     }
   }, ctx);
 
-  interface UpdateMemberBody {
-    memberName: string;
-    children: { childName: string; }[];
-  }
-
   // メンバー更新(自分のチームのみ)
   export const PUT = (request: NextRequest, ctx: { params: { teamId: string; memberId: string } }) =>
     withAdminTeamMember(request, async({ adminId, teamId, memberId }) => {
-      const body = await request.json().catch(() => null) as UpdateMemberBody | null;
+      const body = await request.json().catch(() => null) as MemberFormValues | null;
       if (!body) {
         return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
       }
-      const memberName = body.memberName.trim();
+      const memberName = body.name.trim();
       if (!memberName) return NextResponse.json({ status: "名前は入力してください"}, { status: 400 });
 
       let children: string[] | null = null;
       
       const cleaned = body.children
-        .map((c) => c.childName.trim())
+        .map((c) => c.name.trim())
         .filter((name): name is string => !!name);
 
       children = [...new Set(cleaned)];

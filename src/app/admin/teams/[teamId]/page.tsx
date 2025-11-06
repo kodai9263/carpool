@@ -8,17 +8,19 @@ import { api } from "@/utils/api";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { UpdateDeleteButtons } from "../_components/UpdateDeleteButtons";
+import { EditInput } from "../_components/EditInput";
 
 export default function Page() {
   const  { register, handleSubmit, formState: { isSubmitting }, reset } = useForm<TeamFormValues>({
     defaultValues: { teamName: '', teamCode: '' }
   });
   
-  const { id } = useParams();
+  const { teamId } = useParams<{ teamId?: string }>();
   const router = useRouter();
   const { token } = useSupabaseSession();
 
-  const { data, error, isLoading } = useFetch(`/api/admin/teams/${id}`);
+  const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}`);
   const memberCount = data?.team?.memberCount ?? 0;
 
   // 既存内容を表示
@@ -30,14 +32,14 @@ export default function Page() {
     });
   },[data]);
 
-  const onSubmit = async (data: TeamFormValues) =>{
+  const onSubmit = async (data: TeamFormValues) => {
     if (!token) return;
 
     // チーム情報更新
     try {
-      await api.put(
-        `/api/admin/teams/${id}`, 
-        { teamName: data.teamName, teamCode: data.teamCode },
+      await api.put<TeamFormValues>(
+        `/api/admin/teams/${teamId}`, 
+        data,
         token,
       );
 
@@ -54,7 +56,7 @@ export default function Page() {
     if (!token) return;
 
     try {
-      await api.delete(`/api/admin/teams/${id}`, token);
+      await api.delete(`/api/admin/teams/${teamId}`, token);
 
       alert('チームを削除しました。');
 
@@ -73,47 +75,29 @@ export default function Page() {
       <h1 className="text-3xl font-bold mb-8 mt-10">チーム詳細</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center space-y-8">
         <div className="bg-white p-6 rounded-xl shadow-md w-[400px] space-y-8">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold whitespace-nowrap">チーム名</h2>
-            <input 
-              type="text"
-              className="border border-gray-400 rounded px-2 py-1 mt-1 w-full text-center"
-              {...register("teamName", { required: true })}
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold whitespace-nowrap">チームID</h2>
-            <input 
-              type="text"
-              className="border border-gray-400 rounded px-2 py-1 mt-1 w-full text-center"
-              {...register("teamCode", { required: true })}
-              disabled={isSubmitting}
-            />
-          </div>
+          <EditInput
+            label="チーム名"
+            disabled={isSubmitting}
+            {...register("teamName", { required: true })}
+          />
+
+          <EditInput
+            label="チームID"
+            disabled={isSubmitting}
+            {...register("teamCode", { required: true })}
+          />
+
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-bold">メンバー数</h2>
             <p className="mt-1 font-bold text-center flex-1">{memberCount}人</p>
           </div>
         </div>
 
-        <div className="flex gap-6 mt-8">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-green-700 text-white px-8 py-2 mx-4 rounded-lg hover:bg-green-800 transition"
-          >
-            {isSubmitting ? '更新中...' : '編集'}
-          </button>
-          <button 
-            type="button"
-            onClick={handleDeleteTeam}
-            disabled={isSubmitting}
-            className="bg-red-600 text-white px-8 py-2 mx-4 rounded-lg hover:bg-red-700 transition"
-          >
-            削除
-          </button>
-        </div>
+        <UpdateDeleteButtons
+          onUpdate={handleSubmit(onSubmit)}
+          onDelete={handleDeleteTeam}
+          isSubmitting={isSubmitting}
+        />
       </form>
     </div>
   );

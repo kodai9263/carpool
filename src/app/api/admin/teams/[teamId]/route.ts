@@ -1,4 +1,5 @@
 import { TeamResponse, UpdateTeamResponse } from "@/app/_types/response/team"; 
+import { TeamFormValues } from "@/app/_types/Team";
 import { withAuthEntry } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,7 +9,7 @@ const prisma = new PrismaClient();
 export const runtime = "nodejs";
 
 // チーム詳細取得(自分のチームのみ)
-export const GET = (request: NextRequest, ctx: { params: { id: string } }) =>
+export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =>
   withAuthEntry(request, async ({ adminId, teamId }) => {
     try {
       const team = await prisma.team.findFirst({
@@ -22,15 +23,10 @@ export const GET = (request: NextRequest, ctx: { params: { id: string } }) =>
     }
   }, ctx);
 
-interface UpdateTeamBody {
-  teamName: string;
-  teamCode: string;
-}
-
 // チーム更新(自分のチームのみ)
-export const PUT = (request: NextRequest, ctx: { params: { id: string } }) =>
+export const PUT = (request: NextRequest, ctx: { params: { teamId: string } }) =>
   withAuthEntry(request, async ({ adminId, teamId }) => {
-    const body = await request.json().catch(() => null) as UpdateTeamBody | null;
+    const body = await request.json().catch(() => null) as TeamFormValues | null;
     if (!body) {
       return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
     }
@@ -54,7 +50,7 @@ export const PUT = (request: NextRequest, ctx: { params: { id: string } }) =>
   }, ctx);
 
 // チーム削除(自分のチームのみ)
-export const DELETE = (request: NextRequest, ctx: { params: { id: string } }) =>
+export const DELETE = (request: NextRequest, ctx: { params: { teamId: string } }) =>
   withAuthEntry(request, async ({ adminId, teamId }) => {
     try {
       await prisma.team.deleteMany({
