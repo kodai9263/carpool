@@ -30,14 +30,9 @@ export default function MemberForm() {
     if (!token) return;
 
     try {
-      await api.post(
+      await api.post<MemberFormValues>(
         `/api/admin/teams/${teamId}/members`,
-        { 
-          memberName: data.name,
-          children: data.children
-            // 子供欄が空欄ならスキップ
-            .filter((child) => child.name.trim() !== '')
-            .map((child) => ({ childName: child.name }))},
+        data,
         token,
       );
 

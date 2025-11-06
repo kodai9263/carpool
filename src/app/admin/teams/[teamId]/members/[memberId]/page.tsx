@@ -50,13 +50,9 @@ export default function Page() {
   
     // メンバー情報更新
     try {
-      await api.put(
+      await api.put<MemberFormValues>(
         `/api/admin/teams/${teamId}/members/${memberId}`,
-        { 
-          memberName: data.name,
-          children: data.children
-            .filter((child) => child.name.trim() !== '')
-            .map((child) => ({ childName: child.name }))},
+        data,
         token,
       );
 

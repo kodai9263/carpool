@@ -11,7 +11,7 @@ export const api = {
     return res.json();
   },
 
-  async post(url: string, body: unknown, token?: string) {
+  async post<TBody = unknown>(url: string, body: TBody, token?: string) {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -24,7 +24,7 @@ export const api = {
     return res.json();
   },
 
-  async put(url: string, body: unknown, token: string) {
+  async put<TBody = unknown>(url: string, body: TBody, token: string) {
     const res = await fetch(url, {
       method: 'PUT',
       headers: {

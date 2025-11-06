@@ -37,9 +37,9 @@ export default function Page() {
 
     // チーム情報更新
     try {
-      await api.put(
+      await api.put<TeamFormValues>(
         `/api/admin/teams/${teamId}`, 
-        { teamName: data.teamName, teamCode: data.teamCode },
+        data,
         token,
       );
 

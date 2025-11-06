@@ -20,9 +20,9 @@ export default function TeamForm() {
     if (!token) return;
 
     try {
-      const { id } = await api.post(
+      const { id } = await api.post<TeamFormValues>(
         '/api/admin/teams',
-        { teamName: data.teamName, teamCode: data.teamCode },
+        data,
         token,
       );
 

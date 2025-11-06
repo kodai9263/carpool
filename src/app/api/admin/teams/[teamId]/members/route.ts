@@ -1,3 +1,4 @@
+import { MemberFormValues } from "@/app/_types/Member";
 import { CreateMemberResponse, MemberListResponse, UpdateMemberResponse } from "@/app/_types/response/member";
 import { withAuthTeam } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
@@ -45,35 +46,29 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
   ctx
 );
 
-  // メンバー作成のリグエストボディの型
-  interface CreateMemberRequestBody {
-    memberName: string;
-    children: { childName: string }[];
-  };
-
   // メンバー作成
   export const POST = (request: NextRequest, ctx: {params: { teamId: string }}) =>
     withAuthTeam(request, async({ adminId, teamId }) => {
       try {
-        const body = await request.json().catch(() => null) as CreateMemberRequestBody | null;
+        const body = await request.json().catch(() => null) as MemberFormValues | null;
         if (!body) {
           return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
         }
-        const name = body.memberName.trim();
+        const name = body.name.trim();
         if (!name) {
           return NextResponse.json({ status: "メンバー名が必須です" }, { status: 400 });
         }
 
         // 子供のデータが配列か確認
-        let rawChildren: { childName: string }[] = [];
+        let rawChildren: { name: string }[] = [];
         if (Array.isArray(body.children)) {
           rawChildren = body.children;
         }
 
         // 子供の名前を取り出す
         const trimmedNames = rawChildren.map((child) => {
-          if (!child || typeof child.childName !== 'string') return null;
-          return child.childName.trim();
+          if (!child || typeof child.name !== 'string') return null;
+          return child.name.trim();
         });
 
         // 空文字 nullを除外

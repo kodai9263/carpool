@@ -1,4 +1,5 @@
 import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/team"; 
+import { TeamFormValues } from "@/app/_types/Team";
 import { withAuth } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -42,23 +43,17 @@ export const GET = (request: NextRequest) => {
   });
 };
 
-// チーム作成のリクエストボディの型
-interface CreateTeamRequestBody {
-  teamName: string;
-  teamCode: string;
-};
-
 // チーム作成
 export const POST = (request: NextRequest) => {
   return withAuth(request, async (adminId) => {
     try {
       // リクエストボディを取得
-      const body = await request.json().catch(() => null) as CreateTeamRequestBody | null;
+      const body = await request.json().catch(() => null) as TeamFormValues | null;
       if (!body) {
         return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
       }
 
-      const { teamName, teamCode } = body as CreateTeamRequestBody;
+      const { teamName, teamCode } = body as TeamFormValues;
 
       const name = teamName.trim();
       const code = teamCode.trim();
