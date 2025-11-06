@@ -1,35 +1,30 @@
+import { ComponentProps } from "react";
 import { RegisterOptions, UseFormRegister } from "react-hook-form";
 
-interface Props {
+interface InputProps extends ComponentProps<'input'> {
   label: string;
   name: string;
-  type?: string;
-  disabled?: boolean;
   register: UseFormRegister<any>;
   rules?: RegisterOptions;
-  className?: string;
   right?: React.ReactNode;
 };
 
-export const EditInput: React.FC<Props> = ({
+export const EditInput: React.FC<InputProps> = ({
   label,
   name,
-  type = "text",
-  disabled,
   register,
   rules,
   className,
   right,
+  ...props
 }) => {
-  const widthClass = className ?? "w-full";
   return (
     <div className="flex items-center gap-3">
       <h2 className="text-lg font-bold whitespace-nowrap">{label}</h2>
       <input
+        {...props}
         {...register(name, rules)}
-        type={type}
-        disabled={disabled}
-        className={`${widthClass} border border-gray-400 rounded px-2 py-1 mt-1 text-center`}
+        className={`${className ?? "w-full"} border border-gray-400 rounded px-2 py-1 mt-1 text-center`}
       />
       {right}
     </div>
