@@ -1,5 +1,4 @@
 import { ComponentProps, forwardRef } from "react";
-import { RegisterOptions, UseFormRegister } from "react-hook-form";
 
 interface InputProps extends ComponentProps<'input'> {
   label: string;
@@ -7,10 +6,9 @@ interface InputProps extends ComponentProps<'input'> {
 };
 
 export const EditInput = forwardRef<HTMLInputElement, InputProps>(function EditInput(
-  { label, className, id, right, ...props },
+  { label, className, right, ...props },
   ref
 ) {
-  const inputId = id ?? (typeof props.name === 'string' ? props.name : undefined);
 
   return (
     <div className="flex items-center gap-3">
