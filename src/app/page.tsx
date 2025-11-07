@@ -16,7 +16,7 @@ export default function Home() {
       <div className="flex gap-6">
         <Link 
           href="/login"
-          className="inline-flex items-center justify-center h-12 px-8 rounded-lg bg-gray-300 text-gray-700 font-medium hover:opacity-80 transition"
+          className="inline-flex items-center justify-center h-12 px-8 mr-12 rounded-lg bg-gray-300 text-gray-700 font-medium hover:opacity-80 transition"
         >
           ログイン
         </Link>

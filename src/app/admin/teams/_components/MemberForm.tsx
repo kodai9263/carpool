@@ -92,6 +92,7 @@ export default function MemberForm() {
         label="登録"
         loadingLabel="登録中..."
         isSubmitting={isSubmitting}
+        className="mr-[32px]"
       />
     </form>
   )
