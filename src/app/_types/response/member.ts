@@ -14,7 +14,7 @@ export interface CreateMemberResponse {
   children: number;
 } 
 
-export interface MemberResponse {
+export interface MemberDetailResponse {
   status: 'OK';
   member: { id: number; name: string };
 }

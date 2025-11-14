@@ -101,3 +101,33 @@ export async function withAdminTeamMember(
 
   return handler({ adminId, teamId, memberId });
 }
+
+export async function withAdminTeamRide(
+  request: NextRequest,
+  handler: (ctx: { adminId: number; teamId: number; rideId: number }) => Promise<NextResponse>,
+  { params }: { params: { teamId: string; rideId: string } }
+): Promise<NextResponse> {
+  const authError = await checkAuth(request);
+  if (authError) return authError;
+
+  const adminId = await getAuthAdminId(request);
+  if (!adminId) {
+    return NextResponse.json({ status: "権限がありません" }, { status: 401 })
+  }
+
+  const teamId = Number(params.teamId);
+  const rideId = Number(params.rideId);
+  if (!Number.isInteger(teamId) || !Number.isInteger(rideId)) {
+    return NextResponse.json({ status: "IDが正しくありません" }, { status: 400 });
+  }
+
+  const owned = await prisma.team.findFirst({
+    where: { id: teamId, adminId },
+    select: { id: true },
+  });
+  if (!owned) {
+    return NextResponse.json({ status: "チームが見つかりません"}, { status: 404 });
+  }
+
+  return handler({ adminId, teamId, rideId });
+}

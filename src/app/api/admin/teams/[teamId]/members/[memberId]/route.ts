@@ -1,5 +1,5 @@
 import { MemberFormValues } from "@/app/_types/Member";
-import { MemberResponse, UpdateMemberResponse } from "@/app/_types/response/member";
+import { MemberDetailResponse, UpdateMemberResponse } from "@/app/_types/response/member";
 import { withAdminTeamMember } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -23,7 +23,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
         },
       });
       if (!member) return NextResponse.json({ status: "not found" }, { status: 404 });
-      return NextResponse.json({ status: "OK", member } satisfies MemberResponse, { status: 200 });
+      return NextResponse.json({ status: "OK", member } satisfies MemberDetailResponse, { status: 200 });
     } catch (e: any) {
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
@@ -99,7 +99,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
         });
 
         return NextResponse.json(
-          { status: 'OK', message: '更新しました', member } satisfies UpdateMemberResponse,
+          { status: "OK", message: "更新しました", member } satisfies UpdateMemberResponse,
           { status: 200 }
         );
       } catch (e: any) {
@@ -114,10 +114,10 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           await prisma.member.deleteMany({
             where: {id: memberId, teamId },
           });
-          return NextResponse.json({ status: 'OK', message: '削除しました' }, { status: 200 });
+          return NextResponse.json({ status: "OK", message: "削除しました" }, { status: 200 });
         } catch (e: any) {
           if (e.code === "P2025") {
-            return NextResponse.json({ status: "not found"}, { status: 400 });
+            return NextResponse.json({ status: "not found" }, { status: 400 });
           }
           return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
         }

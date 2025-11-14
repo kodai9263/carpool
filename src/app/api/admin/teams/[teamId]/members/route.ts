@@ -1,5 +1,5 @@
 import { MemberFormValues } from "@/app/_types/Member";
-import { CreateMemberResponse, MemberListResponse, UpdateMemberResponse } from "@/app/_types/response/member";
+import { CreateMemberResponse, MemberListResponse } from "@/app/_types/response/member";
 import { withAuthTeam } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -47,7 +47,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
 );
 
   // メンバー作成
-  export const POST = (request: NextRequest, ctx: {params: { teamId: string }}) =>
+  export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =>
     withAuthTeam(request, async({ adminId, teamId }) => {
       try {
         const body = await request.json().catch(() => null) as MemberFormValues | null;
