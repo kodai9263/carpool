@@ -1,4 +1,4 @@
-import { TeamResponse, UpdateTeamResponse } from "@/app/_types/response/team"; 
+import { TeamDetailResponse, UpdateTeamResponse } from "@/app/_types/response/team"; 
 import { TeamFormValues } from "@/app/_types/Team";
 import { withAuthEntry } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
@@ -17,7 +17,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true },
       });
       if (!team) return NextResponse.json({ status: "not found" }, { status: 404});
-      return NextResponse.json({ status: "OK", team } satisfies TeamResponse, { status: 200 });
+      return NextResponse.json({ status: "OK", team } satisfies TeamDetailResponse, { status: 200 });
     } catch (e: any) {
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }

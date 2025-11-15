@@ -13,7 +13,7 @@ export interface CreateTeamResponse {
   id: number;
 }
 
-export interface TeamResponse {
+export interface TeamDetailResponse {
   status: 'OK';
   team: {
     id: number;
