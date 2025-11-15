@@ -1,7 +1,7 @@
 'use client';
 
 import { useFetch } from "@/app/_hooks/useFetch";
-import { Team } from "@/app/_types/Team";
+import { Team } from "@/app/_types/team";
 import Link from "next/link";
 import { Users, ChevronRight } from "lucide-react";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";

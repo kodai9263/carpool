@@ -1,4 +1,4 @@
-import { MemberFormValues } from "@/app/_types/Member";
+import { MemberFormValues } from "@/app/_types/member";
 import { CreateMemberResponse, MemberListResponse } from "@/app/_types/response/member";
 import { withAuthTeam } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";

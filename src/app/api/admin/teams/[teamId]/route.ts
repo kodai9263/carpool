@@ -1,5 +1,5 @@
 import { TeamDetailResponse, UpdateTeamResponse } from "@/app/_types/response/team"; 
-import { TeamFormValues } from "@/app/_types/Team";
+import { TeamFormValues } from "@/app/_types/team";
 import { withAuthEntry } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";

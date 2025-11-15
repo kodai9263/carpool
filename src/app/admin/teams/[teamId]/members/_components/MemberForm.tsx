@@ -3,7 +3,7 @@
 import { FormButton } from "@/app/_components/Formbutton";
 import { FormInput } from "@/app/_components/FormInput";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { MemberFormValues } from "@/app/_types/Member";
+import { MemberFormValues } from "@/app/_types/member";
 import { api } from "@/utils/api";
 import { Plus, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";

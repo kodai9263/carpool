@@ -3,7 +3,7 @@
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { MemberFormValues } from "@/app/_types/Member";
+import { MemberFormValues } from "@/app/_types/member";
 import { api } from "@/utils/api";
 import { Plus, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";

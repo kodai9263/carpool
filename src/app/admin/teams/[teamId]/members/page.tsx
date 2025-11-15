@@ -3,7 +3,7 @@
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { useFetch } from "@/app/_hooks/useFetch";
-import { Member } from "@/app/_types/Member";
+import { Member } from "@/app/_types/member";
 import { ChevronRight, User } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
