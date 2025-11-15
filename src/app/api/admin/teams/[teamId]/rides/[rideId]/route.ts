@@ -1,5 +1,5 @@
-import { RideDetailResponse, UpdateRideResponse } from "@/app/_types/response/ride";
-import { UpdateRideValues } from "@/app/_types/ride";
+import { RideDetailResponse, UpdateRideResponse } from "@/app/_types/response/rideResponse";
+import { UpdateRideValues } from "@/app/_types/ride"; 
 import { withAdminTeamRide } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
