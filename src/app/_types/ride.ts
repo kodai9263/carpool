@@ -5,7 +5,7 @@ export interface Ride {
 }
 
 export interface RideFormValues {
-  date: string;
+  date: Date | null;
   destination: string;
 }
 

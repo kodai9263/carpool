@@ -25,3 +25,8 @@ body {
     text-wrap: balance;
   }
 }
+
+.react-datepicker__input-container .react-datepicker__calendar-icon {
+  right: 4px;
+  margin-top: 1px;
+}

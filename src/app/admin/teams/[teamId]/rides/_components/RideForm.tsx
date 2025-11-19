@@ -9,13 +9,14 @@ import { useForm } from "react-hook-form";
 import RideBasicForm from "./RideBasicForm";
 
 export default function RideForm() {
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<RideFormValues>({
-    defaultValues: { date: '', destination: '' },
+  const { register, handleSubmit, formState: { isSubmitting }, setValue, watch } = useForm<RideFormValues>({
+    defaultValues: { date: null, destination: '' },
   });
 
   const { teamId } = useParams<{ teamId: string }>();
   const { token } = useSupabaseSession();
   const router = useRouter();
+  const date = watch('date');
 
   const onSubmit = async (data: RideFormValues) => {
     if (!token) return;
@@ -37,7 +38,11 @@ export default function RideForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
-      <RideBasicForm register={register}/>
+      <RideBasicForm 
+        register={register}
+        setValue={setValue}
+        date={date}
+      />
 
       <FormButton 
         label="登録"

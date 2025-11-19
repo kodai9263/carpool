@@ -20,6 +20,7 @@ export default function DriverHeader({
   availabilityDrivers,
   onRemove,
 }: Props) {
+  
   return (
     <div className="">
       {/* 配車号削除ボタン */}

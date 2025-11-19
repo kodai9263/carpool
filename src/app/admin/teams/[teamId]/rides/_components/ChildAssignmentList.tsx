@@ -12,7 +12,10 @@ interface Props {
 };
 
 export default function ChildAssignmentList({
-  index, control, register, childrenList,
+  index,
+  control,
+  register,
+  childrenList,
 }: Props) {
   const { fields, append, remove, } = useFieldArray({
     control,
