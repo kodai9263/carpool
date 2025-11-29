@@ -23,17 +23,17 @@ model Admin {
 
 // チームテーブル
 model Team {
-  id                 Int      @id @default(autoincrement())
-  teamName           String
-  teamCode           String   @unique
-  memberCount        Int
-  adminId            Int
-  admin              Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  members            Member[]
-  rides              Ride[]
-  availabilityDriver AvailabilityDriver[]
+  id                  Int      @id @default(autoincrement())
+  teamName            String
+  teamCode            String   @unique
+  memberCount         Int
+  adminId             Int
+  admin               Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  members             Member[]
+  rides               Ride[]
+  availabilityDrivers AvailabilityDriver[]
 }
 
 // 保護者テーブル
@@ -70,6 +70,7 @@ model Ride {
   updatedAt           DateTime             @updatedAt
   rideAssignments     RideAssignment[]
   drivers             Driver[]
+  availabilityDrivers AvailabilityDriver[]
 }
 
 // 配車可能保護者テーブル
@@ -81,6 +82,8 @@ model AvailabilityDriver {
   member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
   teamId       Int
   team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  rideId       Int
+  ride         Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   driver       Driver[]
@@ -96,6 +99,8 @@ model Driver {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   rideAssignments      RideAssignment[]
+
+  @@unique([rideId, availabilityDriverId])
 }
 
 // 乗車子供テーブル
@@ -109,4 +114,6 @@ model RideAssignment {
   child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([driverId, childId])
 }

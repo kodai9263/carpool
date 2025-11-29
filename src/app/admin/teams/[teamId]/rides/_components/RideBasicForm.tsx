@@ -1,31 +1,34 @@
 'use client';
 
-import { RideFormValues } from "@/app/_types/ride";
 import { Calendar, MapPin } from "lucide-react";
-import { UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { FieldValues, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import { ja } from 'date-fns/locale/ja';
 import Holidays from 'japanese-holidays';
 
-interface RideProps {
-  register: UseFormRegister<RideFormValues>;
-  setValue: UseFormSetValue<RideFormValues>;
+interface RideProps<T extends FieldValues> {
+  register: UseFormRegister<T>;
+  setValue: UseFormSetValue<T>;
   date: Date | null;
 };
 
-export default function RideBasicForm({ register, setValue, date }: RideProps) {
+export default function RideBasicForm<T extends FieldValues>({
+  register,
+  setValue,
+  date
+}: RideProps<T>) {
   return (
-    <div className="px-10 py-8 rounded bg-white space-y-12 shadow-sm w-[480px] ml-[-72px]">
+    <div className="space-y-10">
         <div className="flex items-center space-x-6">
           <div className="w-10 flex justify-center"><Calendar size={28} /></div>
           <span className="w-20 text-xl">日付</span>
 
           <div className="flex-1">
-              <DatePicker 
+            <DatePicker 
               locale={ja}
               selected={date}
-              onChange={(value) => setValue("date", value as Date)}
+              onChange={(value) => setValue("date" as any, value as any)}
               minDate={new Date()}
               dayClassName={(date) => {
                 if (Holidays.isHoliday(date)) return "bg-red-100 text-red-600 rounded-full"
@@ -50,7 +53,7 @@ export default function RideBasicForm({ register, setValue, date }: RideProps) {
 
           <input
             type="text"
-            {...register("destination", { required: true })}
+            {...register("destination" as any, { required: true })}
             className="border border-gray-300 rounded px-3 py-3 flex-1"/>
         </div>
       </div>

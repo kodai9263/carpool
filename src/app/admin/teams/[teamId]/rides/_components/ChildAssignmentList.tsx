@@ -1,14 +1,22 @@
 'use client';
 
 import { UpdateRideValues } from "@/app/_types/ride";
-import { Minus, Plus, User } from "lucide-react";
-import { Control, useFieldArray, UseFormRegister } from "react-hook-form";
+import { useDuplicateChildren } from "@/app/admin/_hooks/useDuplicateChildren";
+import { useExcludeIds } from "@/app/admin/_hooks/useExcludeIds";
+import { useSyncRowsWithSeats } from "@/app/admin/_hooks/useSyncRowsWithSeats";
+import { Plus, User, X } from "lucide-react";
+import { Control, useFieldArray, UseFormRegister, useWatch } from "react-hook-form";
 
 interface Props {
   index: number;
   control: Control<UpdateRideValues>;
   register: UseFormRegister<UpdateRideValues>;
   childrenList: { id: number; name: string }[];
+  availabilityDrivers: {
+    id: number;
+    member: { id: number; name: string };
+    seats: number;
+  }[];
 };
 
 export default function ChildAssignmentList({
@@ -16,49 +24,121 @@ export default function ChildAssignmentList({
   control,
   register,
   childrenList,
+  availabilityDrivers,
 }: Props) {
-  const { fields, append, remove, } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: `drivers.${index}.rideAssignments`,
   });
 
+  // ドライバー選択を監視
+  const selectedDriverId = useWatch({ control, name: `drivers.${index}.availabilityDriverId` });
+
+  // 全ドライバーを監視
+  const allDrivers = useWatch({ control, name: "drivers" });
+  const currentAssignments = useWatch({ control, name: `drivers.${index}.rideAssignments` }) ?? [];
+
+  // 選択されたドライバーの座席数を取得
+  const selectedDriverSeats = availabilityDrivers.find((d) => d.id === selectedDriverId);
+  const seatCount = selectedDriverSeats?.seats ?? 0;
+
+  // ドライバー選択時に座席数分の行を自動追加
+  useSyncRowsWithSeats(selectedDriverId, seatCount, fields.length, append, remove, replace, currentAssignments);
+
+  // 乗車する子どもの数を増やせるかどうかの判定
+  const canAddAssignment = fields.length < seatCount;
+
+  // 他ドライバーが選んだchildIdの重複防止
+  const excluded = useExcludeIds(allDrivers, index, ["rideAssignments"]);
+
+  // 自ドライバーのchildIdの重複防止
+  const selfSelectedChildIds = new Set<number>(allDrivers?.[index]?.rideAssignments?.map((item) => item.childId) ?? []);
+
+  // 同じドライバーで重複している子供を検出
+  const duplicateChildren = useDuplicateChildren(currentAssignments, childrenList);
+
   return (
-    <div>
-      {fields.map((item, childIndex) =>(
-        <div key={item.id} className="">
-          <User size={18} />
-
-          <select 
-            {...register(`drivers.${index}.rideAssignments.${childIndex}.childId`,
-              { required: true, valueAsNumber: true }
-            )}
-            className=""
-          >
-            <option value="">選択</option>
-            {childrenList.map((child) => (
-              <option key={child.id} value={child.id}>
-                {child.name}
-              </option>
+    <div className="space-y-2">
+      {duplicateChildren.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded px-3 py-2 text-sm text-red-700">
+          <p className="font-semibold">同じ子供を複数選択しています</p>
+          <ul className="list-desc list-inside mt-1">
+            {duplicateChildren.map((name, index) => (
+              <li key={index}>{name}</li>
             ))}
-          </select>
-
-          <button
-            type="button"
-            onClick={() => remove(childIndex)}
-            className=""
-          >
-            <Minus size={20} />
-          </button>
+          </ul>
         </div>
-      ))}
+      )}
 
-      <button
-        type="button"
-        onClick={() => append({ childId: 0 })}
-        className=""
-      >
-        <Plus size={20} />
-      </button>
+      {fields.map((item, childIndex) => {
+        const currentChildId = currentAssignments[childIndex]?.childId;
+        // このセレクトボックスで選択されている子供が重複しているかチェック
+        const isDuplicate = currentChildId && currentChildId !== 0 && duplicateChildren.includes(
+          childrenList.find((c) => c.id === currentChildId)?.name ?? '',
+        );
+
+        return (
+          <div key={item.id} className="flex items-center bg-white p-2 rounded border border-gray-200">
+            <User size={18} className="text-gray-600 mr-1"/>
+
+            <select 
+              {...register(`drivers.${index}.rideAssignments.${childIndex}.childId`,
+                { valueAsNumber: true }
+              )}
+              className={`border rounded px-2 py-1 text-sm flex-1 w-full ${
+                isDuplicate ? "border-red-500 bg-red-50" : "border-gray-300"
+              }`}
+            >
+              <option value={0}></option>
+
+              {childrenList.map((child) => {
+                const isDisabled =
+                  excluded.has(child.id) && !selfSelectedChildIds.has(child.id);
+
+                return (
+                  <option 
+                    key={child.id}
+                    value={child.id}
+                    disabled={isDisabled}
+                    className={isDisabled ? "text-gray-400 bg-gray-100" : ""}
+                  >
+                    {child.name}
+                  </option>
+                );
+              })}
+            </select>
+
+            <button
+              type="button"
+              onClick={() => remove(childIndex)}
+              className="text-gray-500 hover:text-red-600 transition ml-2"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        );
+      })}
+
+      {selectedDriverId && seatCount > 0 ? (
+        <div className="mt-1">
+          {canAddAssignment ? (
+            <button
+              type="button"
+              onClick={() => append({ childId: 0 })}
+              className="flex items-center text-blue-600 hover:text-blue-700 transition mt-1"
+            >
+              <Plus size={20} />
+              <span className="bg-blue-50 border border-blue-200 rounded px-3 py-2 text-sm text-blue-700">
+                あと{seatCount - fields.length}人乗車できます
+              </span>
+            </button>
+          ) : (
+            <div className="text-center bg-yellow-50 border border-yellow-200 rounded px-3 py-2 text-sm text-yellow-700">
+              {seatCount}人まで乗車可能です
+            </div>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

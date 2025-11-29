@@ -28,7 +28,7 @@ export default function RideForm() {
         token,
       );
 
-      router.push(`admin/teams/${teamId}/rides`);
+      router.push(`/admin/teams/${teamId}/rides`);
       alert('配車を作成しました。');
     } catch (e: unknown) {
       console.error(e);
@@ -37,7 +37,8 @@ export default function RideForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
+    <div className="bg-white p-8 rounded-xl shadow-md w-[520px] ml-[-80px]">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
       <RideBasicForm 
         register={register}
         setValue={setValue}
@@ -50,5 +51,7 @@ export default function RideForm() {
         isSubmitting={isSubmitting}
       />
     </form>
+    </div>
+    
   );
 }

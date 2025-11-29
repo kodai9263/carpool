@@ -18,19 +18,42 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           id: true,
           date: true,
           destination: true,
+
           drivers: {
             select: {
               id: true,
+              availabilityDriverId:true,
               availabilityDriver: {
                 select: {
-                  member: { select: { id: true, name: true } },
-                  seats: true,
-                },
+                  member: { select: { id: true, name: true }}, 
+                  seats:true,
+                }
               },
               rideAssignments: {
                 select: {
                   id: true,
-                  child: { select: { id: true, name: true } },
+                  child: {
+                    select: { id: true, name: true },
+                  },
+                },
+              },
+            },
+          },
+
+          team: {
+            select: {
+              availabilityDrivers: {
+                select: {
+                  id: true,
+                  member: { select: { id: true, name: true } },
+                  seats: true,
+                },
+              },
+              members: {
+                select: {
+                  children: {
+                    select: { id: true, name: true },
+                  },
                 },
               },
             },
@@ -41,9 +64,13 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
       return NextResponse.json({
         status: "OK",
         ride: {
-          ...ride,
+          id: ride.id,
           date: ride.date.toISOString(),
-        },
+          destination: ride.destination,
+          drivers: ride.drivers,
+          availabilityDrivers: ride.team.availabilityDrivers,
+          children: ride.team.members.flatMap((m) => m.children),
+        }
       } satisfies RideDetailResponse, { status: 200 });
     } catch (e: any) {
       return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
@@ -71,11 +98,16 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           });
 
           // 既存のDriverとAssignmentを削除
-          await tx.rideAssignment.deleteMany({ where: { id: rideIdNum } });
-          await tx.driver.deleteMany({ where: { id: rideIdNum } });
+          await tx.rideAssignment.deleteMany({ where: { rideId: rideIdNum } });
+          await tx.driver.deleteMany({ where: { rideId: rideIdNum } });
 
           // 新しいDriverとAssignmentを作成
           for (const driver of body.drivers ?? []) {
+            await tx.availabilityDriver.update({
+              where: { id: driver.availabilityDriverId },
+              data: { rideId: rideIdNum},
+            });
+
             const newDriver = await tx.driver.create({
               data: {
                 rideId: rideIdNum,
@@ -84,14 +116,17 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             });
 
             // 子供割当作成
-            if (driver.rideAssignments.length > 0) {
-              await tx.rideAssignment.createMany({
-                data: driver.rideAssignments.map((child) => ({
-                  rideId: rideIdNum,
-                  driverId: newDriver.id,
-                  childId: child.childId,
-                })),
-              });
+            // childIdが0の場合はスキップ
+            const validAssignments = driver.rideAssignments.filter((child) => child.childId && child.childId !== 0);
+
+            if (validAssignments.length > 0) {
+              const assignment = validAssignments.map((child) => ({
+                rideId: rideIdNum,
+                driverId: newDriver.id,
+                childId: child.childId,
+              }));
+              
+              await tx.rideAssignment.createMany({ data: assignment });
             }
           }
         });
@@ -99,6 +134,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         return NextResponse.json(
           { status: "OK", message: "更新しました" } satisfies UpdateRideResponse, { status: 200 });
       } catch (e: any) {
+        console.error(e);
+        if (e.code === "P2002") return NextResponse.json({ status: "同じ子供を複数回選択しています" }, { status: 400 });
         return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
       }
   }, ctx);

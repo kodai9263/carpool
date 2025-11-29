@@ -10,7 +10,7 @@ export interface RideFormValues {
 }
 
 export interface UpdateRideValues {
-  date: string;
+  date: Date | null;
   destination: string;
   drivers: {
     availabilityDriverId: number;
