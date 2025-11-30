@@ -3,7 +3,7 @@
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { TeamFormValues } from "@/app/_types/Team";
+import { TeamFormValues } from "@/app/_types/team";
 import { api } from "@/utils/api";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";

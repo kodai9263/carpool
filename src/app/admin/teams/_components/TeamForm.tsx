@@ -3,7 +3,7 @@
 import { FormButton } from "@/app/_components/Formbutton";
 import { FormInput } from "@/app/_components/FormInput";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { TeamFormValues } from "@/app/_types/Team";
+import { TeamFormValues } from "@/app/_types/team";
 import { api } from "@/utils/api";
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form";

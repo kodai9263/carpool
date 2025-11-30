@@ -1,5 +1,5 @@
-import { MemberFormValues } from "@/app/_types/Member";
-import { MemberDetailResponse, UpdateMemberResponse } from "@/app/_types/response/member";
+import { MemberFormValues } from "@/app/_types/member"; 
+import { MemberDetailResponse, UpdateMemberResponse } from "@/app/_types/response/memberResponse";
 import { withAdminTeamMember } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
