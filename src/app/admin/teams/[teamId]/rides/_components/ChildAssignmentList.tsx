@@ -60,13 +60,8 @@ export default function ChildAssignmentList({
   return (
     <div className="space-y-2">
       {duplicateChildren.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded px-3 py-2 text-sm text-red-700">
-          <p className="font-semibold">同じ子供を複数選択しています</p>
-          <ul className="list-desc list-inside mt-1">
-            {duplicateChildren.map((name, index) => (
-              <li key={index}>{name}</li>
-            ))}
-          </ul>
+        <div className="bg-red-50 border border-red-200 rounded px-1 py-2 text-sm text-red-700">
+          <p className="font-semibold whitespace-nowrap">同じ子供を複数選択しています</p>
         </div>
       )}
 
