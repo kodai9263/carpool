@@ -22,11 +22,11 @@ export const convertRideDetailToFormValues = (ride: RideDetailAPI) : UpdateRideV
   return {
     date: ride.date ? new Date(ride.date) : null,
     destination: ride.destination,
-    drivers: (ride.drivers ?? []).map(d => ({
-      availabilityDriverId: d.availabilityDriverId,
-      seats: d.seats ?? 0,
-      rideAssignments: d.rideAssignments.map((a: { id: number; child: { id: number; name: string } }) => ({
-        childId: a.child.id,
+    drivers: (ride.drivers ?? []).map(driver => ({
+      availabilityDriverId: driver.availabilityDriverId,
+      seats: driver.seats ?? 0,
+      rideAssignments: driver.rideAssignments.map((rideAssignment: { id: number; child: { id: number; name: string } }) => ({
+        childId: rideAssignment.child.id,
       })),
     })),
   };

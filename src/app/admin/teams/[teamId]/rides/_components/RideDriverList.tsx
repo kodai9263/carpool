@@ -1,16 +1,14 @@
 'use client';
 
 import { UpdateRideValues } from "@/app/_types/ride";
-import { Control, FieldArrayWithId, useFieldArray, UseFormRegister } from "react-hook-form";
+import { Control, FieldArrayWithId, UseFormRegister } from "react-hook-form";
 import RideDriverItem from "./RideDriverItem";
 import { Plus } from "lucide-react";
-import { useMemo } from "react";
 
 interface Props {
   control: Control<UpdateRideValues>;
   register: UseFormRegister<UpdateRideValues>;
   drivers: FieldArrayWithId<UpdateRideValues, 'drivers', 'id'>[];
-  watchedDrivers?: UpdateRideValues['drivers']
   availabilityDrivers: {
     id: number;
     member: { id: number; name: string };
@@ -32,10 +30,7 @@ export default function RideDriverList({
 }: Props) {
 
   // 選択できるドライバーの合計数
-  const totalAvailableDrivers = useMemo(
-    () => availabilityDrivers.length,
-    [availabilityDrivers]
-  );
+  const totalAvailableDrivers = availabilityDrivers.length;
 
   // 現在フォーム上に存在するドライバー行数(選択済みかは関係なし)
   const currentDriverCount = drivers.length;
@@ -43,19 +38,19 @@ export default function RideDriverList({
   // 行数が追加可能かどうか
   const isDriverSlotAvailable =  currentDriverCount < totalAvailableDrivers;
 
+  const sharedItemProps = {
+    control,
+    register,
+    availabilityDrivers,
+    childrenList,
+    removeDriver,
+  };
+
   return (
     <div className="flex flex-col items-center space-y-6">
       <div className="grid grid-cols-3 gap-6">
         {drivers.map((driver, index) => (
-          <RideDriverItem
-            key={driver.id}
-            index={index}
-            control={control}
-            register={register}
-            availabilityDrivers={availabilityDrivers}
-            childrenList={childrenList}
-            removeDriver={removeDriver}       
-          />
+          <RideDriverItem key={driver.id} index={index} {...sharedItemProps}/>
         ))}
       </div>
 

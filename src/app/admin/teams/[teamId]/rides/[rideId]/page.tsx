@@ -21,6 +21,8 @@ export default function Page() {
     },
   });
 
+  const date = watch("date");
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "drivers",
@@ -34,15 +36,13 @@ export default function Page() {
 
   const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}/rides/${rideId}`);
 
-  const watchDrivers = watch('drivers');
-
   useEffect(() => {
     if (data?.ride) {
       const formValues = convertRideDetailToFormValues(data.ride);
       // 各ドライバーの空の行を削除
       formValues.drivers = formValues.drivers.map(driver => ({
         ...driver,
-        rideAssignments: driver.rideAssignments.filter(a => a.childId !== 0)
+        rideAssignments: driver.rideAssignments.filter(child => child.childId !== 0)
       }));
       reset(formValues);
     }
@@ -91,7 +91,7 @@ export default function Page() {
             <RideBasicForm
               register={register}
               setValue={setValue}
-              date={watch("date")}
+              date={date}
             />
           </div>
           
@@ -99,7 +99,6 @@ export default function Page() {
             control={control}
             register={register}
             drivers={fields}
-            watchedDrivers={watchDrivers}
             availabilityDrivers={data?.ride?.availabilityDrivers ?? []}
             childrenList={data?.ride?.children ?? []}
             appendDriver={() => append({ availabilityDriverId: 0, seats: 0, rideAssignments: [] })}
