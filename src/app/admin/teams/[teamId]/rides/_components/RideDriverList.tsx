@@ -43,14 +43,18 @@ export default function RideDriverList({
     register,
     availabilityDrivers,
     childrenList,
-    removeDriver,
   };
 
   return (
     <div className="flex flex-col items-center space-y-6">
       <div className="grid grid-cols-3 gap-6">
         {drivers.map((driver, index) => (
-          <RideDriverItem key={driver.id} index={index} {...sharedItemProps}/>
+          <RideDriverItem 
+            key={driver.id}
+            index={index} 
+            {...sharedItemProps}
+            removeDriver={removeDriver}
+          />
         ))}
       </div>
 
@@ -58,7 +62,7 @@ export default function RideDriverList({
         {isDriverSlotAvailable ? (
           <button
         type="button"
-        onClick={() => appendDriver()}
+        onClick={appendDriver}
         className="flex items-center"
       >
         <Plus size={20} />

@@ -5,6 +5,7 @@ import { useDuplicateChildren } from "@/app/admin/_hooks/useDuplicateChildren";
 import { useExcludeIds } from "@/app/admin/_hooks/useExcludeIds";
 import { useSyncRowsWithSeats } from "@/app/admin/_hooks/useSyncRowsWithSeats";
 import { Plus, User, X } from "lucide-react";
+import { useMemo } from "react";
 import { Control, useFieldArray, UseFormRegister, useWatch } from "react-hook-form";
 
 interface Props {
@@ -31,12 +32,24 @@ export default function ChildAssignmentList({
     name: `drivers.${index}.rideAssignments`,
   });
 
-  // ドライバー選択を監視
-  const selectedDriverId = useWatch({ control, name: `drivers.${index}.availabilityDriverId` });
+  // ドライバーの一括取得
+  const drivers = useWatch({ control, name: "drivers"}) ?? [];
+  const driver = drivers[index];
+  const currentAssignments = driver?.rideAssignments ?? [];
+  const selectedDriverId = driver?.availabilityDriverId ?? null;
 
-  // 全ドライバーを監視
-  const allDrivers = useWatch({ control, name: "drivers" });
-  const currentAssignments = useWatch({ control, name: `drivers.${index}.rideAssignments` }) ?? [];
+  const childNameMap = useMemo(() => {
+    const map = new Map<number, string>();
+    childrenList.forEach(({ id, name }) => map.set(id, name));
+    return map;
+  }, [childrenList]);
+
+  const selfSelectedChildIds = useMemo(() => {
+    const ids = currentAssignments 
+      .map((item) => item.childId)
+      .filter((childId): childId is number => !! childId);
+    return new Set(ids);
+  }, [currentAssignments]);
 
   // 選択されたドライバーの座席数を取得
   const selectedDriverSeats = availabilityDrivers.find((d) => d.id === selectedDriverId);
@@ -49,10 +62,7 @@ export default function ChildAssignmentList({
   const canAddAssignment = fields.length < seatCount;
 
   // 他ドライバーが選んだchildIdの重複防止
-  const excluded = useExcludeIds(allDrivers, index, ["rideAssignments"]);
-
-  // 自ドライバーのchildIdの重複防止
-  const selfSelectedChildIds = new Set<number>(allDrivers?.[index]?.rideAssignments?.map((item) => item.childId) ?? []);
+  const excluded = useExcludeIds(drivers, index, ["rideAssignments"]);
 
   // 同じドライバーで重複している子供を検出
   const duplicateChildren = useDuplicateChildren(currentAssignments, childrenList);
@@ -66,11 +76,10 @@ export default function ChildAssignmentList({
       )}
 
       {fields.map((item, childIndex) => {
-        const currentChildId = currentAssignments[childIndex]?.childId;
+        const currentChildId = currentAssignments[childIndex]?.childId ?? 0;
+        const childName = childNameMap.get(currentChildId);
         // このセレクトボックスで選択されている子供が重複しているかチェック
-        const isDuplicate = currentChildId && currentChildId !== 0 && duplicateChildren.includes(
-          childrenList.find((c) => c.id === currentChildId)?.name ?? '',
-        );
+        const isDuplicate = !!childName && duplicateChildren.includes(childName);
 
         return (
           <div key={item.id} className="flex items-center bg-white p-2 rounded border border-gray-200">
