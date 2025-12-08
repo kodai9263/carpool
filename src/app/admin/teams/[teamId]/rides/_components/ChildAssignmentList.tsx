@@ -1,7 +1,6 @@
 'use client';
 
 import { UpdateRideValues } from "@/app/_types/ride";
-import { useDuplicateChildren } from "@/app/admin/_hooks/useDuplicateChildren";
 import { useExcludeIds } from "@/app/admin/_hooks/useExcludeIds";
 import { useSyncRowsWithSeats } from "@/app/admin/_hooks/useSyncRowsWithSeats";
 import { Plus, User, X } from "lucide-react";
@@ -35,12 +34,6 @@ export default function ChildAssignmentList({
   const currentAssignments = driver?.rideAssignments ?? [];
   const selectedDriverId = driver?.availabilityDriverId ?? null;
 
-  const childNameMap = useMemo(() => {
-    const map = new Map<number, string>();
-    childrenList.forEach(({ id, name }) => map.set(id, name));
-    return map;
-  }, [childrenList]);
-
   const selfSelectedChildIds = useMemo(() => {
     const ids = currentAssignments 
       .map((item) => item.childId)
@@ -61,22 +54,10 @@ export default function ChildAssignmentList({
   // 他ドライバーが選んだchildIdの重複防止
   const excluded = useExcludeIds(drivers, index, ["rideAssignments"]);
 
-  // 同じドライバーで重複している子供を検出
-  const duplicateChildren = useDuplicateChildren(currentAssignments, childrenList);
-
   return (
-    <div className="space-y-2">
-      {duplicateChildren.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded px-1 py-2 text-sm text-red-700">
-          <p className="font-semibold whitespace-nowrap">同じ子供を複数選択しています</p>
-        </div>
-      )}
-
+    <div className="space-y-2">      
       {fields.map((item, childIndex) => {
         const currentChildId = currentAssignments[childIndex]?.childId ?? 0;
-        const childName = childNameMap.get(currentChildId);
-        // このセレクトボックスで選択されている子供が重複しているかチェック
-        const isDuplicate = !!childName && duplicateChildren.includes(childName);
 
         return (
           <div key={item.id} className="flex items-center bg-white p-2 rounded border border-gray-200">
@@ -86,15 +67,15 @@ export default function ChildAssignmentList({
               {...register(`drivers.${index}.rideAssignments.${childIndex}.childId`,
                 { valueAsNumber: true }
               )}
-              className={`border rounded px-2 py-1 text-sm flex-1 w-full ${
-                isDuplicate ? "border-red-500 bg-red-50" : "border-gray-300"
-              }`}
+              className="border rounded px-2 py-1 text-sm flex-1 w-full"
             >
               <option value={0}></option>
 
               {childrenList.map((child) => {
+                // 他ドライバーが選んだら無効化、同一ドライバー内で既に選択していたら無効化 
                 const isDisabled =
-                  excluded.has(child.id) && !selfSelectedChildIds.has(child.id);
+                  excluded.has(child.id) && !selfSelectedChildIds.has(child.id) ||
+                  (selfSelectedChildIds.has(child.id) && child.id !== currentChildId);
 
                 return (
                   <option 
