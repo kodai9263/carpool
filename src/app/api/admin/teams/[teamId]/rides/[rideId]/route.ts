@@ -12,54 +12,51 @@ export const runtime = "nodejs";
 export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
   withAdminTeamRide(request, async({ adminId, teamId, rideId }) => {
     try {
-      const ride = await prisma.ride.findFirst({
-        where: { id: rideId, teamId },
-        select: {
-          id: true,
-          date: true,
-          destination: true,
-
-          drivers: {
-            select: {
-              id: true,
-              availabilityDriverId:true,
-              availabilityDriver: {
-                select: {
-                  member: { select: { id: true, name: true }}, 
-                  seats:true,
-                }
+      const [ride, children] = await prisma.$transaction([
+        prisma.ride.findFirst({
+          where: { id: rideId, teamId },
+          select: {
+            id: true,
+            date: true,
+            destination: true,
+            drivers: {
+              select: {
+                id: true,
+                availabilityDriverId:true,
+                availabilityDriver: {
+                  select: {
+                    member: { select: { id: true, name: true } }, 
+                    seats:true,
+                  }
+                },
+                rideAssignments: {
+                  select: {
+                    id: true,
+                    child: { select: { id: true, name: true } },
+                  },
+                },
               },
-              rideAssignments: {
-                select: {
-                  id: true,
-                  child: {
-                    select: { id: true, name: true },
+            },
+            team: {
+              select: {
+                availabilityDrivers: {
+                  select: {
+                    id: true,
+                    member: { select: { id: true, name: true } },
+                    seats: true,
                   },
                 },
               },
             },
           },
-
-          team: {
-            select: {
-              availabilityDrivers: {
-                select: {
-                  id: true,
-                  member: { select: { id: true, name: true } },
-                  seats: true,
-                },
-              },
-              members: {
-                select: {
-                  children: {
-                    select: { id: true, name: true },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
+        }),
+        prisma.child.findMany({
+          where: { member: { teamId } },
+          select: { id: true, name: true, memberId: true },
+          distinct: ["id"],
+        }),
+      ]);
+      
       if (!ride) return NextResponse.json({ status: "not found" }, { status: 404 });
       return NextResponse.json({
         status: "OK",
@@ -69,7 +66,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           destination: ride.destination,
           drivers: ride.drivers,
           availabilityDrivers: ride.team.availabilityDrivers,
-          children: ride.team.members.flatMap((m) => m.children),
+          children,
         }
       } satisfies RideDetailResponse, { status: 200 });
     } catch (e: any) {

@@ -3,12 +3,10 @@
 import { UpdateRideValues } from "@/app/_types/ride";
 import { useExcludeIds } from "@/app/admin/_hooks/useExcludeIds"; 
 import { CarFront, X } from "lucide-react";
-import { Control, UseFormRegister, useWatch } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 
 interface Props {
   index: number;
-  register: UseFormRegister<UpdateRideValues>;
-  control: Control<UpdateRideValues>;
   availabilityDrivers: {
     id: number;
     member: { id: number; name: string };
@@ -18,11 +16,10 @@ interface Props {
 
 export default function DriverHeader({
   index,
-  register,
-  control,
   availabilityDrivers,
   onRemove,
 }: Props) {
+  const { control, register } = useFormContext<UpdateRideValues>();
 
   const watchedDrivers = useWatch({ control, name: "drivers"});
 

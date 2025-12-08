@@ -5,13 +5,14 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { RideFormValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
 import { useParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import RideBasicForm from "./RideBasicForm";
 
 export default function RideForm() {
-  const { register, handleSubmit, formState: { isSubmitting }, setValue, watch } = useForm<RideFormValues>({
+  const methods = useForm<RideFormValues>({
     defaultValues: { date: null, destination: '' },
   });
+  const { handleSubmit, formState: { isSubmitting }, setValue, watch } = methods;
 
   const { teamId } = useParams<{ teamId: string }>();
   const { token } = useSupabaseSession();
@@ -38,19 +39,16 @@ export default function RideForm() {
 
   return (
     <div className="bg-white p-8 rounded-xl shadow-md w-[520px] ml-[-80px]">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
-      <RideBasicForm 
-        register={register}
-        setValue={setValue}
-        date={date}
-      />
-
-      <FormButton 
-        label="登録"
-        loadingLabel="登録中..."
-        isSubmitting={isSubmitting}
-      />
-    </form>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
+          <RideBasicForm setValue={setValue} date={date} />
+          <FormButton 
+            label="登録"
+            loadingLabel="登録中..."
+            isSubmitting={isSubmitting}
+          />
+        </form>
+      </FormProvider>
     </div>
     
   );

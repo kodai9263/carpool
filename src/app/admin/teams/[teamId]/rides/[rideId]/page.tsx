@@ -7,19 +7,20 @@ import { UpdateRideValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import RideBasicForm from "../_components/RideBasicForm";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 
 export default function Page() {
-  const { register, handleSubmit, formState: { isSubmitting }, reset, setValue, watch, control } = useForm<UpdateRideValues>({
+  const methods = useForm<UpdateRideValues>({
     defaultValues: {
       destination: '',
       drivers: [],
     },
   });
+  const { handleSubmit, formState: { isSubmitting }, reset, setValue, watch, control } = methods;
 
   const date = watch("date");
 
@@ -85,33 +86,29 @@ export default function Page() {
   return (
     <div className="min-h-screen flex flex-col items-center py-10">
       <h1 className="text-3xl font-bold mb-8 mt-10">配車詳細</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center space-y-8">
-        <div className="p-6 rounded-xl w-[800px] shadow-md bg-white space-y-8">
-          <div className="flex justify-center">
-            <RideBasicForm
-              register={register}
-              setValue={setValue}
-              date={date}
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center space-y-8">
+          <div className="p-6 rounded-xl w-[800px] shadow-md bg-white space-y-8">
+            <div className="flex justify-center">
+              <RideBasicForm setValue={setValue} date={date} />
+            </div>
+          
+            <RideDriverList 
+              drivers={fields}
+              availabilityDrivers={data?.ride?.availabilityDrivers ?? []}
+              childrenList={data?.ride?.children ?? []}
+              appendDriver={() => append({ availabilityDriverId: 0, seats: 0, rideAssignments: [] })}
+              removeDriver={remove}
+            />
+
+            <UpdateDeleteButtons 
+              onUpdate={handleSubmit(onSubmit)}
+              onDelete={handleDeleteRide}
+              isSubmitting={isSubmitting}
             />
           </div>
-          
-          <RideDriverList 
-            control={control}
-            register={register}
-            drivers={fields}
-            availabilityDrivers={data?.ride?.availabilityDrivers ?? []}
-            childrenList={data?.ride?.children ?? []}
-            appendDriver={() => append({ availabilityDriverId: 0, seats: 0, rideAssignments: [] })}
-            removeDriver={remove}
-          />
-
-          <UpdateDeleteButtons 
-            onUpdate={handleSubmit(onSubmit)}
-            onDelete={handleDeleteRide}
-            isSubmitting={isSubmitting}
-          />
-        </div>
-      </form>
+        </form>
+      </FormProvider>
     </div>
   );
 }

@@ -6,12 +6,10 @@ import { useExcludeIds } from "@/app/admin/_hooks/useExcludeIds";
 import { useSyncRowsWithSeats } from "@/app/admin/_hooks/useSyncRowsWithSeats";
 import { Plus, User, X } from "lucide-react";
 import { useMemo } from "react";
-import { Control, useFieldArray, UseFormRegister, useWatch } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 interface Props {
   index: number;
-  control: Control<UpdateRideValues>;
-  register: UseFormRegister<UpdateRideValues>;
   childrenList: { id: number; name: string }[];
   availabilityDrivers: {
     id: number;
@@ -22,11 +20,10 @@ interface Props {
 
 export default function ChildAssignmentList({
   index,
-  control,
-  register,
   childrenList,
   availabilityDrivers,
 }: Props) {
+  const { control, register } = useFormContext<UpdateRideValues>();
   const { fields, append, remove, replace } = useFieldArray({
     control,
     name: `drivers.${index}.rideAssignments`,

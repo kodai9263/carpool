@@ -1,13 +1,11 @@
 'use client';
 
 import { UpdateRideValues } from "@/app/_types/ride";
-import { Control, FieldArrayWithId, UseFormRegister } from "react-hook-form";
+import { FieldArrayWithId, useFormContext, UseFormRegister } from "react-hook-form";
 import RideDriverItem from "./RideDriverItem";
 import { Plus } from "lucide-react";
 
 interface Props {
-  control: Control<UpdateRideValues>;
-  register: UseFormRegister<UpdateRideValues>;
   drivers: FieldArrayWithId<UpdateRideValues, 'drivers', 'id'>[];
   availabilityDrivers: {
     id: number;
@@ -20,14 +18,13 @@ interface Props {
 };
 
 export default function RideDriverList({
-  control,
-  register,
   drivers,
   availabilityDrivers,
   childrenList,
   removeDriver,
   appendDriver,
 }: Props) {
+  const { control, register } = useFormContext<UpdateRideValues>();
 
   // 選択できるドライバーの合計数
   const totalAvailableDrivers = availabilityDrivers.length;
@@ -73,7 +70,6 @@ export default function RideDriverList({
           {totalAvailableDrivers == 0 ? "候補のドライバーがいません" : `候補のドライバーがいません（${totalAvailableDrivers}人まで配車可能）`}
         </div>
         )}
-
       </div>
     </div>
   );
