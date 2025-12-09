@@ -2,9 +2,12 @@ import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/tea
 import { TeamFormValues } from "@/app/_types/team";
 import { withAuth } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
+
+export const runtime = "nodejs";
 
 // チーム一覧取得
 export const GET = (request: NextRequest) => {
@@ -48,22 +51,28 @@ export const POST = (request: NextRequest) => {
   return withAuth(request, async (adminId) => {
     try {
       // リクエストボディを取得
-      const body = await request.json().catch(() => null) as TeamFormValues | null;
+      const body = await request.json().catch(() => null) as (TeamFormValues & { pin?: string }) | null;
       if (!body) {
         return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
       }
 
-      const { teamName, teamCode } = body as TeamFormValues;
+      const { teamName, teamCode, pin } = body;
 
       const name = teamName.trim();
       const code = teamCode.trim();
+      const pinValue = pin?.trim();
 
       if (!name || !code) {
         return NextResponse.json({ status: "チーム名とチームIDは必須です" }, { status: 400 });
       }
+      if (!pinValue || pinValue.length < 4) {
+        return NextResponse.json({ status: "PINは4桁以上で入力してください" }, { status: 400 });
+      }
       if (!Number.isInteger(adminId)) {
         return NextResponse.json({ status: "IDが不正です" }, { status: 400});
       }
+
+      const viewPinHash = await bcrypt.hash(pinValue, 10);
 
       // チームをDBに生成
       const data = await prisma.team.create({
@@ -71,6 +80,7 @@ export const POST = (request: NextRequest) => {
           teamName: name,
           teamCode: code,
           memberCount: 0,
+          viewPinHash,
           admin: { connect: { id: adminId } },
         },
         select: { id: true, teamName: true, teamCode: true },
