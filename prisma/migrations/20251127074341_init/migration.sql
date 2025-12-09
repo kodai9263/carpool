@@ -61,8 +61,9 @@ CREATE TABLE "AvailabilityDriver" (
     "id" SERIAL NOT NULL,
     "availability" BOOLEAN NOT NULL DEFAULT false,
     "seats" INTEGER NOT NULL DEFAULT 0,
-    "rideId" INTEGER NOT NULL,
     "memberId" INTEGER NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "rideId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -102,7 +103,10 @@ CREATE UNIQUE INDEX "Admin_supabaseUid_key" ON "Admin"("supabaseUid");
 CREATE UNIQUE INDEX "Team_teamCode_key" ON "Team"("teamCode");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Driver_availabilityDriverId_key" ON "Driver"("availabilityDriverId");
+CREATE UNIQUE INDEX "Driver_rideId_availabilityDriverId_key" ON "Driver"("rideId", "availabilityDriverId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RideAssignment_driverId_childId_key" ON "RideAssignment"("driverId", "childId");
 
 -- AddForeignKey
 ALTER TABLE "Team" ADD CONSTRAINT "Team_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "Admin"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -117,10 +121,13 @@ ALTER TABLE "Child" ADD CONSTRAINT "Child_memberId_fkey" FOREIGN KEY ("memberId"
 ALTER TABLE "Ride" ADD CONSTRAINT "Ride_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AvailabilityDriver" ADD CONSTRAINT "AvailabilityDriver_rideId_fkey" FOREIGN KEY ("rideId") REFERENCES "Ride"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AvailabilityDriver" ADD CONSTRAINT "AvailabilityDriver_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "Member"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AvailabilityDriver" ADD CONSTRAINT "AvailabilityDriver_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "Member"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AvailabilityDriver" ADD CONSTRAINT "AvailabilityDriver_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AvailabilityDriver" ADD CONSTRAINT "AvailabilityDriver_rideId_fkey" FOREIGN KEY ("rideId") REFERENCES "Ride"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Driver" ADD CONSTRAINT "Driver_rideId_fkey" FOREIGN KEY ("rideId") REFERENCES "Ride"("id") ON DELETE CASCADE ON UPDATE CASCADE;

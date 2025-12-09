@@ -1,16 +1,16 @@
 export interface Ride {
   id: number;
-  date: Date;
+  date: string;
   destination: string;
 }
 
 export interface RideFormValues {
-  date: Date;
+  date: Date | null;
   destination: string;
 }
 
 export interface UpdateRideValues {
-  date: Date;
+  date: Date | null;
   destination: string;
   drivers: {
     availabilityDriverId: number;

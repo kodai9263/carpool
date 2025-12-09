@@ -70,12 +70,11 @@ export default function Page() {
 
     try {
       await api.delete(`/api/admin/teams/${teamId}/members/${memberId}`, token);
-
       alert('メンバーを削除しました。');
 
       router.replace(`/admin/teams/${teamId}/members`);
     } catch (e: unknown) {
-      console.log(e);
+      console.error(e);
       alert('削除中にエラーが発生しました。')
     }
   }

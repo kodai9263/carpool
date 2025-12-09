@@ -21,6 +21,7 @@ export interface RideDetailResponse {
     destination: string;
     drivers: {
       id: number;
+      availabilityDriverId: number;
       availabilityDriver: {
         member: { id: number; name: string };
         seats: number;
@@ -29,6 +30,16 @@ export interface RideDetailResponse {
         id: number;
         child: { id: number; name: string };
       }[];
+    }[];
+    availabilityDrivers: {
+      id: number;
+      seats: number;
+      member: { id: number; name: string };
+    }[];
+
+    children: {
+      id: number;
+      name: string;
     }[];
   };
 }
