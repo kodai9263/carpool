@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
+import { AvailabilityFormValues } from "@/app/_types/availability";
+import { AvailabilityResponse } from "@/app/_types/response/availabilityResponse";
 
 export const runtime = "nodejs";
 
@@ -9,7 +11,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const teamIdNum = Number(params.teamId);
   const rideIdNum = Number(params.rideId);
 
-  const body = await request.json().catch(() => null) as { memberId?: number; availability?: boolean; seats?: number } | null;
+  const body = await request.json().catch(() => null) as AvailabilityFormValues | null;
   const { memberId, availability, seats } = body ?? {};
 
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {
@@ -25,6 +27,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const ok = await bcrypt.compare(pin, team.viewPinHash);
   if (!ok) return NextResponse.json({ status: "配車閲覧コードが正しくありません" }, { status: 401 });
 
+  try {
   const data = await prisma.availabilityDriver.upsert({
     where: { rideId_memberId: { rideId: rideIdNum, memberId: memberId! } },
     update: {
@@ -42,5 +45,10 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
     select: { id: true, availability: true, seats: true, memberId: true, rideId: true },
   });
 
-  return NextResponse.json({ status: "OK", availabilityDriver: data }, { status: 200 });
-}
+    return NextResponse.json(
+      { status: "OK", message: "更新しました", availabilityDriver: data } satisfies AvailabilityResponse,
+      { status: 200 });
+  } catch (e: any) {
+    return NextResponse.json({ status: "サーバ内部でエラーが発生しました" }, { status: 500 });
+  }
+};

@@ -1,9 +1,9 @@
-export const runtime = "nodejs";
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
+
+export const runtime = "nodejs";
 
 export const GET = async (request: NextRequest, { params }: { params: { teamId: string; rideId: string } }) => {
   const pin = request.nextUrl.searchParams.get("pin");
