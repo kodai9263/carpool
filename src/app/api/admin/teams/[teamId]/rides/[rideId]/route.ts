@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 // 配車詳細取得(自分のチームのみ)
 export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
-  withAdminTeamRide(request, async({ adminId, teamId, rideId }) => {
+  withAdminTeamRide(request, async({ teamId, rideId }) => {
     try {
       const [ride, children] = await prisma.$transaction([
         prisma.ride.findFirst({
@@ -76,7 +76,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
 
   // 配車更新(自分のチームのみ)
   export const PUT = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
-    withAdminTeamRide(request, async({ adminId, teamId, rideId }) => {
+    withAdminTeamRide(request, async({ rideId }) => {
       const body = await request.json().catch(() => null) as UpdateRideValues | null;
 
       if (!body) return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
@@ -139,7 +139,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
 
   // 配車削除
 export const DELETE = (request: NextRequest, ctx: { params: {teamId: string; rideId: string } }) =>
-  withAdminTeamRide(request, async({ adminId, teamId, rideId }) => {
+  withAdminTeamRide(request, async({ teamId, rideId }) => {
     try {
       await prisma.ride.delete({
         where: {id: rideId, teamId },

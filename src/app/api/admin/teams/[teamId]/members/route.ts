@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 // メンバー一覧取得
 export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) => 
-  withAuthTeam(request, async({ adminId, teamId }) => {
+  withAuthTeam(request, async({ teamId }) => {
     try {
       const { searchParams } = new URL(request.url);
       const p = Number(searchParams.get("page"));
@@ -48,7 +48,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
 
   // メンバー作成
   export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =>
-    withAuthTeam(request, async({ adminId, teamId }) => {
+    withAuthTeam(request, async({ teamId }) => {
       try {
         const body = await request.json().catch(() => null) as MemberFormValues | null;
         if (!body) {
