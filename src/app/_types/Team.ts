@@ -7,4 +7,6 @@ export interface Team {
 export interface TeamFormValues {
   teamName: string;
   teamCode: string;
+  pin: string;
+  pinConfirm: string;
 }

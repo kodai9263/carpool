@@ -62,7 +62,7 @@ export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =
       // 配車をDBに生成
       const data = await prisma.ride.create({
         data: {
-          date: body.date,
+          date: date,
           destination: body.destination.trim(),
           team: { connect: { id: teamId } },
         },

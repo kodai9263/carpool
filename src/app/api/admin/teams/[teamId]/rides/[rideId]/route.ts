@@ -22,7 +22,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             drivers: {
               select: {
                 id: true,
-                availabilityDriverId:true,
+                availabilityDriverId: true,
                 availabilityDriver: {
                   select: {
                     member: { select: { id: true, name: true } }, 
@@ -57,7 +57,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         }),
       ]);
       
-      if (!ride) return NextResponse.json({ status: "not found" }, { status: 404 });
+      if (!ride) return NextResponse.json({ status: "配車が見つかりません" }, { status: 404 });
       return NextResponse.json({
         status: "OK",
         ride: {

@@ -18,6 +18,10 @@ export default function TeamForm() {
 
   const onSubmit = async (data: TeamFormValues) => {
     if (!token) return;
+    if (data.pin !== data.pinConfirm) {
+      alert('配車閲覧用パスコードが一致しません。')
+      return;
+    }
 
     try {
       const { id } = await api.post<TeamFormValues>(
@@ -46,6 +50,29 @@ export default function TeamForm() {
         label="チーム名"
         disabled={isSubmitting}
         {...register("teamName", { required: "チーム名を入力してください。" })}
+      />
+
+      <FormInput
+        label="配車閲覧用パスコード"
+        disabled={isSubmitting}
+        {...register("pin", { 
+          required: "パスコードを入力してください。", 
+          minLength: { value: 4, message: "4文字以上で入力してください。" },
+          maxLength: { value: 12, message: "12文字以上で入力してください。" },
+        })}
+      />
+      <p className="text-center text-xs text-gray-500 mt-1 mb-3">
+        配車閲覧時に必要なコードです。メンバーに共有してください。
+      </p>
+
+      <FormInput
+        label="配車閲覧用パスコード(確認用)"
+        disabled={isSubmitting}
+        {...register("pinConfirm", {
+          required: "確認用のパスコードを入力してください。",
+          minLength: { value: 4, message: "4文字以上で入力してください。" },
+          maxLength: { value: 12, message: "12文字以上で入力してください。" },
+        })}
       />
 
       <FormButton 
