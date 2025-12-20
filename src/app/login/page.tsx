@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
-import { FormButton } from "../_components/Formbutton";
+import { FormButton } from "../_components/FormButton";
 
 export default function Page() {
   const { register, handleSubmit, formState: { isSubmitting } } = useForm({
