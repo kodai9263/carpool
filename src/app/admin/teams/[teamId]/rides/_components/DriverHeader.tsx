@@ -9,6 +9,7 @@ interface Props {
   index: number;
   availabilityDrivers: {
     id: number;
+    availability: boolean;
     member: { id: number; name: string };
   }[];
   onRemove: () => void;
@@ -24,6 +25,9 @@ export default function DriverHeader({
   const watchedDrivers = useWatch({ control, name: "drivers"});
 
   const excluded = useExcludeIds(watchedDrivers, index, ["availabilityDriverId"]);
+  
+  // 配車可能（availability: true）のドライバーのみを表示
+  const availableDrivers = availabilityDrivers.filter(driver => driver.availability === true);
   
   return (
     <div className="flex items-center mb-2 gap-2">
@@ -47,7 +51,7 @@ export default function DriverHeader({
           className="border border-gray-300 rounded px-2 py-1 text-sm flex-1 w-full"
         >
           <option value=""></option>
-          {availabilityDrivers.map((driver) => {
+          {availableDrivers.map((driver) => {
             const isDisabled = excluded.has(driver.id);
 
             return (

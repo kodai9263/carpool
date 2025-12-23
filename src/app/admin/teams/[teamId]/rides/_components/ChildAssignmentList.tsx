@@ -14,6 +14,7 @@ interface Props {
     id: number;
     member: { id: number; name: string };
     seats: number;
+    availability: boolean;
   }[];
 };
 

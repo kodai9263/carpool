@@ -11,6 +11,7 @@ interface Props {
     id: number;
     member: { id: number; name: string };
     seats: number;
+    availability: boolean;
   }[];
   childrenList: { id: number; name: string }[];
   removeDriver: (index: number) => void;
@@ -26,8 +27,8 @@ export default function RideDriverList({
 }: Props) {
   const { control, register } = useFormContext<UpdateRideValues>();
 
-  // 選択できるドライバーの合計数
-  const totalAvailableDrivers = availabilityDrivers.length;
+  // 選択できるドライバーの合計数（availability: true の人だけ）
+  const totalAvailableDrivers = availabilityDrivers.filter(d => d.availability === true).length;
 
   // 現在フォーム上に存在するドライバー行数(選択済みかは関係なし)
   const currentDriverCount = drivers.length;
