@@ -34,10 +34,16 @@ export interface RideDetailResponse {
     availabilityDrivers: {
       id: number;
       seats: number;
+      availability: boolean;
       member: { id: number; name: string };
     }[];
 
     children: {
+      id: number;
+      name: string;
+    }[];
+
+    members?: {
       id: number;
       name: string;
     }[];

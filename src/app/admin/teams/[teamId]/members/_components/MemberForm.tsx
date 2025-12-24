@@ -1,6 +1,6 @@
 'use client';
 
-import { FormButton } from "@/app/_components/Formbutton";
+import { FormButton } from "@/app/_components/FormButton";
 import { FormInput } from "@/app/_components/FormInput";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member";

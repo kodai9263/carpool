@@ -16,7 +16,7 @@ export default function Page() {
     defaultValues: { teamName: '', teamCode: '' }
   });
   
-  const { teamId } = useParams<{ teamId?: string }>();
+  const { teamId } = useParams<{ teamId: string }>();
   const router = useRouter();
   const { token } = useSupabaseSession();
 

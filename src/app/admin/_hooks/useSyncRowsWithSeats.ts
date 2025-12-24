@@ -22,7 +22,8 @@ export function useSyncRowsWithSeats(
   const prevSeatCountRef = useRef<number>(0);
 
   // 既存データかどうかを判定
-  const hasExistingAssignments = currentAssignments?.some(a => a.childId && a.childId !== 0) ?? false;
+  if (!currentAssignments) return;
+  const hasExistingAssignments = currentAssignments.some(a => a.childId && a.childId !== 0) ?? false;
 
   useEffect(() => {
     const isDriverChanged = prevDriverIdRef.current !== selectedDriverId;

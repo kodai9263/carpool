@@ -1,7 +1,5 @@
 'use client';
 
-import { UpdateRideValues } from "@/app/_types/ride";
-import { Control, UseFormRegister } from "react-hook-form";
 import DriverHeader from "./DriverHeader";
 import ChildAssignmentList from "./ChildAssignmentList";
 
@@ -12,6 +10,7 @@ interface Props {
     id: number;
     member: { id: number; name: string };
     seats: number;
+    availability: boolean;
   }[];
   childrenList: { id: number; name: string }[];
 };

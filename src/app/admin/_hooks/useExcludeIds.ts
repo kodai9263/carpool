@@ -28,9 +28,10 @@ export function useExcludeIds<T>(
 ) {
   // 自分以外の行で選択されているIDを集めて、重複選択を防ぐための集合を作る
   return useMemo(() => {
+    if (!items) return;
     const set = new Set<number>();
 
-    items?.forEach((item, i) => {
+    items.forEach((item, i) => {
       if (i === currentIndex) return;
 
       const value = getValueByPath(item, path);

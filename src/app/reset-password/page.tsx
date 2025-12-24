@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
-import { FormButton } from "../_components/Formbutton";
+import { FormButton } from "../_components/FormButton";
 
 type Phase = 'request' | 'reset';
 

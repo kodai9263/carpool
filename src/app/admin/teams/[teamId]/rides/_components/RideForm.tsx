@@ -1,6 +1,6 @@
 'use client';
 
-import { FormButton } from "@/app/_components/Formbutton";
+import { FormButton } from "@/app/_components/FormButton";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { RideFormValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";

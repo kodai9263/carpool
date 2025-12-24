@@ -6,7 +6,7 @@ interface Props {
   page: number;         // 現在のページ
   totalPages: number;   // 総ページ数
   onPageChange: (p: number) => void;
-  delta?: number;       // 現在のページの前後に表示する数
+  delta: number;       // 現在のページの前後に表示する数
 }
 
 // ページ番号を生成
