@@ -21,8 +21,10 @@ export default function Page() {
 
   const { data, error, isLoading } = useFetch(url);
 
-  const rides = (data?.rides || []) as Ride[];
-  const totalPages = data?.totalPages || 1;
+  if (!data) return
+  const rides = (data.rides || []) as Ride[];
+  const totalPages = data.totalPages || 1;
+  const delta = data.delta;
 
   if (!teamId) return <LoadingSpinner />
   if (isLoading) return <LoadingSpinner />
@@ -68,6 +70,7 @@ export default function Page() {
               page={page}
               totalPages={totalPages}
               onPageChange={setPage}
+              delta={delta}
             />
           )}
         </div>

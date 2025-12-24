@@ -16,8 +16,10 @@ export default function Page() {
   const url = useMemo(() => `/api/admin/teams?page=${page}`,[page]);
   const { data, error, isLoading } = useFetch(url);
 
-  const teams = (data?.teams || []) as Team[];
-  const totalPages = data?.totalPages || 1;
+  if (!data) return;
+  const teams = (data.teams || []) as Team[];
+  const totalPages = data.totalPages || 1;
+  const delta = data.delta;
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
@@ -63,6 +65,7 @@ export default function Page() {
             page={page}
             totalPages={totalPages}
             onPageChange={setPage}
+            delta={delta}
           />
         )}
         </div>

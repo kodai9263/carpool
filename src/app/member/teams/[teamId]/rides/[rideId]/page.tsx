@@ -18,7 +18,8 @@ export default function Page() {
   const fetcher = (url: string) => fetch(url).then(r => r.json());
   const { data, error, isLoading } = useSWR<RideDetailResponse>(url, fetcher);
 
-  const ride = data?.ride;
+  if (!data) return;
+  const ride = data.ride;
 
   if (!teamId || !rideId) return <LoadingSpinner />
   if (isLoading) return <LoadingSpinner />

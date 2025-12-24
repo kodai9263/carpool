@@ -13,7 +13,8 @@ export const useSupabaseSession = () => {
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-      setToken(session?.access_token || null);
+      if(!session) return;
+      setToken(session.access_token || null);
       setIsLoading(false);
     }
 
@@ -22,7 +23,8 @@ export const useSupabaseSession = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
-        setToken(session?.access_token || null);
+        if (!session) return;
+        setToken(session.access_token || null);
         setIsLoading(false);
       }
     )

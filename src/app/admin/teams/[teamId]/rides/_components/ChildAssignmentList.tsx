@@ -32,8 +32,8 @@ export default function ChildAssignmentList({
   // ドライバーの一括取得
   const drivers = useWatch({ control, name: "drivers"}) ?? [];
   const driver = drivers[index];
-  const currentAssignments = driver?.rideAssignments ?? [];
-  const selectedDriverId = driver?.availabilityDriverId ?? null;
+  const currentAssignments = driver.rideAssignments ?? [];
+  const selectedDriverId = driver.availabilityDriverId ?? null;
 
   const selfSelectedChildIds = useMemo(() => {
     const ids = currentAssignments 
@@ -44,7 +44,8 @@ export default function ChildAssignmentList({
 
   // 選択されたドライバーの座席数を取得
   const selectedDriverSeats = availabilityDrivers.find((d) => d.id === selectedDriverId);
-  const seatCount = selectedDriverSeats?.seats ?? 0;
+  if (!selectedDriverSeats) return;
+  const seatCount = selectedDriverSeats.seats ?? 0;
 
   // ドライバー選択時に座席数分の行を自動追加
   useSyncRowsWithSeats(selectedDriverId, seatCount, fields.length, append, remove, replace, currentAssignments);
@@ -54,11 +55,12 @@ export default function ChildAssignmentList({
 
   // 他ドライバーが選んだchildIdの重複防止
   const excluded = useExcludeIds(drivers, index, ["rideAssignments"]);
+  if (!excluded) return;
 
   return (
     <div className="space-y-2">      
       {fields.map((item, childIndex) => {
-        const currentChildId = currentAssignments[childIndex]?.childId ?? 0;
+        const currentChildId = currentAssignments[childIndex].childId ?? 0;
 
         return (
           <div key={item.id} className="flex items-center bg-white p-2 rounded border border-gray-200">
