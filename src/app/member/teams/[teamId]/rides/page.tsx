@@ -1,36 +1,28 @@
 'use client';
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
-import { useFetch } from "@/app/_hooks/useFetch";
-import { Ride } from "@/app/_types/ride";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 import { Calendar, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
+import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
+import useSWR from "swr";
+import { RideListResponse } from "@/app/_types/response/rideResponse";
 
 export default function Page() {
   const [page, setPage] = useState(1);
   const { teamId } = useParams<{ teamId: string }>();
-  const router = useRouter();
+  
+  const fetcher = usePinFetcher();
 
-  const pin = typeof window !== 'undefined' ? sessionStorage.getItem(`pin:${teamId}`) ?? '' : '';
+  const { data, error, isLoading } = useSWR<RideListResponse>(
+    `/api/member/teams/${teamId}/rides?page=${page}`,
+    fetcher
+  );
 
-  // PINが未入力ならPIN入力ページへ
-  useEffect(() => {
-    if (!teamId) return;
-    const p = sessionStorage.getItem(`pin:${teamId}`);
-    if (!p) router.replace(`/member/teams/${teamId}`);
-  }, [teamId, router]);
-
-  const url = useMemo(() => {
-    return `/api/member/teams/${teamId}/rides?page=${page}&pin=${encodeURIComponent(pin)}`;
-  }, [teamId, page, pin]);
-
-  const { data, error, isLoading } = useFetch(url);
-
-  const rides = (data?.rides || []) as Ride[];
+  const rides = data?.rides;
   const totalPages = data?.totalPages || 1;
 
   if (!teamId) return <LoadingSpinner />
@@ -45,7 +37,7 @@ export default function Page() {
         </div>
 
         <div className="space-y-3">
-          {rides.map((ride: Ride) => {
+          {rides?.map((ride) => {
             return(
               <div key={ride.id} className="flex justify-between items-center border-t border-[#5d9b94] pt-3">
                 <div className="flex w-full items-center gap-2">

@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 export const GET = async (request: NextRequest, { params }: { params: { teamId: string } }) => {
-  const pin = request.nextUrl.searchParams.get("pin");
+  const pin = request.headers.get('x-pin');
   const teamIdNum = Number(params.teamId);
   if (!pin || !Number.isInteger(teamIdNum)) {
     return NextResponse.json({ status: "権限がありません" }, { status: 401 });

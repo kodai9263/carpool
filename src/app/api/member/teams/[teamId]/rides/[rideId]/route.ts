@@ -6,7 +6,7 @@ import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 export const runtime = "nodejs";
 
 export const GET = async (request: NextRequest, { params }: { params: { teamId: string; rideId: string } }) => {
-  const pin = request.nextUrl.searchParams.get("pin");
+  const pin = request.headers.get('x-pin');
   const teamIdNum = Number(params.teamId);
   const rideIdNum = Number(params.rideId);
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {

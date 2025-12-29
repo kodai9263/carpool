@@ -8,23 +8,27 @@ import useSWR from "swr";
 import RideBasicInfo from "./_components/RideBasicInfo";
 import RideDriverGrid from "./_components/RideDriverGrid";
 import { useMemberRideAuth } from "@/app/member/_hooks/useMemberRideAuth";
+import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 
 export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
   const router = useRouter();
 
   const { url } = useMemberRideAuth(teamId,rideId);
+  const fetcher = usePinFetcher();
 
-  const fetcher = (url: string) => fetch(url).then(r => r.json());
-  const { data, error, isLoading } = useSWR<RideDetailResponse>(url, fetcher);
-
-  if (!data) return;
-  const ride = data.ride;
+  const { data, error, isLoading } = useSWR<RideDetailResponse>(
+    url, 
+    fetcher
+  );
 
   if (!teamId || !rideId) return <LoadingSpinner />
   if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
-  if (!ride) return <div>配車が見つかりません。</div>
+  if (!data) return <div>データの取得に失敗しました。</div>;  // 追加
+  if (!data.ride) return <div>配車が見つかりません。</div>;
+
+  const ride = data.ride;
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10">

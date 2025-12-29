@@ -11,7 +11,7 @@ import AvailabilityFormList from "./_components/AvailabilityFormList";
 import { AvailabilityListFormValues } from "@/app/_types/availability";
 import { useMemberRideAuth } from "@/app/member/_hooks/useMemberRideAuth";
 import { useAvailabilityMembers } from "@/app/member/_hooks/useAvailabilityMembers";
-import { api } from "@/utils/api";
+import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 
 export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
@@ -20,7 +20,7 @@ export default function Page() {
   // メンバー認証用のPINとAPIリクエスト用のURLを取得
   const { pin, url } = useMemberRideAuth(teamId, rideId);
 
-  const fetcher = (url: string) => fetch(url).then(r => r.json());
+  const fetcher = usePinFetcher();
   const { data, error, isLoading, mutate } = useSWR<RideDetailResponse>(url, fetcher);
 
   const methods = useForm<AvailabilityListFormValues>({
@@ -31,10 +31,8 @@ export default function Page() {
 
   const { handleSubmit, formState: { isSubmitting }, control, register } = methods;
 
-  const ride = data?.ride;
-
   // チームメンバーリストと、既に配車可否を登録済みのメンバーIDを取得
-  const { members, registeredMemberIds, existingAvailabilities } = useAvailabilityMembers(ride);
+  const { members, registeredMemberIds, existingAvailabilities } = useAvailabilityMembers(data?.ride);
 
   const onSubmit = async (data: AvailabilityListFormValues) => {
     if (!pin) return;
@@ -42,7 +40,7 @@ export default function Page() {
     const changingToUnavailable = data.availabilities.filter(driver => {
       if (driver.memberId === 0) return false;
       const existingData = existingAvailabilities.get(driver.memberId);
-      return existingData?.availability && !driver.availability;
+      return existingData && existingData.availability && !driver.availability;
     });
 
     if (changingToUnavailable.length > 0) {
@@ -64,10 +62,14 @@ export default function Page() {
           return;
         }
 
-        await api.post(
-          `/api/member/teams/${teamId}/rides/${rideId}/availability?pin=${encodeURIComponent(pin)}`,
-          driver
-        );
+        await fetch(`/api/member/teams/${teamId}/rides/${rideId}/availability`,{
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-pin': pin,
+          },
+          body: JSON.stringify(driver),
+        });
       }
 
       alert('配車可否を送信しました');
@@ -82,7 +84,10 @@ export default function Page() {
   if (!teamId || !rideId) return <LoadingSpinner />;
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div>エラーが発生しました。</div>;
-  if (!ride) return <div>配車が見つかりません。</div>;
+  if (!data) return <div>データの取得に失敗しました。</div>;
+  if (!data.ride) return <div>配車が見つかりません。</div>;
+
+  const ride = data.ride;
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10">
