@@ -1,0 +1,144 @@
+'use client';
+
+import { AvailabilityListFormValues } from "@/app/_types/availability";
+import { User, X } from "lucide-react";
+import { useEffect } from "react";
+import { Control, useFormContext, UseFormRegister, useWatch } from "react-hook-form";
+
+interface Props {
+  index: number;
+  members: Array<{ id: number; name: string }>;
+  registeredMemberIds: Set<number>;
+  onRemove: () => void;
+  existingAvailabilities: Map<number, { seats: number; availability: boolean }>;
+  register: UseFormRegister<AvailabilityListFormValues>;
+  control: Control<AvailabilityListFormValues>;
+  canRemove: boolean;
+}
+
+export default function AvailabilityFormItem({
+  index,
+  members,
+  registeredMemberIds,
+  existingAvailabilities,
+  onRemove,
+  register,
+  control,
+  canRemove,
+}: Props) {
+  const { setValue } = useFormContext<AvailabilityListFormValues>();
+
+  const availability = useWatch({
+    control,
+    name: `availabilities.${index}.availability`,
+  });
+
+  const memberId = useWatch({
+    control,
+    name: `availabilities.${index}.memberId`,
+  });
+
+  // メンバーが選択されたら、既存のデータを反映（子供の乗車可能人数）
+  useEffect(() => {
+    if (memberId && memberId !== 0) {
+      const existingData = existingAvailabilities.get(memberId);
+      if (existingData) {
+        // 既存データがあれば設定
+        setValue(`availabilities.${index}.availability`, existingData.availability);
+        setValue(`availabilities.${index}.seats`, existingData.seats);
+      } else {
+        // 既存データがなければデフォルト値
+        setValue(`availabilities.${index}.availability`, false);
+        setValue(`availabilities.${index}.seats`, 1);
+      }
+    } else {
+      // 「選択してください」に戻した場合はリセット。
+      setValue(`availabilities.${index}.availability`, false);
+      setValue(`availabilities.${index}.seats`, 1);
+    }
+  }, [memberId, existingAvailabilities, index, setValue]);
+
+  // 保護者が選ばれているか
+  const isMemberSelected = memberId && memberId !== 0;
+
+  // 既存の登録情報を取得
+  const existingData = memberId && memberId !== 0 ? existingAvailabilities.get(memberId) : undefined;
+  const isChangingToUnavailable = existingData?.availability && !availability;
+
+  return (
+    <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-1">
+          <User size={20} className="text-gray-600 flex-shrink-0" />
+          <span className="w-28 text-base flex-shrink-0">保護者名</span>
+          <select
+            {...register(`availabilities.${index}.memberId`, {
+              required: true,
+              valueAsNumber: true,
+            })}
+            className="flex-1 border rounded px-3 py-2"
+          >
+            <option value={0}>選択してください</option>
+            {members.map((member) => (
+                <option 
+                  key={member.id} 
+                  value={member.id}
+                >
+                  {member.name}
+                  {registeredMemberIds.has(member.id) && " (登録済み)"}
+                </option>
+            ))}
+          </select>
+        </div>
+
+        <label className={`flex items-center gap-2 whitespace-nowrap ${isMemberSelected ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+          <input 
+            type="checkbox"
+            {...register(`availabilities.${index}.availability`)}
+            disabled={!isMemberSelected}
+            className="w-5 h-5 text-teal-700 rounded focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed"
+          />
+          <span className="text-base">配車可</span>
+        </label>
+
+        {canRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-gray-400 hover:text-red-500 transition flex-shrink-0"
+            aria-label="削除"
+          >
+            <X size={20} />
+          </button>
+        )}
+      </div>
+
+      {/* 配車可能人数（配車可の場合のみ表示） */}
+      {availability && (
+        <div className="flex items-center gap-2">
+          <div className="w-5 flex-shrink-0" /> 
+          <span className="w-28 text-base flex-shrink-0">子供の乗車人数</span>
+          <select
+            {...register(`availabilities.${index}.seats`, {
+              valueAsNumber: true,
+            })}
+            className="border rounded px-3 py-2 w-32"
+          >
+            {[...Array(10)].map((_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {i + 1}人
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {isChangingToUnavailable && (
+        <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded border border-orange-200">
+          <span>⚠️</span>
+          <span>この登録を「配車不可」に変更します</span>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -6,7 +6,7 @@ import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 export const runtime = "nodejs";
 
 export const GET = async (request: NextRequest, { params }: { params: { teamId: string; rideId: string } }) => {
-  const pin = request.nextUrl.searchParams.get("pin");
+  const pin = request.headers.get('x-pin');
   const teamIdNum = Number(params.teamId);
   const rideIdNum = Number(params.rideId);
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {
@@ -23,7 +23,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
   if (!ok) return NextResponse.json({ status: "配車閲覧コードが正しくありません" }, { status: 401 });
 
   try {
-    const [ride, children] = await prisma.$transaction([
+    const [ride, children, members] = await prisma.$transaction([
       prisma.ride.findFirst({
         where: { id: rideIdNum, teamId: teamIdNum },
         select: {
@@ -55,6 +55,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
                   id: true,
                   member: { select: { id: true, name: true } },
                   seats: true,
+                  availability: true,
                 },
               },
             },
@@ -65,6 +66,11 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         where: { member: { teamId: teamIdNum } },
         select: { id: true, name: true, memberId: true },
         distinct: ["id"],
+      }),
+      prisma.member.findMany({
+        where: { teamId: teamIdNum },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
       }),
     ]);
 
@@ -79,6 +85,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         drivers: ride.drivers,
         availabilityDrivers: ride.team.availabilityDrivers,
         children,
+        members,
       }
     } satisfies RideDetailResponse, { status: 200 });
   } catch (e: any) {

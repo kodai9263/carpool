@@ -6,8 +6,8 @@ import { Car, User, Users, LogOut } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export const Sidebar: React.FC = () => {
-  const params = useParams<{ teamId?: string }>();
-  const teamId = params?.teamId;
+  const params = useParams<{ teamId: string }>();
+  const teamId = params.teamId;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

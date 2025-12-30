@@ -7,7 +7,7 @@ import { AvailabilityResponse } from "@/app/_types/response/availabilityResponse
 export const runtime = "nodejs";
 
 export const POST = async (request: NextRequest, { params }: { params: { teamId: string; rideId: string } }) => {
-  const pin = request.nextUrl.searchParams.get("pin");
+  const pin = request.headers.get("x-pin");
   const teamIdNum = Number(params.teamId);
   const rideIdNum = Number(params.rideId);
 
@@ -28,27 +28,45 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   if (!ok) return NextResponse.json({ status: "配車閲覧コードが正しくありません" }, { status: 401 });
 
   try {
-  const data = await prisma.availabilityDriver.upsert({
-    where: { rideId_memberId: { rideId: rideIdNum, memberId: memberId! } },
-    update: {
-      availability,
-      seats,
-      teamId: teamIdNum,
-    },
-    create: {
-      rideId: rideIdNum,
-      memberId: memberId!,
-      teamId: teamIdNum,
-      availability,
-      seats,
-    },
-    select: { id: true, availability: true, seats: true, memberId: true, rideId: true },
-  });
+    const data = await prisma.$transaction(async (tx) => {
+      // 1. availabilityDriverを更新
+      const availabilityDriver = await tx.availabilityDriver.upsert({
+        where: { rideId_memberId: { rideId: rideIdNum, memberId: memberId! } },
+        update: {
+          availability,
+          seats,
+          teamId: teamIdNum,
+        },
+        create: {
+          rideId: rideIdNum,
+          memberId: memberId!,
+          teamId: teamIdNum,
+          availability,
+          seats,
+        },
+        select: { id: true, availability: true, seats: true, memberId: true, rideId: true },
+      });
+
+      // 2. availability: false の場合、既存の配車割当を削除
+      if (!availability) {
+        // この availabilityDriver に紐づく Driver レコードを削除
+        await tx.driver.deleteMany({
+          where: {
+            rideId: rideIdNum,
+            availabilityDriverId: availabilityDriver.id,
+          },
+        });
+      }
+
+      return availabilityDriver;
+    });
 
     return NextResponse.json(
       { status: "OK", message: "更新しました", availabilityDriver: data } satisfies AvailabilityResponse,
-      { status: 200 });
+      { status: 200 }
+    );
   } catch (e: any) {
+    console.error(e);
     return NextResponse.json({ status: "サーバ内部でエラーが発生しました" }, { status: 500 });
   }
 };
