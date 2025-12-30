@@ -20,16 +20,16 @@ export const Sidebar: React.FC = () => {
         {teamId && (
           <>
             <Link href={`/admin/teams/${teamId}/rides`} className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
-              <Car size={28} /><span className="mt-1">配車</span>
+              <Car size={28} /><span className="mt-1">配車一覧</span>
             </Link>
 
             <Link href={`/admin/teams/${teamId}/members`} className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
-              <User size={28} /><span className="mt-1">メンバー</span>
+              <User size={28} /><span className="mt-1">メンバー一覧</span>
             </Link>
           </>
         )}
         <Link href="/admin/teams" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
-          <Users size={28} /><span className="mt-1">チーム</span>
+          <Users size={28} /><span className="mt-1">チーム一覧</span>
         </Link>
       </nav>
 
