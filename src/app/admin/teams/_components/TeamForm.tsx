@@ -39,7 +39,7 @@ export default function TeamForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 flex flex-col items-center max-w-md mx-auto">
       <FormInput
         label="チームID"
         disabled={isSubmitting}
@@ -61,7 +61,7 @@ export default function TeamForm() {
           maxLength: { value: 12, message: "12文字以上で入力してください。" },
         })}
       />
-      <p className="text-center text-xs text-gray-500 mt-1 mb-3">
+      <p className="text-center text-xs text-gray-500 mt-1 mb-3 w-full">
         配車閲覧時に必要なコードです。メンバーに共有してください。
       </p>
 
@@ -79,6 +79,7 @@ export default function TeamForm() {
         label="登録"
         loadingLabel="登録中..."
         isSubmitting={isSubmitting}
+        className="!w-[400px] py-3 text-base"
       />
     </form>
   );

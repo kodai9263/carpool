@@ -70,7 +70,7 @@ export default function ChildAssignmentList({
               {...register(`drivers.${index}.rideAssignments.${childIndex}.childId`,
                 { valueAsNumber: true }
               )}
-              className="border rounded px-2 py-1 text-sm flex-1 w-full"
+              className="border-2 border-gray-300 rounded px-2 py-1 text-sm flex-1 w-full focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
             >
               <option value={0}></option>
 

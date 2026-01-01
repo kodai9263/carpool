@@ -31,10 +31,10 @@ export default function Page() {
   const ride = data.ride;
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10">
+    <div className="min-h-screen flex flex-col items-center py-10 bg-gray-50">
       <h1 className="text-3xl font-bold mb-8">配車詳細</h1>
 
-      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-md p-8 space-y-8">
+      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-8 space-y-8">
         <RideBasicInfo 
           date={ride.date}
           destination={ride.destination}

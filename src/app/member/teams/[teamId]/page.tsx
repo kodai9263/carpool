@@ -48,7 +48,7 @@ export default function Page() {
 							required: "配車コードを入力してください",
 							minLength: { value: 4, message: "4桁以上で入力してください" }
 						})}
-						className="border rounded px-3 py-2 w-full"
+						className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
 						type="password"
 						autoComplete="off"
 					/>

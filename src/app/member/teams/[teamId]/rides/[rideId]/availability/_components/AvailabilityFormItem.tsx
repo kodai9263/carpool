@@ -76,7 +76,7 @@ export default function AvailabilityFormItem({
               required: true,
               valueAsNumber: true,
             })}
-            className="flex-1 border rounded px-3 py-2"
+            className="flex-1 border-2 border-gray-300 rounded px-3 py-2 focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
           >
             <option value={0}>選択してください</option>
             {members.map((member) => (
@@ -122,7 +122,7 @@ export default function AvailabilityFormItem({
             {...register(`availabilities.${index}.seats`, {
               valueAsNumber: true,
             })}
-            className="border rounded px-3 py-2 w-32"
+            className="border-2 border-gray-300 rounded px-3 py-2 w-32 focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
           >
             {[...Array(10)].map((_, i) => (
               <option key={i + 1} value={i + 1}>

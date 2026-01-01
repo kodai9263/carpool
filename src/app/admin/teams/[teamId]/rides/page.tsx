@@ -31,8 +31,8 @@ export default function Page() {
   if (error) return <div>エラーが発生しました。</div>
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-10">
-      <div className="w-[380px] p-6 rounded-md shadow-lg">
+    <div className="min-h-screen flex justify-center items-start py-10 bg-gray-50">
+      <div className="w-[380px] p-6 rounded-md shadow-lg bg-white">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-center flex-1 -ml-6">配車一覧</h1>
           <NewButton 

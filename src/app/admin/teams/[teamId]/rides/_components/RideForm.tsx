@@ -38,18 +38,17 @@ export default function RideForm() {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-md w-[520px] ml-[-80px]">
-      <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
-          <RideBasicForm setValue={setValue} date={date} />
-          <FormButton 
-            label="登録"
-            loadingLabel="登録中..."
-            isSubmitting={isSubmitting}
-          />
-        </form>
-      </FormProvider>
-    </div>
-    
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 flex flex-col items-center">
+        <RideBasicForm setValue={setValue} date={date} />
+        
+        <FormButton 
+          label="登録"
+          loadingLabel="登録中..."
+          isSubmitting={isSubmitting}
+          className="!w-[400px] py-3 text-base"
+        />
+      </form>
+    </FormProvider>
   );
 }
