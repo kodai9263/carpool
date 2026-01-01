@@ -71,7 +71,7 @@ export default function Page() {
   if (error) return <div>エラーが発生しました。</div>
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10 bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center py-10">
       <h1 className="text-3xl font-bold mb-8">チーム詳細</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center space-y-8">
         <div className="bg-white p-8 rounded-xl shadow-lg w-[400px] space-y-8">
