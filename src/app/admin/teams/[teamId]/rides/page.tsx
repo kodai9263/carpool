@@ -34,7 +34,7 @@ export default function Page() {
     <div className="min-h-screen flex justify-center items-start py-10 bg-gray-50">
       <div className="w-[380px] p-6 rounded-md shadow-lg bg-white">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-center flex-1 -ml-6">配車一覧</h1>
+          <h1 className="text-2xl font-bold text-center flex-1 -ml-6">🚗 配車一覧</h1>
           <NewButton 
             href={`/admin/teams/${teamId}/rides/new`}
           />
