@@ -84,7 +84,7 @@ export default function Page() {
   if (error) return <div>エラーが発生しました。</div>
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10">
+    <div className="min-h-screen flex flex-col items-center py-10 bg-gray-50">
       <h1 className="text-3xl font-bold mb-8">配車詳細</h1>
 
       <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-8 space-y-8">

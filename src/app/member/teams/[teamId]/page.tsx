@@ -37,7 +37,7 @@ export default function Page() {
 	};
 
 	return (
-		<div className="min-h-screen flex justify-center items-center p-6">
+		<div className="min-h-screen flex justify-center items-center bg-[#C8EEEC] p-6">
 			<form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl p-6 w-full max-w-sm space-y-4">
 				<h1 className="text-xl font-bold text-center">配車閲覧</h1>
 
