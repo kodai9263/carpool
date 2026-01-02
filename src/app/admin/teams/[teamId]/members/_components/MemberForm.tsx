@@ -87,7 +87,7 @@ export default function MemberForm() {
           <button
             type="button"
             onClick={() => append({ name: '' })}
-            className="px-3 py-2 mt-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
+            className="px-3 py-2 mt-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
             disabled={isSubmitting}
           >
             <Plus size={20} />

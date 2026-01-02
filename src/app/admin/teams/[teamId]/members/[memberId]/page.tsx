@@ -5,10 +5,10 @@ import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member";
 import { api } from "@/utils/api";
-import { Plus, X } from "lucide-react";
+import { Baby, Plus, Users, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { EditInput } from "../../../_components/EditInput";
 
@@ -32,6 +32,10 @@ export default function Page() {
   const router = useRouter();
 
   const  { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}/members/${memberId}`);
+
+  // 値を監視
+  const memberName = useWatch({ control, name: "name" });
+  const childrenNames = useWatch({ control, name: "children" });
 
   // 既存内容を表示
   useEffect(() => {
@@ -83,54 +87,62 @@ export default function Page() {
   if (error) return <div>エラーが発生しました。</div>
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-8">メンバー詳細</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center space-y-8">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-[400px] space-y-8">
+    <div className="min-h-screen flex justify-center items-start py-10">
+      <div className="w-[500px] p-8 rounded-xl shadow-lg bg-white">
+        <h1 className="text-3xl font-bold mb-8 text-center">👤 メンバー詳細</h1>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 flex flex-col items-center max-w-xl mx-auto">
           <EditInput 
-            label="大人 名前"
+            icon={<Users size={18} />}
+            label="保護者 or 指導者"
             disabled={isSubmitting}
+            hasValue={!!memberName && memberName.length > 0}
             {...register("name", { required: true })}
-            className="w-[187px] ml-[16px]"
+            className="w-[200px] mr-7"
           />
 
-          {fields.map((child, index) => (
-            <EditInput 
-              key={child.id}
-              label={`子供 名前 ${index + 1}`}
-              {...register(`children.${index}.name`, { required: true })}
+          <div className="space-y-3 ml-6">
+            {fields.map((child, index) => (
+              <EditInput 
+                key={child.id}
+                icon={<Baby size={18} className="text-gray-500" />}
+                label={`お子さん ${index + 1}人目`}
+                hasValue={!!childrenNames?.[index]?.name && childrenNames[index].name.length > 0}
+                {...register(`children.${index}.name`, { required: true })}
+              className="w-[200px] rounded-lg px-4 py-2 ml-4 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
               disabled={isSubmitting}
               right={
                 <button
                   type="button"
                   onClick={() => remove(index)}
-                  className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
+                  className="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
                   disabled={isSubmitting}
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               }
             />
           ))}
-        
-          <div className="flex justify-end">
+          
+          <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={() => append({ name: ""})}
-              className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+              className="px-3 py-2 mt-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
               disabled={isSubmitting}
             >
-              <Plus size={24} />
+              <Plus size={20} />
             </button>
           </div>
         </div>
 
-        <UpdateDeleteButtons 
-          onUpdate={handleSubmit(onSubmit)}
-          onDelete={handleDeleteMember}
-          isSubmitting={isSubmitting}
-        />
-      </form>
+          <UpdateDeleteButtons 
+            onUpdate={handleSubmit(onSubmit)}
+            onDelete={handleDeleteMember}
+            isSubmitting={isSubmitting}
+          />
+        </form>
+      </div>
     </div>
   );
 }
