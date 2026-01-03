@@ -39,14 +39,13 @@ export default function RideForm() {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 flex flex-col items-center">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 flex flex-col items-center max-w-xl mx-auto">
         <RideBasicForm setValue={setValue} date={date} />
         
         <FormButton 
           label="登録"
           loadingLabel="登録中..."
           isSubmitting={isSubmitting}
-          className="!w-[400px] py-3 text-base"
         />
       </form>
     </FormProvider>

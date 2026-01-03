@@ -18,10 +18,12 @@ export default function RideBasicForm<T extends FieldValues>({
   return (
     <div className="space-y-10">
       <div className="flex items-center space-x-6">
-        <div className="w-10 flex justify-center"><Calendar size={28} /></div>
-        <span className="w-20 text-xl">日付</span>
+        <div className="w-10 flex justify-center">
+          <Calendar size={18} className="text-gray-500" />
+        </div>
+        <span className="w-20 text-lg font-bold">日付</span>
 
-        <div className="w-80">
+        <div className="w-96">
           <AppDatePicker 
             value={date}
             onChange={(value) => setValue("date" as any, value as any)}
@@ -31,13 +33,15 @@ export default function RideBasicForm<T extends FieldValues>({
       </div>
 
       <div className="flex items-center space-x-6">
-        <div className="w-10 flex justify-center"><MapPin size={28} /></div>
-        <span className="w-20 text-xl">行き先</span>
+        <div className="w-10 flex justify-center">
+          <MapPin size={18} className="text-gray-500" />
+        </div>
+        <span className="w-20 text-lg font-bold">行き先</span>
 
         <input
           type="text"
           {...register("destination" as any, { required: true })}
-          className="border-2 border-gray-300 rounded px-3 py-3 w-80 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"/>
+          className="border-2 border-gray-300 rounded px-3 py-3 w-96 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"/>
       </div>
     </div>
   );
