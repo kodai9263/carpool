@@ -31,8 +31,8 @@ export default function Page() {
   if (error) return <div>エラーが発生しました。</div>
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-10 bg-gray-50">
-      <div className="w-[380px] p-6 rounded-md shadow-lg bg-white">
+    <div className="min-h-screen flex justify-center items-start py-10">
+      <div className="w-[500px] p-8 rounded-xl shadow-lg bg-white">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-center flex-1 -ml-6">🚗 配車一覧</h1>
           <NewButton 
@@ -40,25 +40,30 @@ export default function Page() {
           />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {rides.map((ride: Ride) => {
             return(
-              <div key={ride.id} className="flex justify-between items-center border-t border-[#5d9b94] pt-3">
-                <div className="flex w-full items-center gap-2">
-                  <Calendar size={28} className="text-2xl" />
-                  <Link 
+              <div 
+                key={ride.id}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <Calendar size={24} className="text-[#5d9b94]" />
+                    <Link 
+                      href={`/admin/teams/${teamId}/rides/${ride.id}`}
+                      className="text-lg font-medium hover:text-[#5d9b94] transition-colors"
+                    >
+                      {formatDate(ride.date)}
+                    </Link>
+                  </div>
+                  <Link
                     href={`/admin/teams/${teamId}/rides/${ride.id}`}
-                    className="flex-1 text-center text-xl font-medium"
+                    className="flex items-center gap-1 text-[#2f6f68] font-medium hover:underline"
                   >
-                    {formatDate(ride.date)}
+                  <ChevronRight size={20} />
                   </Link>
-                </div>
-                <Link
-                  href={`/admin/teams/${teamId}/rides/${ride.id}`}
-                  className="flex items-center gap-1 text-[#2f6f68] font-medium hover:underline"
-                >
-                  <ChevronRight size={24} />
-                </Link>
+                  </div>
               </div>
             )
           })}
