@@ -15,7 +15,7 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="flex flex-col justify-between items-center bg-[#C8EEEC] w-20 min-h-screen py-6">
+    <aside className="flex flex-col justify-between items-center bg-white w-20 min-h-screen py-6 shadow-lg">
       <nav className="flex flex-col items-center space-y-8">
         {teamId && (
           <>
