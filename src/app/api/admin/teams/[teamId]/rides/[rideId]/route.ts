@@ -40,6 +40,9 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             team: {
               select: {
                 availabilityDrivers: {
+                  where: {
+                    rideId: rideId,
+                  },
                   select: {
                     id: true,
                     member: { select: { id: true, name: true } },
