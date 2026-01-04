@@ -44,8 +44,7 @@ export default function ChildAssignmentList({
 
   // 選択されたドライバーの座席数を取得
   const selectedDriverSeats = availabilityDrivers.find((d) => d.id === selectedDriverId);
-  if (!selectedDriverSeats) return;
-  const seatCount = selectedDriverSeats.seats ?? 0;
+  const seatCount = selectedDriverSeats?.seats ?? 0;
 
   // ドライバー選択時に座席数分の行を自動追加
   useSyncRowsWithSeats(selectedDriverId, seatCount, fields.length, append, remove, replace, currentAssignments);
@@ -55,22 +54,26 @@ export default function ChildAssignmentList({
 
   // 他ドライバーが選んだchildIdの重複防止
   const excluded = useExcludeIds(drivers, index, ["rideAssignments"]);
-  if (!excluded) return;
+  
+  // フックの呼び出しの後に条件チェック
+  if (!selectedDriverSeats || !excluded) return null;
 
   return (
-    <div className="space-y-2">      
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium text-gray-700 mb-2">乗車する子供</h4>
+      
       {fields.map((item, childIndex) => {
-        const currentChildId = currentAssignments[childIndex].childId ?? 0;
+        const currentChildId = currentAssignments[childIndex]?.childId ?? 0;
 
         return (
-          <div key={item.id} className="flex items-center bg-white p-2 rounded border border-gray-200">
-            <User size={18} className="text-gray-600 mr-1"/>
+          <div key={item.id} className="flex items-center bg-white p-3 rounded-lg border border-gray-200">
+            <User size={18} className="text-gray-600 mr-2 flex-shrink-0"/>
 
             <select 
               {...register(`drivers.${index}.rideAssignments.${childIndex}.childId`,
                 { valueAsNumber: true }
               )}
-              className="border-2 border-gray-300 rounded px-2 py-1 text-sm flex-1 w-full focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
+              className="border-2 border-gray-300 rounded px-2 py-1 text-sm flex-1 focus:border-[#5d9b94] focus:ring-2 focus:ring-[#5d9b94] focus:outline-none"
             >
               <option value={0}></option>
 
@@ -96,29 +99,27 @@ export default function ChildAssignmentList({
             <button
               type="button"
               onClick={() => remove(childIndex)}
-              className="text-gray-500 hover:text-red-600 transition ml-2"
+              className="text-gray-400 hover:text-red-500 transition ml-2 flex-shrink-0"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
         );
       })}
 
       {selectedDriverId && seatCount > 0 ? (
-        <div className="mt-1">
+        <div className="mt-3">
           {canAddAssignment ? (
             <button
               type="button"
               onClick={() => append({ childId: 0 })}
-              className="flex items-center text-blue-600 hover:text-blue-700 transition mt-1"
+              className="w-full flex items-center justify-center gap-2 text-[#5d9b94] hover:text-[#4a7d77] transition bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm font-medium"
             >
-              <Plus size={20} />
-              <span className="bg-blue-50 border border-blue-200 rounded px-3 py-2 text-sm text-blue-700">
-                あと{seatCount - fields.length}人乗車できます
-              </span>
+              <Plus size={18} />
+              <span>あと{seatCount - fields.length}人乗車できます</span>
             </button>
           ) : (
-            <div className="text-center bg-yellow-50 border border-yellow-200 rounded px-3 py-2 text-sm text-yellow-700">
+            <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-700 font-medium">
               {seatCount}人まで乗車可能です
             </div>
           )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { Calendar, MapPin } from "lucide-react";
-import { FieldValues, useFormContext, UseFormSetValue } from "react-hook-form";
+import { FieldValues, useFormContext, UseFormSetValue, useWatch } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import AppDatePicker from "./AppDatePicker.tsx";
 
@@ -14,7 +14,13 @@ export default function RideBasicForm<T extends FieldValues>({
   setValue,
   date
 }: RideProps<T>) {
-  const { register } = useFormContext<T>();
+  const { register, control } = useFormContext<T>();
+
+  const destination = useWatch({ control, name: "destination" as any});
+
+  const hasDate = !!date;
+  const hasDestination = !!destination;
+
   return (
     <div className="space-y-10">
       <div className="flex items-center space-x-6">
@@ -28,6 +34,7 @@ export default function RideBasicForm<T extends FieldValues>({
             value={date}
             onChange={(value) => setValue("date" as any, value as any)}
             minDate={new Date()}
+            className={`border-2 border-gray-300 rounded px-3 py-3 w-full transition-colors duration-200 ${hasDate ? 'bg-blue-50' : ''}`}
           />
         </div>
       </div>
@@ -41,7 +48,8 @@ export default function RideBasicForm<T extends FieldValues>({
         <input
           type="text"
           {...register("destination" as any, { required: true })}
-          className="border-2 border-gray-300 rounded px-3 py-3 w-96 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"/>
+          className={`border-2 border-gray-300 rounded px-3 py-3 w-96 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none transition-colors duration-200 ${hasDestination ? 'bg-blue-50' : ''}`}
+        />
       </div>
     </div>
   );

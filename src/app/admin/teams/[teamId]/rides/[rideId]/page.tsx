@@ -84,10 +84,9 @@ export default function Page() {
   if (error) return <div>エラーが発生しました。</div>
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-8">配車詳細</h1>
-
-      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-8 space-y-8">
+    <div className="min-h-screen flex flex-col items-center py-10">
+      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-center mb-8">🚗 配車詳細</h1>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="flex justify-center">

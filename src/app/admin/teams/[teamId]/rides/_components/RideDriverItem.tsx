@@ -23,7 +23,7 @@ export default function RideDriverItem({
 }: Props) {
 
   return (
-    <div className="border border-gray-200 rounded-xl p-4 shadow-sm space-y-4 w-[240px]">
+    <div className="border-2 border-gray-200 rounded-xl p-5 shadow-sm space-y-4 bg-gray-50 hover:shadow-md transition-shadow min-w-[280px]">
       <DriverHeader
         index={index}
         availabilityDrivers={availabilityDrivers}

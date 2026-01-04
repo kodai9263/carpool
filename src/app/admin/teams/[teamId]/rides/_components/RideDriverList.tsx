@@ -45,7 +45,7 @@ export default function RideDriverList({
 
   return (
     <div className="flex flex-col items-center space-y-6">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-6 w-full max-w-[920px]">
         {drivers.map((driver, index) => (
           <RideDriverItem 
             key={driver.id}
@@ -56,20 +56,20 @@ export default function RideDriverList({
         ))}
       </div>
 
-      <div className="mt-1">
+      <div className="mt-4">
         {isDriverSlotAvailable ? (
           <button
-        type="button"
-        onClick={appendDriver}
-        className="flex items-center"
-      >
-        <Plus size={20} />
-        <span className="ml-2">ドライバー追加</span>
-      </button>
+            type="button"
+            onClick={appendDriver}
+            className="flex items-center gap-2 px-4 py-2 bg-[#5d9b94] text-white rounded-lg hover:bg-[#4a7d77] transition font-medium"
+          >
+            <Plus size={20} />
+            <span>ドライバー追加</span>
+          </button>
         ) : (
-          <div className="text-center bg-yellow-50 border border-yellow-200 rounded px-3 py-2 text-sm text-yellow-700">
-          {totalAvailableDrivers == 0 ? "候補のドライバーがいません" : `候補のドライバーがいません（${totalAvailableDrivers}人まで配車可能）`}
-        </div>
+          <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-700 font-medium">
+            {totalAvailableDrivers == 0 ? "候補のドライバーがいません" : `候補のドライバーがいません（${totalAvailableDrivers}人まで配車可能）`}
+          </div>
         )}
       </div>
     </div>

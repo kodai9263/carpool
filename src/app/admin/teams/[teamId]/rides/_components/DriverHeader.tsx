@@ -29,43 +29,45 @@ export default function DriverHeader({
   // 配車可能（availability: true）のドライバーのみを表示
   const availableDrivers = availabilityDrivers.filter(driver => driver.availability === true);
   
+  if (!excluded) return null;
+  
   return (
-    <div className="flex items-center mb-2 gap-2">
-      {/* 配車号削除ボタン */}
-      <button
-        type="button"
-        onClick={onRemove}
-        className="rounded text-gray-500 hover:text-red-600 transition"
-      >
-        <X size={20} />
-      </button>
+    <div>
+      {/* 削除ボタンとドライバー選択を横並び */}
+      <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2 flex-1">
+          <CarFront size={24} className="text-[#5d9b94] flex-shrink-0" />
+          <select 
+            {...register(`drivers.${index}.availabilityDriverId`, {
+              required: true,
+              valueAsNumber: true,
+            })}
+            className="w-full border-2 border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-[#5d9b94] focus:ring-2 focus:ring-[#5d9b94] focus:outline-none"
+          >
+            <option value={0}>ドライバーを選択</option>
+            {availableDrivers.map((driver) => {
+              const isDisabled = excluded.has(driver.id);
 
-      {/* 配車号 */}
-      <div className="flex items-center gap-2 flex-1">
-        <CarFront size={22} className="text-gray-700"/>
-        <select 
-          {...register(`drivers.${index}.availabilityDriverId`, {
-            required: true,
-            valueAsNumber: true,
-          })}
-          className="border-2 border-gray-300 rounded px-2 py-1 text-sm flex-1 w-full focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
+              return (
+                <option 
+                  key={driver.id}
+                  value={driver.id}
+                  disabled={isDisabled}
+                  className={isDisabled ? "text-gray-400 bg-gray-100" : ""}
+                >
+                  {driver.member.name}号
+                </option>
+              );
+            })}
+          </select>
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="text-gray-400 hover:text-red-500 transition flex-shrink-0 mt-1"
         >
-          <option value=""></option>
-          {availableDrivers.map((driver) => {
-            const isDisabled = excluded.has(driver.id);
-
-            return (
-              <option 
-                key={driver.id}
-                value={driver.id}
-                disabled={isDisabled}
-                className={isDisabled ? "text-gray-400 bg-gray-100" : ""}
-              >
-                {driver.member.name}号
-              </option>
-            );
-          })}
-        </select>
+          <X size={20} />
+        </button>
       </div>
     </div>
   );
