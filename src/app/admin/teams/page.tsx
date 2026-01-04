@@ -2,15 +2,16 @@
 
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Team } from "@/app/_types/team";
-import Link from "next/link";
-import { Users, ChevronRight } from "lucide-react";
+import { Users } from "lucide-react";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useMemo, useState } from "react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { NewButton } from "./_components/NewButton";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const [page, setPage] = useState(1);
+  const router = useRouter();
 
   // ページ番号が押されたときだけレンダリングしたいので、useMemoを使用
   const url = useMemo(() => `/api/admin/teams?page=${page}`,[page]);
@@ -39,25 +40,14 @@ export default function Page() {
             return (
               <div 
                 key={team.id} 
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200"
+                onClick={() => router.push(`/admin/teams/${team.id}`)}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <Users size={24} className="text-[#5d9b94]" />
-                    <Link 
-                      href={`/admin/teams/${team.id}`} 
-                      className="text-lg font-medium hover:text-[#5d9b94] transition-colors"
-                    >
-                      {team.teamName}
-                    </Link>
-                  </div>
-                  <Link 
-                    href={`/admin/teams/${team.id}/rides`}
-                    className="flex items-center gap-1 text-[#2f6f68] font-medium hover:underline"
-                  >
-                    配車一覧
-                    <ChevronRight size={20} />
-                  </Link>
+                <div className="flex items-center gap-3">
+                  <Users size={24} className="text-[#5d9b94]" />
+                  <span className="text-lg font-medium">
+                    {team.teamName}
+                  </span>
                 </div>
               </div>
             )

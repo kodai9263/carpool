@@ -3,17 +3,17 @@
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Ride } from "@/app/_types/ride";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
-import { Calendar, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { Calendar } from "lucide-react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
 
 export default function Page() {
   const [page, setPage] = useState(1);
   const { teamId } = useParams<{ teamId: string }>();
+  const router = useRouter();
 
   const url = useMemo(() => {
     return `/api/admin/teams/${teamId}/rides?page=${page}`;
@@ -45,25 +45,15 @@ export default function Page() {
             return(
               <div 
                 key={ride.id}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200"
+                onClick={() => router.push(`/admin/teams/${teamId}/rides/${ride.id}`)}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <Calendar size={24} className="text-[#5d9b94]" />
-                    <Link 
-                      href={`/admin/teams/${teamId}/rides/${ride.id}`}
-                      className="text-lg font-medium hover:text-[#5d9b94] transition-colors"
-                    >
-                      {formatDate(ride.date)}
-                    </Link>
-                  </div>
-                  <Link
-                    href={`/admin/teams/${teamId}/rides/${ride.id}`}
-                    className="flex items-center gap-1 text-[#2f6f68] font-medium hover:underline"
-                  >
-                  <ChevronRight size={20} />
-                  </Link>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Calendar size={24} className="text-[#5d9b94]" />
+                  <span className="text-lg font-medium">
+                    {formatDate(ride.date)}
+                  </span>
+                </div>
               </div>
             )
           })}

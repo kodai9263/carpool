@@ -4,15 +4,15 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Member } from "@/app/_types/member";
-import { ChevronRight, User } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { User } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
 
 export default function Page() {
   const [page, setPage] = useState(1);
   const { teamId } = useParams<{ teamId: string }>();
+  const router = useRouter();
   
   const url = useMemo(() => {
     return `/api/admin/teams/${teamId}/members?page=${page}`;
@@ -42,25 +42,15 @@ export default function Page() {
           {members.map((member: Member) => {
             return (
               <div 
-                key={member.id} 
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200"
+                key={member.id}
+                onClick={() => router.push(`/admin/teams/${teamId}/members/${member.id}`)}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer"
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <User size={24} className="text-[#5d9b94]" />
-                    <Link 
-                      href={`/admin/teams/${teamId}/members/${member.id}`} 
-                      className="text-lg font-medium hover:text-[#5d9b94] transition-colors"
-                    >
-                      {member.name}
-                    </Link>
-                  </div>
-                  <Link 
-                    href={`/admin/teams/${teamId}/members/${member.id}`} 
-                    className="flex items-center gap-1 text-[#2f6f68] font-medium hover:underline"
-                  >
-                  <ChevronRight size={20} />
-                  </Link>
+                <div className="flex items-center gap-3">
+                  <User size={24} className="text-[#5d9b94]" />
+                  <span className="text-lg font-medium">
+                    {member.name}
+                  </span>
                 </div>
               </div>
             )
