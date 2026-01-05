@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Car, Users, Calendar, Check, X, ChevronDown, ChevronRight } from "lucide-react";
+import { Car, Users, Calendar, Check, X, ChevronDown, ChevronRight, UserCog, ArrowDown } from "lucide-react";
 
 export default function Home() {
   return (
@@ -134,7 +134,12 @@ export default function Home() {
           
           {/* 管理者向け */}
           <div className="mb-16">
-            <h3 className="text-2xl font-bold mb-8 text-[#5d9b94]">👨‍💼 管理者（コーチ・保護者代表）</h3>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-[#5d9b94] rounded-full flex items-center justify-center">
+                <UserCog size={28} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#5d9b94]">管理者（コーチ・保護者代表）</h3>
+            </div>
             <div className="space-y-6">
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">1</div>
@@ -144,12 +149,20 @@ export default function Home() {
                 </div>
               </div>
 
+              <div className="flex justify-center py-2">
+                <ArrowDown size={24} className="text-[#5d9b94]" />
+              </div>
+
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">2</div>
                 <div>
                   <h4 className="font-bold text-lg mb-2">配車日程を作成</h4>
                   <p className="text-gray-600">試合や練習の日付と行き先を登録し、メンバーにPINコードを共有します</p>
                 </div>
+              </div>
+
+              <div className="flex justify-center py-2">
+                <ArrowDown size={24} className="text-[#5d9b94]" />
               </div>
 
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
@@ -164,7 +177,12 @@ export default function Home() {
 
           {/* メンバー向け */}
           <div>
-            <h3 className="text-2xl font-bold mb-8 text-[#5d9b94]">👥 メンバー（保護者）</h3>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-[#5d9b94] rounded-full flex items-center justify-center">
+                <Users size={28} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#5d9b94]">メンバー（保護者）</h3>
+            </div>
             <div className="space-y-6">
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">1</div>
@@ -172,6 +190,10 @@ export default function Home() {
                   <h4 className="font-bold text-lg mb-2">PINコードで参加</h4>
                   <p className="text-gray-600">管理者から共有されたPINコードを入力して、配車ページにアクセスします</p>
                 </div>
+              </div>
+
+              <div className="flex justify-center py-2">
+                <ArrowDown size={24} className="text-[#5d9b94]" />
               </div>
 
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
