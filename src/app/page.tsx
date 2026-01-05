@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Car, Users, Calendar, Check, X, ChevronDown } from "lucide-react";
+import { Car, Users, Calendar, Check, X, ChevronDown, ChevronRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -42,46 +42,47 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">こんなお悩みありませんか？</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mt-1">
+            <div className="bg-red-50 p-6 rounded-xl border border-red-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                   <X size={20} className="text-red-500" />
                 </div>
-                <p className="text-gray-700 text-base leading-relaxed">LINEで誰が乗せるか毎回確認してる</p>
+                <p className="text-gray-700 text-lg leading-normal">LINEで誰が乗せるか毎回確認してる</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mt-1">
+            <div className="bg-red-50 p-6 rounded-xl border border-red-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                   <X size={20} className="text-red-500" />
                 </div>
-                <p className="text-gray-700 text-base leading-relaxed">Excelの更新履歴が追えない</p>
+                <p className="text-gray-700 text-lg leading-normal">Excelの更新履歴が追えない</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mt-1">
+            <div className="bg-red-50 p-6 rounded-xl border border-red-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                   <X size={20} className="text-red-500" />
                 </div>
-                <p className="text-gray-700 text-base leading-relaxed">急な欠席で配車の調整が大変</p>
+                <p className="text-gray-700 text-lg leading-normal">急な欠席で配車の調整が大変</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mt-1">
+            <div className="bg-red-50 p-6 rounded-xl border border-red-200 hover:shadow-xl transition-all duration-300" style={{ boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)' }}>
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                   <X size={20} className="text-red-500" />
                 </div>
-                <p className="text-gray-700 text-base leading-relaxed">「言った・言わない」のトラブルが心配</p>
+                <p className="text-gray-700 text-lg leading-normal">「言った・言わない」のトラブルが心配</p>
               </div>
             </div>
           </div>
           <div className="text-center">
-            <div className="inline-block bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl px-10 py-5 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="inline-block bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl px-10 py-5 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-pulse">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <Check size={28} className="text-white" />
                 </div>
                 <p className="text-2xl font-bold text-green-700">Carpoolなら全部解決！</p>
+                <ChevronRight size={32} className="text-green-600 flex-shrink-0" />
               </div>
             </div>
           </div>
@@ -188,7 +189,7 @@ export default function Home() {
       {/* CTAセクション */}
       <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-3xl font-bold mb-6">さあ、始めましょう</h2>
+          <h2 className="text-3xl font-bold mb-6">さあ、始めましょう！</h2>
           <p className="text-gray-600 mb-10">チームの送迎を、もっとスムーズに</p>
           <div className="flex gap-12 justify-center">
             <Link 
