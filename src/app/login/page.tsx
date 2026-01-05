@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { supabase } from "@/utils/supabase";
 import Link from "next/link";
@@ -8,37 +8,49 @@ import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
 
 export default function Page() {
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm({
-    defaultValues: { email: '', password: '' }
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm({
+    defaultValues: { email: "", password: "" },
   });
   const router = useRouter();
 
-  const onSubmit = async (data: { email: string; password: string}) => {
-
+  const onSubmit = async (data: { email: string; password: string }) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
+        email: data.email,
+        password: data.password,
       });
       if (error) {
-        alert('ログインに失敗しました。')
+        alert("ログインに失敗しました。");
         console.error(error.message);
       } else {
-        router.replace("/admin/teams")
+        router.replace("/admin/teams");
       }
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : '通信エラーが発生しました。';
+      const message =
+        e instanceof Error ? e.message : "通信エラーが発生しました。";
       alert(message);
       console.error(e);
     }
-  }  
+  };
 
   return (
-    <div className="flex justify-center min-h-screen">
-      <div className="w-full max-w-sm p-8 rounded-xl">
-        <h1 className="text-2xl font-bold text-center mb-8">ログイン</h1>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-[#5d9b94] via-[#7fb5ae] to-[#a8cec8] p-4">
+      <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+            ログイン
+          </h1>
+          <p className="text-center text-sm text-gray-600">
+            管理者アカウントでログイン
+          </p>
+        </div>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <FormInput 
+          <FormInput
             label="メールアドレス"
             type="email"
             placeholder="example@mail.com"
@@ -46,36 +58,52 @@ export default function Page() {
             {...register("email", { required: "メールアドレスは必須です。" })}
           />
 
-          <FormInput 
+          <FormInput
             label="パスワード"
             type="password"
             placeholder="••••••••"
             disabled={isSubmitting}
-            {...register("password", { required: "パスワードを入力してください。" })}
+            {...register("password", {
+              required: "パスワードを入力してください。",
+            })}
           />
 
           <div className="text-center">
             <Link
               href="/reset-password"
-              className="inline-block text-teal-700 hover:underline underline-offset-2 focus:outline-none focus-visible:underline"
+              className="inline-block text-sm text-[#0F766E] hover:text-[#0D6B64] hover:underline underline-offset-2 transition-colors"
             >
               パスワードをお忘れですか？
             </Link>
           </div>
 
-          <FormButton 
+          <FormButton
             label="ログイン"
             loadingLabel="ログイン中..."
             isSubmitting={isSubmitting}
           />
         </form>
 
-        <Link
-          href="/"
-          className="text-center block mt-6 text-sm text-gray-700 hover:underline"
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            アカウントをお持ちでない方は{" "}
+            <Link
+              href="/signup"
+              className="text-[#0F766E] hover:text-[#0D6B64] font-medium hover:underline transition-colors"
+            >
+              こちら
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <Link
+            href="/"
+            className="flex items-center justify-center text-sm text-gray-600 hover:text-[#0F766E] transition-colors"
           >
-            ホームに戻る
+            <span>← ホームに戻る</span>
           </Link>
+        </div>
       </div>
     </div>
   );

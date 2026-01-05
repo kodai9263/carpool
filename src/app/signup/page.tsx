@@ -94,6 +94,18 @@ export default function Page() {
           />
         </form>
 
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            既にアカウントをお持ちの方は{" "}
+            <Link
+              href="/login"
+              className="text-[#0F766E] hover:text-[#0D6B64] font-medium hover:underline transition-colors"
+            >
+              こちら
+            </Link>
+          </p>
+        </div>
+
         <div className="mt-8 pt-6 border-t border-gray-200">
           <Link
             href="/"
