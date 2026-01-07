@@ -1,7 +1,7 @@
 "use client";
 
 import { Sidebar } from "../../_components/Sidebar";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 export default function RootLayout({
@@ -9,12 +9,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const teamId = useParams<{ teamId: string }>();
+  const { teamId } = useParams<{ teamId: string }>();
   const [hasPin, setHasPin] = useState(false);
 
   useEffect(() => {
     const pin = sessionStorage.getItem(`pin:${teamId}`);
-    setHasPin(!!pin);
+    setHasPin(pin !== null);
   }, [teamId]);
 
   return (
