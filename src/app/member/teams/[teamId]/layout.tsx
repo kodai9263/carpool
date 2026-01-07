@@ -1,22 +1,26 @@
-import { Metadata } from "next";
-import { Sidebar } from "../../_components/Sidebar";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Carpool",
-  description: "チームの移動、もう迷わない",
-};
+import { Sidebar } from "../../_components/Sidebar";
+import { use, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const teamId = useParams<{ teamId: string }>();
+  const [hasPin, setHasPin] = useState(false);
+
+  useEffect(() => {
+    const pin = sessionStorage.getItem(`pin:${teamId}`);
+    setHasPin(!!pin);
+  }, [teamId]);
+
   return (
     <div className="flex">
-      <Sidebar />
-      <main className="flex-1">
-        {children}
-      </main>
+      {hasPin && <Sidebar />}
+      <main className="flex-1">{children}</main>
     </div>
   );
 }
