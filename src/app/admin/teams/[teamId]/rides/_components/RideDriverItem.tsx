@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import DriverHeader from "./DriverHeader";
 import ChildAssignmentList from "./ChildAssignmentList";
@@ -13,7 +13,7 @@ interface Props {
     availability: boolean;
   }[];
   childrenList: { id: number; name: string }[];
-};
+}
 
 export default function RideDriverItem({
   index,
@@ -21,7 +21,6 @@ export default function RideDriverItem({
   availabilityDrivers,
   childrenList,
 }: Props) {
-
   return (
     <div className="border-2 border-gray-200 rounded-xl p-5 shadow-sm space-y-4 bg-gray-50 hover:shadow-md transition-shadow min-w-[280px]">
       <DriverHeader
@@ -30,7 +29,7 @@ export default function RideDriverItem({
         onRemove={() => removeDriver(index)}
       />
 
-      <ChildAssignmentList 
+      <ChildAssignmentList
         index={index}
         childrenList={childrenList}
         availabilityDrivers={availabilityDrivers}
