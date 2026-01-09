@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { FormButton } from "@/app/_components/FormButton";
@@ -21,7 +21,10 @@ export default function Page() {
   const { pin, url } = useMemberRideAuth(teamId, rideId);
 
   const fetcher = usePinFetcher();
-  const { data, error, isLoading, mutate } = useSWR<RideDetailResponse>(url, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<RideDetailResponse>(
+    url,
+    fetcher
+  );
 
   const methods = useForm<AvailabilityListFormValues>({
     defaultValues: {
@@ -29,15 +32,21 @@ export default function Page() {
     },
   });
 
-  const { handleSubmit, formState: { isSubmitting }, control, register } = methods;
+  const {
+    handleSubmit,
+    formState: { isSubmitting },
+    control,
+    register,
+  } = methods;
 
   // チームメンバーリストと、既に配車可否を登録済みのメンバーIDを取得
-  const { members, registeredMemberIds, existingAvailabilities } = useAvailabilityMembers(data?.ride);
+  const { members, registeredMemberIds, existingAvailabilities } =
+    useAvailabilityMembers(data?.ride);
 
   const onSubmit = async (data: AvailabilityListFormValues) => {
     if (!pin) return;
 
-    const changingToUnavailable = data.availabilities.filter(driver => {
+    const changingToUnavailable = data.availabilities.filter((driver) => {
       if (driver.memberId === 0) return false;
       const existingData = existingAvailabilities.get(driver.memberId);
       return existingData && existingData.availability && !driver.availability;
@@ -45,10 +54,10 @@ export default function Page() {
 
     if (changingToUnavailable.length > 0) {
       const names = changingToUnavailable
-        .map(d => members.find(m => m.id === d.memberId)?.name)
+        .map((d) => members.find((m) => m.id === d.memberId)?.name)
         .filter(Boolean)
-        .join('、');
-      
+        .join("、");
+
       if (!confirm(`${names}さんの配車を「不可」に変更しますか？`)) {
         return;
       }
@@ -58,27 +67,30 @@ export default function Page() {
       // 各保護者のデータを個別に送信
       for (const driver of data.availabilities) {
         if (driver.memberId === 0) {
-          alert('保護者を選択してください');
+          alert("保護者を選択してください");
           return;
         }
 
-        await fetch(`/api/member/teams/${teamId}/rides/${rideId}/availability`,{
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-pin': pin,
-          },
-          body: JSON.stringify(driver),
-        });
+        await fetch(
+          `/api/member/teams/${teamId}/rides/${rideId}/availability`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-pin": pin,
+            },
+            body: JSON.stringify(driver),
+          }
+        );
       }
 
-      alert('配車可否を送信しました');
+      alert("配車可否を送信しました");
       mutate(); // データを再取得
       router.push(`/member/teams/${teamId}/rides/${rideId}`);
     } catch (e: unknown) {
       console.error(e);
-      alert('送信中にエラーが発生しました');
-    } 
+      alert("送信中にエラーが発生しました");
+    }
   };
 
   if (!teamId || !rideId) return <LoadingSpinner />;
@@ -90,31 +102,33 @@ export default function Page() {
   const ride = data.ride;
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-8">配車可否</h1>
+    <div className="min-h-screen flex flex-col items-center py-10">
+      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-center mb-8">🚗 配車可否</h1>
 
-      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-8 space-y-8">
-        <RideBasicInfo date={ride.date} destination={ride.destination} />
+        <div className="space-y-8">
+          <RideBasicInfo date={ride.date} destination={ride.destination} />
 
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <AvailabilityFormList
-              members={members}
-              registeredMemberIds={registeredMemberIds}
-              existingAvailabilities={existingAvailabilities}
-              register={register}
-              control={control}
-            />
+          <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <AvailabilityFormList
+                members={members}
+                registeredMemberIds={registeredMemberIds}
+                existingAvailabilities={existingAvailabilities}
+                register={register}
+                control={control}
+              />
 
-            <FormButton
-              label="送信"
-              type="submit"
-              isSubmitting={isSubmitting}
-              loadingLabel="送信中..."
-              className="!w-[400px] py-3 text-base"
-            />
-          </form>
-        </FormProvider>
+              <FormButton
+                label="送信"
+                type="submit"
+                isSubmitting={isSubmitting}
+                loadingLabel="送信中..."
+                className="!w-[240px] py-3 text-base"
+              />
+            </form>
+          </FormProvider>
+        </div>
       </div>
     </div>
   );
