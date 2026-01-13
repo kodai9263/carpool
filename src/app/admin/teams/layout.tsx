@@ -1,22 +1,19 @@
-import type { Metadata } from "next";
-import { Sidebar } from "../_components/Sidebar";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Carpool",
-  description: "チームの移動、もう迷わない",
-};
+import { Sidebar } from "../_components/Sidebar";
+import { useRouteGuard } from "../_hooks/useRouteGuard";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  useRouteGuard();
+
   return (
     <div className="flex">
       <Sidebar />
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }
