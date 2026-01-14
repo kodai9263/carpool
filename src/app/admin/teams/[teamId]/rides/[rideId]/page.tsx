@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { UpdateRideValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import RideBasicForm from "../_components/RideBasicForm";
@@ -16,11 +16,18 @@ import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
     defaultValues: {
-      destination: '',
+      destination: "",
       drivers: [],
     },
   });
-  const { handleSubmit, formState: { isSubmitting }, reset, setValue, watch, control } = methods;
+  const {
+    handleSubmit,
+    formState: { isSubmitting },
+    reset,
+    setValue,
+    watch,
+    control,
+  } = methods;
 
   const date = watch("date");
 
@@ -35,15 +42,19 @@ export default function Page() {
   const { token } = useSupabaseSession();
   const router = useRouter();
 
-  const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}/rides/${rideId}`);
+  const { data, error, isLoading } = useFetch(
+    `/api/admin/teams/${teamId}/rides/${rideId}`
+  );
 
   useEffect(() => {
     if (data?.ride) {
       const formValues = convertRideDetailToFormValues(data.ride);
       // 各ドライバーの空の行を削除
-      formValues.drivers = formValues.drivers.map(driver => ({
+      formValues.drivers = formValues.drivers.map((driver) => ({
         ...driver,
-        rideAssignments: driver.rideAssignments.filter(child => child.childId !== 0)
+        rideAssignments: driver.rideAssignments.filter(
+          (child) => child.childId !== 0
+        ),
       }));
       reset(formValues);
     }
@@ -59,29 +70,33 @@ export default function Page() {
         data,
         token
       );
-      alert('配車詳細を更新しました。');
+      alert("配車詳細を更新しました。");
     } catch (e: unknown) {
       console.error(e);
-      alert('更新中にエラーが発生しました。');
+      alert("更新中にエラーが発生しました。");
     }
-  }
+  };
 
   // 配車削除
   const handleDeleteRide = async () => {
-    if (!confirm('配車を削除しますか？')) return;
+    if (!confirm("配車を削除しますか？")) return;
     if (!token) return;
     try {
       await api.delete(`/api/admin/teams/${teamId}/rides/${rideId}`, token);
-      alert('配車を削除しました。');
+      alert("配車を削除しました。");
       router.replace(`/admin/teams/${teamId}/rides`);
     } catch (e: unknown) {
       console.error(e);
-      alert('削除中にエラーが発生しました。');
+      alert("削除中にエラーが発生しました。");
+    }
+  };
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) {
+    if (error.message?.includes("404") || error.status === 404) {
+      notFound();
     }
   }
-
-  if (isLoading) return <LoadingSpinner />
-  if (error) return <div>エラーが発生しました。</div>
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10">
@@ -92,16 +107,22 @@ export default function Page() {
             <div className="flex justify-center">
               <RideBasicForm setValue={setValue} date={date} />
             </div>
-          
-            <RideDriverList 
+
+            <RideDriverList
               drivers={fields}
               availabilityDrivers={data?.ride?.availabilityDrivers ?? []}
               childrenList={data?.ride?.children ?? []}
-              appendDriver={() => append({ availabilityDriverId: 0, seats: 0, rideAssignments: [] })}
+              appendDriver={() =>
+                append({
+                  availabilityDriverId: 0,
+                  seats: 0,
+                  rideAssignments: [],
+                })
+              }
               removeDriver={remove}
             />
 
-            <UpdateDeleteButtons 
+            <UpdateDeleteButtons
               onUpdate={handleSubmit(onSubmit)}
               onDelete={handleDeleteRide}
               isSubmitting={isSubmitting}

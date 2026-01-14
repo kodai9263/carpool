@@ -5,7 +5,7 @@ import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { TeamFormValues } from "@/app/_types/team";
 import { api } from "@/utils/api";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../_components/UpdateDeleteButtons";
@@ -73,7 +73,13 @@ export default function Page() {
   }
 
   if (isLoading) return <LoadingSpinner />
-  if (error) return <div>エラーが発生しました。</div>
+  if (error) {
+    // 404エラーの場合はnotFound()を呼び出す
+    if (error.message?.includes('404') || error.status === 404) {
+      notFound();
+    }
+    return <div>エラーが発生しました。</div>
+  }
 
   return (
     <div className="min-h-screen flex justify-center items-start py-10">

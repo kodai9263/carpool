@@ -6,7 +6,7 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member";
 import { api } from "@/utils/api";
 import { Baby, Plus, Users, X } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
@@ -84,7 +84,11 @@ export default function Page() {
   }
 
   if (isLoading) return <LoadingSpinner />
-  if (error) return <div>エラーが発生しました。</div>
+  if (error) {
+    if (error.message?.includes('404') || error.status === 404) {
+      notFound();
+    }
+  }
 
   return (
     <div className="min-h-screen flex justify-center items-start py-10">

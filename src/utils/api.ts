@@ -7,7 +7,11 @@ export const api = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
-    if (!res.ok) throw new Error('取得に失敗しました。');
+    if (!res.ok) {
+      const error: any = new Error('取得に失敗しました。');
+      error.status = res.status;
+      throw error;
+    }
     return res.json();
   },
 

@@ -3,7 +3,7 @@
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { FormButton } from "@/app/_components/FormButton";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import RideBasicInfo from "./_components/RideBasicInfo";
 import RideDriverGrid from "./_components/RideDriverGrid";
@@ -21,8 +21,12 @@ export default function Page() {
 
   if (!teamId || !rideId) return <LoadingSpinner />;
   if (isLoading) return <LoadingSpinner />;
-  if (error) return <div>エラーが発生しました。</div>;
-  if (!data) return <div>データの取得に失敗しました。</div>; // 追加
+  if (error) {
+    if (error.message?.includes("404") || error.status === 404) {
+      notFound();
+    }
+  }
+  if (!data) return <div>データの取得に失敗しました。</div>;
   if (!data.ride) return <div>配車が見つかりません。</div>;
 
   const ride = data.ride;
