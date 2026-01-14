@@ -10,7 +10,11 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form";
 
 export default function TeamForm() {
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<TeamFormValues>({
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { isSubmitting, errors },
+  } = useForm<TeamFormValues>({
     defaultValues: { teamName: '', teamCode: '' }
   });
 
@@ -45,6 +49,7 @@ export default function TeamForm() {
         label="チームID"
         icon={<Building2 size={18} />}
         disabled={isSubmitting}
+        error={errors.teamCode?.message}
         {...register("teamCode", { required: "チームIDを入力してください。" })}
         className="w-[300px]"
       />
@@ -53,6 +58,7 @@ export default function TeamForm() {
         label="チーム名"
         icon={<Users size={18} />}
         disabled={isSubmitting}
+        error={errors.teamName?.message}
         {...register("teamName", { required: "チーム名を入力してください。" })}
         className="w-[300px]"
       />
@@ -61,6 +67,7 @@ export default function TeamForm() {
         label="配車閲覧用パスコード"
         icon={<Key size={18} />}
         disabled={isSubmitting}
+        error={errors.pin?.message}
         {...register("pin", { 
           required: "パスコードを入力してください。", 
           minLength: { value: 4, message: "4文字以上で入力してください。" },
@@ -73,6 +80,7 @@ export default function TeamForm() {
         label="配車閲覧用パスコード(確認用)"
         icon={<KeyRound size={18} />}
         disabled={isSubmitting}
+        error={errors.pinConfirm?.message}
         {...register("pinConfirm", {
           required: "確認用のパスコードを入力してください。",
           minLength: { value: 4, message: "4文字以上で入力してください。" },

@@ -13,7 +13,13 @@ import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { EditInput } from "../../../_components/EditInput";
 
 export default function Page() {
-  const  { register, handleSubmit, formState: { isSubmitting }, reset, control } = useForm<MemberFormValues>({
+  const  { 
+    register, 
+    handleSubmit, 
+    formState: { isSubmitting, errors },
+    reset, 
+    control 
+  } = useForm<MemberFormValues>({
     defaultValues: {
       name: '',
       children: [{ name: '' }],
@@ -101,7 +107,9 @@ export default function Page() {
             label="保護者 or 指導者"
             disabled={isSubmitting}
             hasValue={!!memberName && memberName.length > 0}
-            {...register("name", { required: true })}
+            error={errors.name?.message}
+            errorClassName="text-right pr-6"
+            {...register("name", { required: "メンバー名を入力してください。" })}
             className="w-[200px] mr-7"
           />
 

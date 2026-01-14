@@ -20,7 +20,7 @@ export default function Page() {
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     reset,
   } = useForm<FormInput>({
     defaultValues: { email: "", password: "", confirmPassword: "" },
@@ -99,6 +99,7 @@ export default function Page() {
               type="email"
               placeholder="example@mail.com"
               disabled={isSubmitting}
+              error={errors.email?.message}
               {...register("email", { required: "メールアドレスは必須です。" })}
             />
           ) : (
@@ -108,6 +109,7 @@ export default function Page() {
                 type="password"
                 placeholder="••••••••"
                 disabled={isSubmitting}
+                error={errors.password?.message}
                 {...register("password", {
                   required: "パスワードを入力してください。",
                 })}
@@ -118,6 +120,7 @@ export default function Page() {
                 type="password"
                 placeholder="••••••••"
                 disabled={isSubmitting}
+                error={errors.confirmPassword?.message}
                 {...register("confirmPassword", {
                   required: "確認用のパスワードを入力してください。",
                 })}

@@ -10,7 +10,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 
 export default function MemberForm() {
-  const { register, handleSubmit, formState: { isSubmitting }, control } = useForm<MemberFormValues>({
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { isSubmitting, errors },
+    control 
+  } = useForm<MemberFormValues>({
     defaultValues: {
       name: '',
       children: [{ name: '' }],
@@ -50,6 +55,7 @@ export default function MemberForm() {
         icon={<User size={18} />}
         label="メンバー名（保護者 or 指導者）"
         disabled={isSubmitting}
+        error={errors.name?.message}
         {...register("name", { required: "メンバー名を入力してください。"})}
         className="w-[250px]"
       />

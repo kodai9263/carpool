@@ -11,7 +11,7 @@ export default function Page() {
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = useForm({
     defaultValues: { email: "", password: "" },
   });
@@ -55,6 +55,7 @@ export default function Page() {
             type="email"
             placeholder="example@mail.com"
             disabled={isSubmitting}
+            error={errors.email?.message}
             {...register("email", { required: "メールアドレスは必須です。" })}
           />
 
@@ -63,6 +64,7 @@ export default function Page() {
             type="password"
             placeholder="••••••••"
             disabled={isSubmitting}
+            error={errors.password?.message}
             {...register("password", {
               required: "パスワードを入力してください。",
             })}

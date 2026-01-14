@@ -13,7 +13,13 @@ import { EditInput } from "../_components/EditInput";
 import { Building2, Users } from "lucide-react";
 
 export default function Page() {
-  const  { register, handleSubmit, formState: { isSubmitting }, reset, control } = useForm<TeamFormValues>({
+  const  { 
+    register, 
+    handleSubmit, 
+    formState: { isSubmitting, errors }, 
+    reset, 
+    control 
+  } = useForm<TeamFormValues>({
     defaultValues: { teamName: '', teamCode: '' }
   });
   
@@ -92,7 +98,9 @@ export default function Page() {
             label="チーム名"
             disabled={isSubmitting}
             hasValue={!!teamName && teamName.length > 0}
-            {...register("teamName", { required: true })}
+            error={errors.teamName?.message}
+            errorClassName="text-center"
+            {...register("teamName", { required: "チーム名を入力してください。" })}
           />
 
           <EditInput
@@ -100,7 +108,9 @@ export default function Page() {
             label="チームID"
             disabled={isSubmitting}
             hasValue={!!teamCode && teamCode.length > 0}
-            {...register("teamCode", { required: true })}
+            error={errors.teamCode?.message}
+            errorClassName="text-center"
+            {...register("teamCode", { required: "チーム名をIDしてください。" })}
           />
 
           <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
