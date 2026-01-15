@@ -37,16 +37,41 @@ export default function Page() {
     formState: { isSubmitting },
     control,
     register,
+    setError,
+    clearErrors,
   } = methods;
 
   // チームメンバーリストと、既に配車可否を登録済みのメンバーIDを取得
   const { members, registeredMemberIds, existingAvailabilities } =
     useAvailabilityMembers(data?.ride);
 
-  const onSubmit = async (data: AvailabilityListFormValues) => {
+  const onSubmit = async (formData: AvailabilityListFormValues) => {
     if (!pin) return;
 
-    const changingToUnavailable = data.availabilities.filter((driver) => {
+    // バリデーション
+    let hasError = false;
+    clearErrors();
+
+    formData.availabilities.forEach((driver, index) => {
+      if (driver.memberId === 0) {
+        setError(`availabilities.${index}.memberId`, {
+          type: "manual",
+          message: "保護者を選択してください",
+        });
+        hasError = true;
+      }
+      if (!driver.availability) {
+        setError(`availabilities.${index}.availability`, {
+          type: "manual",
+          message: "配車可にチェックをしてください",
+        });
+        hasError = true;
+      }
+    });
+
+    if (hasError) return;
+
+    const changingToUnavailable = formData.availabilities.filter((driver) => {
       if (driver.memberId === 0) return false;
       const existingData = existingAvailabilities.get(driver.memberId);
       return existingData && existingData.availability && !driver.availability;
@@ -65,12 +90,7 @@ export default function Page() {
 
     try {
       // 各保護者のデータを個別に送信
-      for (const driver of data.availabilities) {
-        if (driver.memberId === 0) {
-          alert("保護者を選択してください");
-          return;
-        }
-
+      for (const driver of formData.availabilities) {
         await fetch(
           `/api/member/teams/${teamId}/rides/${rideId}/availability`,
           {

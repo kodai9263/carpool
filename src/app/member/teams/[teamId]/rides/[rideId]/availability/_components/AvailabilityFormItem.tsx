@@ -26,7 +26,11 @@ export default function AvailabilityFormItem({
   control,
   canRemove,
 }: Props) {
-  const { setValue } = useFormContext<AvailabilityListFormValues>();
+  const { setValue, formState: { errors } } = useFormContext<AvailabilityListFormValues>();
+
+  // エラー取得
+  const memberIdError = errors.availabilities?.[index]?.memberId;
+  const availabilityError = errors.availabilities?.[index]?.availability;
 
   const availability = useWatch({
     control,
@@ -76,7 +80,11 @@ export default function AvailabilityFormItem({
               required: true,
               valueAsNumber: true,
             })}
-            className="flex-1 border-2 border-gray-300 rounded px-3 py-2 focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+            className={`flex-1 border-2 rounded px-3 py-2 focus:ring-2 focus:outline-none ${
+              memberIdError
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : "border-gray-300 focus:border-teal-700 focus:ring-teal-700"
+            }`}
           >
             <option value={0}>選択してください</option>
             {members.map((member) => (
@@ -112,6 +120,17 @@ export default function AvailabilityFormItem({
           </button>
         )}
       </div>
+
+      {/* エラーメッセージ */}
+      {memberIdError ? (
+        <div className="text-sm text-red-500 text-center">
+          <p>{memberIdError.message}</p>
+        </div>
+      ) : availabilityError && (
+        <div className="text-sm text-red-500 text-center">
+          <p>{availabilityError.message}</p>
+        </div>
+      )}
 
       {/* 配車可能人数（配車可の場合のみ表示） */}
       {availability && (
