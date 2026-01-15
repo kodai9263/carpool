@@ -14,7 +14,8 @@ export default function Page() {
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
+    reset,
   } = useForm<PinValues>();
 
   const onSubmit = async (data: PinValues) => {
@@ -29,6 +30,7 @@ export default function Page() {
 
       if (!response.ok) {
         alert("配車コードが正しくありません");
+        reset();
         return;
       }
 
@@ -66,6 +68,9 @@ export default function Page() {
               autoComplete="off"
               placeholder="••••"
             />
+            {errors.pin && (
+              <p className="text-sm text-red-600">{errors.pin.message}</p>
+            )}
             <p className="text-xs text-gray-500">
               チームメンバー共有のコードを入力してください。
             </p>
