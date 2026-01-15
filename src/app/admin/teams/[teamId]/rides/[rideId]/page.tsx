@@ -9,6 +9,7 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import RideBasicForm from "../_components/RideBasicForm";
+import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
@@ -22,12 +23,13 @@ export default function Page() {
   });
   const {
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     reset,
-    setValue,
     watch,
     control,
   } = methods;
+
+  const { validateDate, handleDateChange } = createRideDateValidation(methods);
 
   const date = watch("date");
 
@@ -61,6 +63,7 @@ export default function Page() {
   }, [data, reset]);
 
   const onSubmit = async (data: UpdateRideValues) => {
+    if (!validateDate()) return;
     if (!token) return;
 
     // 配車情報更新
@@ -105,7 +108,11 @@ export default function Page() {
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="flex justify-center">
-              <RideBasicForm setValue={setValue} date={date} />
+              <RideBasicForm 
+                date={date}
+                onDateChange={handleDateChange}
+                error={!!errors.date}
+              />
             </div>
 
             <RideDriverList

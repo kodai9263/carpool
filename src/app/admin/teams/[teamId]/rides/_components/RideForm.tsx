@@ -7,6 +7,7 @@ import { api } from "@/utils/api";
 import { useParams, useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import RideBasicForm from "./RideBasicForm";
+import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 
 export default function RideForm() {
   const methods = useForm<RideFormValues>({
@@ -14,26 +15,13 @@ export default function RideForm() {
     mode: 'onSubmit',
   });
 
-  const validateDate = () => {
-    if (!methods.getValues('date')) {
-      methods.setError('date', { type: 'required', message: '日付を入力してください' });
-      return false;
-    }
-    return true;
-  };
+  const { validateDate, handleDateChange } = createRideDateValidation(methods);
+
   const {
     handleSubmit,
     formState: { isSubmitting, errors },
-    setValue,
     watch
   } = methods;
-
-  const handleDateChange = (date: Date | null) => {
-    setValue('date', date);
-    if (date) {
-      methods.clearErrors('date');
-    }
-  };
 
   const { teamId } = useParams<{ teamId: string }>();
   const { token } = useSupabaseSession();
@@ -65,10 +53,10 @@ export default function RideForm() {
         <RideBasicForm
           date={date}
           onDateChange={handleDateChange}
-          error={errors.date?.message}
+          error={!!errors.date}
         />
-        
-        <FormButton 
+
+        <FormButton
           label="登録"
           loadingLabel="登録中..."
           isSubmitting={isSubmitting}

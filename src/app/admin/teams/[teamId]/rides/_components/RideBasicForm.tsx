@@ -8,7 +8,7 @@ import AppDatePicker from "./AppDatePicker.tsx";
 interface RideProps {
   date: Date | null;
   onDateChange: (date: Date | null) => void;
-  error?: string;
+  error?: boolean;
 }
 
 export default function RideBasicForm({
