@@ -1,20 +1,22 @@
 'use client';
 
 import { Calendar, MapPin } from "lucide-react";
-import { FieldValues, useFormContext, UseFormSetValue, useWatch } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import AppDatePicker from "./AppDatePicker.tsx";
 
-interface RideProps<T extends FieldValues> {
-  setValue: UseFormSetValue<T>;
+interface RideProps {
   date: Date | null;
-};
+  onDateChange: (date: Date | null) => void;
+  error?: string;
+}
 
-export default function RideBasicForm<T extends FieldValues>({
-  setValue,
-  date
-}: RideProps<T>) {
-  const { register, control } = useFormContext<T>();
+export default function RideBasicForm({
+  date,
+  onDateChange,
+  error,
+}: RideProps) {
+  const { register, control } = useFormContext();
 
   const destination = useWatch({ control, name: "destination" as any});
 
@@ -30,11 +32,11 @@ export default function RideBasicForm<T extends FieldValues>({
         <span className="w-20 text-lg font-bold">日付</span>
 
         <div className="w-96">
-          <AppDatePicker 
+          <AppDatePicker
             value={date}
-            onChange={(value) => setValue("date" as any, value as any)}
+            onChange={onDateChange}
             minDate={new Date()}
-            className={`border-2 border-gray-300 rounded px-3 py-3 w-full transition-colors duration-200 ${hasDate ? 'bg-blue-50' : ''}`}
+            className={`border-2 rounded px-3 py-3 w-full transition-colors duration-200 ${error ? 'border-red-500' : 'border-gray-300'} ${hasDate ? 'bg-blue-50' : ''}`}
           />
         </div>
       </div>
@@ -47,7 +49,7 @@ export default function RideBasicForm<T extends FieldValues>({
 
         <input
           type="text"
-          {...register("destination" as any, { required: true })}
+          {...register("destination" as any)}
           className={`border-2 border-gray-300 rounded px-3 py-3 w-96 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none transition-colors duration-200 ${hasDestination ? 'bg-blue-50' : ''}`}
         />
       </div>

@@ -11,8 +11,29 @@ import RideBasicForm from "./RideBasicForm";
 export default function RideForm() {
   const methods = useForm<RideFormValues>({
     defaultValues: { date: null, destination: '' },
+    mode: 'onSubmit',
   });
-  const { handleSubmit, formState: { isSubmitting }, setValue, watch } = methods;
+
+  const validateDate = () => {
+    if (!methods.getValues('date')) {
+      methods.setError('date', { type: 'required', message: '日付を入力してください' });
+      return false;
+    }
+    return true;
+  };
+  const {
+    handleSubmit,
+    formState: { isSubmitting, errors },
+    setValue,
+    watch
+  } = methods;
+
+  const handleDateChange = (date: Date | null) => {
+    setValue('date', date);
+    if (date) {
+      methods.clearErrors('date');
+    }
+  };
 
   const { teamId } = useParams<{ teamId: string }>();
   const { token } = useSupabaseSession();
@@ -20,6 +41,7 @@ export default function RideForm() {
   const date = watch('date');
 
   const onSubmit = async (data: RideFormValues) => {
+    if (!validateDate()) return;
     if (!token) return;
 
     try {
@@ -40,7 +62,11 @@ export default function RideForm() {
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 flex flex-col items-center max-w-xl mx-auto">
-        <RideBasicForm setValue={setValue} date={date} />
+        <RideBasicForm
+          date={date}
+          onDateChange={handleDateChange}
+          error={errors.date?.message}
+        />
         
         <FormButton 
           label="登録"
