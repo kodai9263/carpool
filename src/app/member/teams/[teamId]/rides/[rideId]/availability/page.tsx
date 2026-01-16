@@ -60,10 +60,19 @@ export default function Page() {
         });
         hasError = true;
       }
-      if (!driver.availability) {
+
+      // 配車可チェックのバリデーション
+      // - 新規登録の場合: 配車可チェック必須
+      // - 既存が不可の場合: 配車可チェック必須（不可→不可の無意味な送信を防ぐ）
+      // - 既存が可の場合: 不可への変更を許可（確認ダイアログで対応）
+      const memberIdNum = Number(driver.memberId);
+      const existingData = existingAvailabilities.get(memberIdNum);
+      const isNewOrWasUnavailable = !existingData || !existingData.availability;
+
+      if (isNewOrWasUnavailable && memberIdNum !== 0 && !driver.availability) {
         setError(`availabilities.${index}.availability`, {
           type: "manual",
-          message: "配車可にチェックをしてください",
+          message: "配車可にチェックしてください",
         });
         hasError = true;
       }
@@ -130,7 +139,7 @@ export default function Page() {
           <RideBasicInfo date={ride.date} destination={ride.destination} />
 
           <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={(e) => { console.log("Form submit triggered"); handleSubmit(onSubmit, (errors) => console.log("Form validation errors:", errors))(e); }} className="space-y-6">
               <AvailabilityFormList
                 members={members}
                 registeredMemberIds={registeredMemberIds}
