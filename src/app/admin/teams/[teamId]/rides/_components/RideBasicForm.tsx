@@ -24,14 +24,17 @@ export default function RideBasicForm({
   const hasDestination = !!destination;
 
   return (
-    <div className="space-y-10">
-      <div className="flex items-center space-x-6">
-        <div className="w-10 flex justify-center">
-          <Calendar size={18} className="text-gray-500" />
+    <div className="space-y-6 md:space-y-10 w-full">
+      {/* 日付 */}
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+        <div className="flex items-center gap-2 md:gap-0">
+          <div className="md:w-10 flex justify-center">
+            <Calendar size={18} className="text-gray-500" />
+          </div>
+          <span className="md:w-20 text-base md:text-lg font-bold">日付</span>
         </div>
-        <span className="w-20 text-lg font-bold">日付</span>
 
-        <div className="w-96">
+        <div className="w-full md:w-96">
           <AppDatePicker
             value={date}
             onChange={onDateChange}
@@ -41,16 +44,19 @@ export default function RideBasicForm({
         </div>
       </div>
 
-      <div className="flex items-center space-x-6">
-        <div className="w-10 flex justify-center">
-          <MapPin size={18} className="text-gray-500" />
+      {/* 行き先 */}
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+        <div className="flex items-center gap-2 md:gap-0">
+          <div className="md:w-10 flex justify-center">
+            <MapPin size={18} className="text-gray-500" />
+          </div>
+          <span className="md:w-20 text-base md:text-lg font-bold">行き先</span>
         </div>
-        <span className="w-20 text-lg font-bold">行き先</span>
 
         <input
           type="text"
           {...register("destination" as any)}
-          className={`border-2 border-gray-300 rounded px-3 py-3 w-96 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none transition-colors duration-200 ${hasDestination ? 'bg-blue-50' : ''}`}
+          className={`w-full md:w-96 border-2 border-gray-300 rounded px-3 py-3 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none transition-colors duration-200 ${hasDestination ? 'bg-blue-50' : ''}`}
         />
       </div>
     </div>

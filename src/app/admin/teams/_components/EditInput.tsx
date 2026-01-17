@@ -16,14 +16,30 @@ export const EditInput = forwardRef<HTMLInputElement, InputProps>(function EditI
   const bgColor = hasValue ? "bg-blue-50" : "bg-white";
 
   return (
-    <div>
-      <div className="flex items-center gap-3">
-        {icon && <span className="text-gray-500">{icon}</span>}
-        <h2 className="text-lg font-bold whitespace-nowrap">{label}</h2>
+    <div className="w-full">
+      {/* モバイル: 縦並び */}
+      <div className="flex flex-col gap-2 md:hidden">
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-gray-500 flex-shrink-0">{icon}</span>}
+          <h2 className="text-sm font-bold">{label}</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            ref={ref}
+            {...props}
+            className={`flex-1 min-w-0 ${bgColor} rounded-lg px-3 py-2 border-2 ${error ? "border-red-500" : "border-gray-300"} focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-center transition-colors duration-200`}
+          />
+          {right}
+        </div>
+      </div>
+      {/* デスクトップ: 横並び */}
+      <div className="hidden md:flex items-center gap-3">
+        {icon && <span className="text-gray-500 flex-shrink-0">{icon}</span>}
+        <h2 className="text-base font-bold whitespace-nowrap flex-shrink-0 w-28">{label}</h2>
         <input
           ref={ref}
           {...props}
-          className={`${className ?? "w-full"} ${bgColor} rounded-lg px-4 py-2 border-2 ${error ? "border-red-500" : "border-gray-300"} focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-center transition-colors duration-200`}
+          className={`${className ?? "flex-1"} min-w-0 ${bgColor} rounded-lg px-4 py-2 border-2 ${error ? "border-red-500" : "border-gray-300"} focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-center transition-colors duration-200`}
         />
         {right}
       </div>

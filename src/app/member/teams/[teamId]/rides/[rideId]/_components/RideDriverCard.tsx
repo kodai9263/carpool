@@ -18,7 +18,7 @@ interface Props {
 
 export default function RideDriverCard({ driver }: Props) {
   return (
-    <div className="border-2 border-gray-200 rounded-xl p-5 shadow-sm space-y-4 bg-gray-50 hover:shadow-md transition-shadow min-w-[280px]">
+    <div className="border-2 border-gray-200 rounded-xl p-4 md:p-5 shadow-sm space-y-4 bg-gray-50 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
         <CarFront size={24} className="text-teal-700" />
         <div className="font-medium text-base">

@@ -97,56 +97,54 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-10">
-      <div className="w-[500px] p-8 rounded-xl shadow-lg bg-white">
+    <div className="flex justify-center items-start py-4 md:py-10 px-4">
+      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
         <h1 className="text-3xl font-bold mb-8 text-center">👤 メンバー詳細</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 flex flex-col items-center max-w-xl mx-auto">
-          <EditInput 
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <EditInput
             icon={<Users size={18} />}
-            label="保護者 or 指導者"
+            label="保護者/指導者"
             disabled={isSubmitting}
             hasValue={!!memberName && memberName.length > 0}
             error={errors.name?.message}
-            errorClassName="text-right pr-6"
+            errorClassName="text-center"
             {...register("name", { required: "メンバー名を入力してください。" })}
-            className="w-[200px] mr-7"
           />
 
-          <div className="space-y-3 ml-6">
+          <div className="space-y-3">
             {fields.map((child, index) => (
-              <EditInput 
+              <EditInput
                 key={child.id}
                 icon={<Baby size={18} className="text-gray-500" />}
-                label={`お子さん ${index + 1}人目`}
+                label={`子供${index + 1}`}
                 hasValue={!!childrenNames?.[index]?.name && childrenNames[index].name.length > 0}
                 {...register(`children.${index}.name`, { required: true })}
-              className="w-[200px] rounded-lg px-4 py-2 ml-4 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
-              disabled={isSubmitting}
-              right={
-                <button
-                  type="button"
-                  onClick={() => remove(index)}
-                  className="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
-                  disabled={isSubmitting}
-                >
-                  <X size={20} />
-                </button>
-              }
-            />
-          ))}
-          
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => append({ name: ""})}
-              className="px-3 py-2 mt-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
-              disabled={isSubmitting}
-            >
-              <Plus size={20} />
-            </button>
+                disabled={isSubmitting}
+                right={
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
+                    disabled={isSubmitting}
+                  >
+                    <X size={20} />
+                  </button>
+                }
+              />
+            ))}
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => append({ name: ""})}
+                className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
+                disabled={isSubmitting}
+              >
+                <Plus size={20} />
+              </button>
+            </div>
           </div>
-        </div>
 
           <UpdateDeleteButtons 
             onUpdate={handleSubmit(onSubmit)}

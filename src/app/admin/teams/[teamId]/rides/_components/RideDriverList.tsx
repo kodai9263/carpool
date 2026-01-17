@@ -1,7 +1,7 @@
 'use client';
 
 import { UpdateRideValues } from "@/app/_types/ride";
-import { FieldArrayWithId, useFormContext, UseFormRegister } from "react-hook-form";
+import { FieldArrayWithId, useFormContext } from "react-hook-form";
 import RideDriverItem from "./RideDriverItem";
 import { Plus } from "lucide-react";
 
@@ -45,7 +45,7 @@ export default function RideDriverList({
 
   return (
     <div className="flex flex-col items-center space-y-6">
-      <div className="grid grid-cols-3 gap-6 w-full max-w-[920px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-[920px]">
         {drivers.map((driver, index) => (
           <RideDriverItem 
             key={driver.id}

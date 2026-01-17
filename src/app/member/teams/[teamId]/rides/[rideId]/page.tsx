@@ -32,8 +32,8 @@ export default function Page() {
   const ride = data.ride;
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10">
-      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
+      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8">
         <h1 className="text-3xl font-bold text-center mb-8">🚗 配車詳細</h1>
 
         <div className="space-y-8">
@@ -49,7 +49,7 @@ export default function Page() {
                 `/member/teams/${teamId}/rides/${rideId}/availability`
               )
             }
-            className="!w-[300px] py-3 text-base"
+            className="!w-full !max-w-[300px] py-3 text-base"
           />
         </div>
       </div>

@@ -88,8 +88,8 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-10">
-      <div className="w-[500px] p-8 rounded-xl shadow-lg bg-white">
+    <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
+      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
         <h1 className="text-3xl font-bold mb-8 text-center">👥 チーム詳細</h1>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
