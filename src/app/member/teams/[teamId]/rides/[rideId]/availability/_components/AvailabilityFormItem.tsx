@@ -71,57 +71,58 @@ export default function AvailabilityFormItem({
 
   return (
     <div className="p-3 md:p-4 border rounded-lg bg-gray-50 space-y-3">
-      {/* モバイル: 縦並び、デスクトップ: 横並び */}
-      <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-        <div className="flex items-center gap-2 flex-1">
+      {/* 保護者名 */}
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2">
           <User size={20} className="text-gray-600 flex-shrink-0" />
-          <span className="w-20 md:w-28 text-sm md:text-base flex-shrink-0">保護者名</span>
-          <select
-            {...register(`availabilities.${index}.memberId`, {
-              required: true,
-              valueAsNumber: true,
-            })}
-            className={`flex-1 border-2 rounded px-3 py-2 text-base focus:ring-2 focus:outline-none ${
-              memberIdError
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:border-teal-700 focus:ring-teal-700"
-            }`}
+          <span className="text-sm md:text-base font-bold flex-shrink-0">保護者名</span>
+        </div>
+        <select
+          {...register(`availabilities.${index}.memberId`, {
+            required: true,
+            valueAsNumber: true,
+          })}
+          className={`w-full md:flex-1 border-2 rounded px-3 py-2 text-base focus:ring-2 focus:outline-none ${
+            memberIdError
+              ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+              : "border-gray-300 focus:border-teal-700 focus:ring-teal-700"
+          }`}
+        >
+          <option value={0}>選択してください</option>
+          {members.map((member) => (
+              <option
+                key={member.id}
+                value={member.id}
+              >
+                {member.name}
+                {registeredMemberIds.has(member.id) && " (登録済み)"}
+              </option>
+          ))}
+        </select>
+      </div>
+
+      {/* 配車可チェックボックス */}
+      <div className="flex items-center justify-between">
+        <label className={`flex items-center gap-2 whitespace-nowrap min-h-[44px] ${isMemberSelected ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+          <input
+            type="checkbox"
+            {...register(`availabilities.${index}.availability`)}
+            disabled={!isMemberSelected}
+            className="w-6 h-6 text-teal-700 rounded focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed"
+          />
+          <span className="text-base">配車可</span>
+        </label>
+
+        {canRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-gray-400 hover:text-red-500 transition flex-shrink-0 p-2 -m-2"
+            aria-label="削除"
           >
-            <option value={0}>選択してください</option>
-            {members.map((member) => (
-                <option
-                  key={member.id}
-                  value={member.id}
-                >
-                  {member.name}
-                  {registeredMemberIds.has(member.id) && " (登録済み)"}
-                </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-center justify-between md:justify-start gap-3 md:gap-4 ml-7 md:ml-0">
-          <label className={`flex items-center gap-2 whitespace-nowrap min-h-[44px] ${isMemberSelected ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
-            <input
-              type="checkbox"
-              {...register(`availabilities.${index}.availability`)}
-              disabled={!isMemberSelected}
-              className="w-6 h-6 text-teal-700 rounded focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed"
-            />
-            <span className="text-base">配車可</span>
-          </label>
-
-          {canRemove && (
-            <button
-              type="button"
-              onClick={onRemove}
-              className="text-gray-400 hover:text-red-500 transition flex-shrink-0 p-2 -m-2"
-              aria-label="削除"
-            >
-              <X size={24} />
-            </button>
-          )}
-        </div>
+            <X size={24} />
+          </button>
+        )}
       </div>
 
       {/* エラーメッセージ */}
@@ -137,14 +138,13 @@ export default function AvailabilityFormItem({
 
       {/* 配車可能人数（配車可の場合のみ表示） */}
       {availability && (
-        <div className="flex items-center gap-2 ml-7 md:ml-0">
-          <div className="hidden md:block w-5 flex-shrink-0" />
-          <span className="w-auto md:w-28 text-sm md:text-base flex-shrink-0">乗車人数</span>
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+          <span className="text-sm md:text-base font-bold">乗車人数</span>
           <select
             {...register(`availabilities.${index}.seats`, {
               valueAsNumber: true,
             })}
-            className="border-2 border-gray-300 rounded px-3 py-2 w-24 md:w-32 text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+            className="border-2 border-gray-300 rounded px-3 py-2 w-full md:w-32 text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
           >
             {[...Array(10)].map((_, i) => (
               <option key={i + 1} value={i + 1}>
