@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Calendar, MapPin } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -18,7 +18,7 @@ export default function RideBasicForm({
 }: RideProps) {
   const { register, control } = useFormContext();
 
-  const destination = useWatch({ control, name: "destination" as any});
+  const destination = useWatch({ control, name: "destination" as any });
 
   const hasDate = !!date;
   const hasDestination = !!destination;
@@ -39,7 +39,9 @@ export default function RideBasicForm({
             value={date}
             onChange={onDateChange}
             minDate={new Date()}
-            className={`border-2 rounded px-3 py-3 w-full transition-colors duration-200 ${error ? 'border-red-500' : 'border-gray-300'} ${hasDate ? 'bg-blue-50' : ''}`}
+            className={`border-2 rounded px-3 py-3 w-full transition-colors duration-200 ${
+              error ? "border-red-500" : "border-gray-300"
+            } ${hasDate ? "bg-blue-50" : ""}`}
           />
         </div>
       </div>
@@ -56,7 +58,9 @@ export default function RideBasicForm({
         <input
           type="text"
           {...register("destination" as any)}
-          className={`w-full md:w-96 border-2 border-gray-300 rounded px-3 py-3 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none transition-colors duration-200 ${hasDestination ? 'bg-blue-50' : ''}`}
+          className={`w-full truncate md:w-96 border-2 border-gray-300 rounded px-3 py-3 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none transition-colors duration-200 ${
+            hasDestination ? "bg-blue-50" : ""
+          }`}
         />
       </div>
     </div>
