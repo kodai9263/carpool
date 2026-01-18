@@ -38,14 +38,14 @@ export default function Page() {
         <div className="space-y-4">
           {teams.map((team: Team) => {
             return (
-              <div 
-                key={team.id} 
+              <div
+                key={team.id}
                 onClick={() => router.push(`/admin/teams/${team.id}`)}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer"
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer w-full"
               >
-                <div className="flex items-center gap-3">
+                <div className="grid grid-cols-[24px_1fr] gap-3 items-center">
                   <Users size={24} className="text-[#5d9b94]" />
-                  <span className="text-lg font-medium">
+                  <span className="text-lg font-medium truncate" title={team.teamName}>
                     {team.teamName}
                   </span>
                 </div>
