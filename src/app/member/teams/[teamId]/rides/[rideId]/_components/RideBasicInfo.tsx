@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar, MapPin } from "lucide-react";
+import { useState } from "react";
 
 interface Props {
   date: Date | string;
@@ -8,6 +9,8 @@ interface Props {
 }
 
 export default function RideBasicInfo({ date, destination }: Props) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
     <div className="space-y-6 md:space-y-10 w-full">
       {/* 日付 */}
@@ -39,8 +42,14 @@ export default function RideBasicInfo({ date, destination }: Props) {
           <span className="md:w-20 text-base md:text-lg font-bold">行き先</span>
         </div>
 
-        <div className="w-full md:flex-1">
-          <div className="border-2 border-gray-300 rounded px-3 py-3 bg-gray-50">
+        <div className="w-full md:flex-1 min-w-0">
+          <div
+            className={`border-2 border-gray-300 rounded px-3 py-3 bg-gray-50 break-all overflow-wrap-anywhere ${
+              isExpanded ? "" : "line-clamp-3"
+            }`}
+            onClick={() => setIsExpanded(!isExpanded)}
+            title={destination}
+          >
             {destination}
           </div>
         </div>

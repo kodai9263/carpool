@@ -22,7 +22,9 @@ export default function RideDriverGrid({ drivers }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-[920px]">
       {drivers.map((driver) => (
-        <RideDriverCard key={driver.id} driver={driver} />
+        <div key={driver.id} className="min-w-0">
+          <RideDriverCard driver={driver} />
+        </div>
       ))}
     </div>
   );

@@ -33,24 +33,32 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">🚗 配車詳細</h1>
+      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8 break-words">
+          🚗 配車詳細
+        </h1>
 
-        <div className="space-y-8">
-          <RideBasicInfo date={ride.date} destination={ride.destination} />
+        <div className="space-y-6 md:space-y-8 min-w-0">
+          <div className="min-w-0 overflow-hidden">
+            <RideBasicInfo date={ride.date} destination={ride.destination} />
+          </div>
 
-          <RideDriverGrid drivers={ride.drivers} />
+          <div className="min-w-0 overflow-hidden">
+            <RideDriverGrid drivers={ride.drivers} />
+          </div>
 
-          <FormButton
-            label="配車可否入力へ"
-            type="button"
-            onClick={() =>
-              router.push(
-                `/member/teams/${teamId}/rides/${rideId}/availability`
-              )
-            }
-            className="!w-full !max-w-[300px] py-3 text-base"
-          />
+          <div className="flex justify-center w-full">
+            <FormButton
+              label="配車可否入力へ"
+              type="button"
+              onClick={() =>
+                router.push(
+                  `/member/teams/${teamId}/rides/${rideId}/availability`
+                )
+              }
+              className="!w-full !max-w-[300px] py-3 text-base"
+            />
+          </div>
         </div>
       </div>
     </div>
