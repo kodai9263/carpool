@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { AvailabilityListFormValues } from "@/app/_types/availability";
 import { User, X } from "lucide-react";
@@ -9,6 +9,7 @@ interface Props {
   index: number;
   members: Array<{ id: number; name: string }>;
   registeredMemberIds: Set<number>;
+  selectedMemberIds: Set<number>;
   onRemove: () => void;
   existingAvailabilities: Map<number, { seats: number; availability: boolean }>;
   register: UseFormRegister<AvailabilityListFormValues>;
@@ -20,13 +21,17 @@ export default function AvailabilityFormItem({
   index,
   members,
   registeredMemberIds,
+  selectedMemberIds,
   existingAvailabilities,
   onRemove,
   register,
   control,
   canRemove,
 }: Props) {
-  const { setValue, formState: { errors } } = useFormContext<AvailabilityListFormValues>();
+  const {
+    setValue,
+    formState: { errors },
+  } = useFormContext<AvailabilityListFormValues>();
 
   // エラー取得
   const memberIdError = errors.availabilities?.[index]?.memberId;
@@ -48,7 +53,10 @@ export default function AvailabilityFormItem({
       const existingData = existingAvailabilities.get(memberId);
       if (existingData) {
         // 既存データがあれば設定
-        setValue(`availabilities.${index}.availability`, existingData.availability);
+        setValue(
+          `availabilities.${index}.availability`,
+          existingData.availability
+        );
         setValue(`availabilities.${index}.seats`, existingData.seats);
       } else {
         // 既存データがなければデフォルト値
@@ -66,7 +74,10 @@ export default function AvailabilityFormItem({
   const isMemberSelected = memberId && memberId !== 0;
 
   // 既存の登録情報を取得
-  const existingData = memberId && memberId !== 0 ? existingAvailabilities.get(memberId) : undefined;
+  const existingData =
+    memberId && memberId !== 0
+      ? existingAvailabilities.get(memberId)
+      : undefined;
   const isChangingToUnavailable = existingData?.availability && !availability;
 
   return (
@@ -75,7 +86,9 @@ export default function AvailabilityFormItem({
       <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
         <div className="flex items-center gap-2">
           <User size={20} className="text-gray-600 flex-shrink-0" />
-          <span className="text-sm md:text-base font-bold flex-shrink-0">保護者名</span>
+          <span className="text-sm md:text-base font-bold flex-shrink-0">
+            保護者名
+          </span>
         </div>
         <select
           {...register(`availabilities.${index}.memberId`, {
@@ -89,21 +102,37 @@ export default function AvailabilityFormItem({
           }`}
         >
           <option value={0}>選択してください</option>
-          {members.map((member) => (
+          {members.map((member) => {
+            // 既に他のフォームで選択されているか
+            const isSelectedElsewhere =
+              selectedMemberIds.has(member.id) && member.id !== memberId;
+
+            return (
               <option
                 key={member.id}
                 value={member.id}
+                disabled={isSelectedElsewhere}
+                className={
+                  isSelectedElsewhere ? "text-gray-400 bg-gray-100" : ""
+                }
               >
                 {member.name}
                 {registeredMemberIds.has(member.id) && " (登録済み)"}
               </option>
-          ))}
+            );
+          })}
         </select>
       </div>
 
       {/* 配車可チェックボックス */}
       <div className="flex items-center justify-between">
-        <label className={`flex items-center gap-2 whitespace-nowrap min-h-[44px] ${isMemberSelected ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+        <label
+          className={`flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
+            isMemberSelected
+              ? "cursor-pointer"
+              : "cursor-not-allowed opacity-50"
+          }`}
+        >
           <input
             type="checkbox"
             {...register(`availabilities.${index}.availability`)}
@@ -130,10 +159,12 @@ export default function AvailabilityFormItem({
         <div className="text-sm text-red-500 text-center">
           <p>{memberIdError.message}</p>
         </div>
-      ) : availabilityError && (
-        <div className="text-sm text-red-500 text-center">
-          <p>{availabilityError.message}</p>
-        </div>
+      ) : (
+        availabilityError && (
+          <div className="text-sm text-red-500 text-center">
+            <p>{availabilityError.message}</p>
+          </div>
+        )
       )}
 
       {/* 配車可能人数（配車可の場合のみ表示） */}

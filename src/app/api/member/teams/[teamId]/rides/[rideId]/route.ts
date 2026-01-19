@@ -36,7 +36,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               availabilityDriverId: true,
               availabilityDriver: {
                 select: {
-                  member: { select: { id: true, name: true } }, 
+                  member: { select: { id: true, name: true } },
                   seats:true,
                 }
               },
@@ -48,16 +48,12 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               },
             },
           },
-          team: {
+          availabilityDrivers: {
             select: {
-              availabilityDrivers: {
-                select: {
-                  id: true,
-                  member: { select: { id: true, name: true } },
-                  seats: true,
-                  availability: true,
-                },
-              },
+              id: true,
+              member: { select: { id: true, name: true } },
+              seats: true,
+              availability: true,
             },
           },
         },
@@ -83,7 +79,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         date: ride.date.toISOString(),
         destination: ride.destination,
         drivers: ride.drivers,
-        availabilityDrivers: ride.team.availabilityDrivers,
+        availabilityDrivers: ride.availabilityDrivers,
         children,
         members,
       }

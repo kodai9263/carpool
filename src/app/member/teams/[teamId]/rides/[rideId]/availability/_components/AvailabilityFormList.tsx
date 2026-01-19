@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
 import { Plus } from "lucide-react";
-import { Control, UseFormRegister, useFieldArray } from "react-hook-form";
+import { Control, UseFormRegister, useFieldArray, useWatch } from "react-hook-form";
 import AvailabilityFormItem from "./AvailabilityFormItem";
 import { AvailabilityListFormValues } from "@/app/_types/availability";
+import { useMemo } from "react";
 
 interface Props {
   members: Array<{ id: number; name: string }>;
@@ -25,6 +26,23 @@ export default function AvailabilityFormList({
     name: "availabilities",
   });
 
+  // 全フォームの選択状況を監視
+  const availabilities = useWatch({
+    control,
+    name: "availabilities",
+  });
+
+  // すでに選択されているメンバーIDのSetを作成
+  const selectedMemberIds = useMemo(() => {
+    const ids = new Set<number>();
+    availabilities.forEach((availability) => {
+      if (availability.memberId && availability.memberId !== 0) {
+        ids.add(availability.memberId);
+      }
+    });
+    return ids;
+  }, [availabilities]);
+
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
@@ -34,6 +52,7 @@ export default function AvailabilityFormList({
           members={members}
           registeredMemberIds={registeredMemberIds}
           existingAvailabilities={existingAvailabilities}
+          selectedMemberIds={selectedMemberIds}
           onRemove={() => remove(index)}
           register={register}
           control={control}
