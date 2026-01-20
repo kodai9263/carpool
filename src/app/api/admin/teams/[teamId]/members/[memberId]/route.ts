@@ -22,10 +22,10 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           }
         },
       });
-      if (!member) return NextResponse.json({ status: "not found" }, { status: 404 });
+      if (!member) return NextResponse.json({ message: "not found" }, { status: 404 });
       return NextResponse.json({ status: "OK", member } satisfies MemberDetailResponse, { status: 200 });
     } catch (e: any) {
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
 
@@ -34,10 +34,10 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
     withAdminTeamMember(request, async({ teamId, memberId }) => {
       const body = await request.json().catch(() => null) as MemberFormValues | null;
       if (!body) {
-        return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
+        return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
       }
       const memberName = body.name.trim();
-      if (!memberName) return NextResponse.json({ status: "名前は入力してください"}, { status: 400 });
+      if (!memberName) return NextResponse.json({ message: "名前は入力してください"}, { status: 400 });
 
       let children: string[] | null = null;
       
@@ -103,7 +103,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           { status: 200 }
         );
       } catch (e: any) {
-        return NextResponse.json({ status: "サーバ内部でエラーが発生しました" }, { status: 500 });
+        return NextResponse.json({ message: "サーバ内部でエラーが発生しました" }, { status: 500 });
       }
     }, ctx);
 
@@ -117,8 +117,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           return NextResponse.json({ status: "OK", message: "削除しました" }, { status: 200 });
         } catch (e: any) {
           if (e.code === "P2025") {
-            return NextResponse.json({ status: "not found" }, { status: 400 });
+            return NextResponse.json({ message: "not found" }, { status: 400 });
           }
-          return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+          return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
         }
       }, ctx);

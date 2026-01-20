@@ -9,17 +9,17 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
   const pin = request.headers.get('x-pin');
   const teamIdNum = Number(params.teamId);
   if (!pin || !Number.isInteger(teamIdNum)) {
-    return NextResponse.json({ status: "権限がありません" }, { status: 401 });
+    return NextResponse.json({ message: "権限がありません" }, { status: 401 });
   }
 
   const team = await prisma.team.findFirst({
     where: { id: teamIdNum },
     select: { viewPinHash: true },
   });
-  if (!team?.viewPinHash) return NextResponse.json({ status: "チームが見つかりません"}, { status: 404 });
+  if (!team?.viewPinHash) return NextResponse.json({ message: "チームが見つかりません"}, { status: 404 });
   
   const ok = await bcrypt.compare(pin, team.viewPinHash);
-  if (!ok) return NextResponse.json({ status: "配車閲覧コードが正しくありません"}, { status: 401});
+  if (!ok) return NextResponse.json({ message: "配車閲覧コードが正しくありません"}, { status: 401});
 
   try {
     const { searchParams } = new URL(request.url);
@@ -48,8 +48,8 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
     );
   } catch (e: unknown) {
     if (e instanceof Error) {
-      return NextResponse.json({ status: e.message }, { status: 400 });
+      return NextResponse.json({ message: e.message }, { status: 400 });
     }
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
   }
 }

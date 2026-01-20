@@ -13,7 +13,7 @@ export const POST = async (
   const pin = body.pin;
 
   if (!pin || !Number.isInteger(teamIdNum)) {
-    return NextResponse.json({ status: "パラメータが不正です" }, { status: 400 });
+    return NextResponse.json({ message: "パラメータが不正です" }, { status: 400 });
   }
 
   try {
@@ -23,17 +23,17 @@ export const POST = async (
     });
 
     if (!team?.viewPinHash) {
-      return NextResponse.json({ status: "チームが見つかりません" }, { status: 404 });
+      return NextResponse.json({ message: "チームが見つかりません" }, { status: 404 });
     }
 
     const ok = await bcrypt.compare(pin, team.viewPinHash);
 
     if (!ok) {
-      return NextResponse.json({ status: "配車閲覧コードが正しくありません" }, { status: 401 });
+      return NextResponse.json({ message: "配車閲覧コードが正しくありません" }, { status: 401 });
     }
 
     return NextResponse.json({ status: "OK" }, { status: 200 });
   } catch (e: any) {
-    return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+    return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
   }
 }

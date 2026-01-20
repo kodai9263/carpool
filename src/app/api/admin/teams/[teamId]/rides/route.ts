@@ -38,9 +38,9 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       );
     } catch (e: unknown) {
       if (e instanceof Error) {
-        return NextResponse.json({ status: e.message }, { status: 400 });
+        return NextResponse.json({ message: e.message }, { status: 400 });
       }
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   },
   ctx
@@ -52,11 +52,11 @@ export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =
     try {
       const body = await request.json().catch(() => null) as RideFormValues | null;
       if (!body) {
-        return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
+        return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
       }
       const date = body.date;
       if (!date) {
-        return NextResponse.json({ status: "日付を選択してください" }, { status: 400 });
+        return NextResponse.json({ message: "日付を選択してください" }, { status: 400 });
       }
 
       // 配車をDBに生成
@@ -74,7 +74,7 @@ export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =
         { status: 201 }
       );
     } catch (e: any) {
-      return NextResponse.json({ status: "サーバ内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバ内部でエラーが発生しました" }, { status: 500 });
     }
   },
   ctx

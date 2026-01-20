@@ -43,6 +43,11 @@ export default function RideBasicForm({
               error ? "border-red-500" : "border-gray-300"
             } ${hasDate ? "bg-blue-50" : ""}`}
           />
+          {error && (
+            <p className="text-red-500 text-sm mt-1">
+              日付を選択してください
+            </p>
+          )}
         </div>
       </div>
 

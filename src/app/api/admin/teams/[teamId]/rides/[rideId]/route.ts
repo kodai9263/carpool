@@ -61,7 +61,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         }),
       ]);
       
-      if (!ride) return NextResponse.json({ status: "配車が見つかりません" }, { status: 404 });
+      if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
       return NextResponse.json({
         status: "OK",
         ride: {
@@ -74,7 +74,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         }
       } satisfies RideDetailResponse, { status: 200 });
     } catch (e: any) {
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
 
@@ -83,9 +83,9 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
     withAdminTeamRide(request, async({ rideId }) => {
       const body = await request.json().catch(() => null) as UpdateRideValues | null;
 
-      if (!body) return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
+      if (!body) return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
       
-      if (!body.date) return NextResponse.json({ status: "日付を選択してください" }, { status: 400 });
+      if (!body.date) return NextResponse.json({ message: "日付を選択してください" }, { status: 400 });
 
       const rideIdNum = Number(rideId);
       const date = new Date(body.date);
@@ -136,8 +136,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           { status: "OK", message: "更新しました" } satisfies UpdateRideResponse, { status: 200 });
       } catch (e: any) {
         console.error(e);
-        if (e.code === "P2002") return NextResponse.json({ status: "同じ子供を複数回選択しています" }, { status: 400 });
-        return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+        if (e.code === "P2002") return NextResponse.json({ message: "同じ子供を複数回選択しています" }, { status: 400 });
+        return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
       }
   }, ctx);
 
@@ -150,7 +150,7 @@ export const DELETE = (request: NextRequest, ctx: { params: {teamId: string; rid
       });
       return NextResponse.json({ status: "OK", message: "削除しました" }, { status: 200 });
     } catch(e: any) {
-      if (e.code === "P2025") return NextResponse.json({ status: "not found" }, { status: 400 });
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      if (e.code === "P2025") return NextResponse.json({ message: "not found" }, { status: 400 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);

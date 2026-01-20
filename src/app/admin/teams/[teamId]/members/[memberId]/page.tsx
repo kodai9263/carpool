@@ -108,7 +108,7 @@ export default function Page() {
             disabled={isSubmitting}
             hasValue={!!memberName && memberName.length > 0}
             error={errors.name?.message}
-            errorClassName="text-center"
+            errorClassName="text-center ml-16"
             {...register("name", { required: "メンバー名を入力してください。" })}
           />
 

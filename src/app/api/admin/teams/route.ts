@@ -39,9 +39,9 @@ export const GET = (request: NextRequest) => {
       );
     } catch (e: unknown) {
       if (e instanceof Error) {
-        return NextResponse.json({ status: e.message }, { status: 400 });
+        return NextResponse.json({ message: e.message }, { status: 400 });
       }
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   });
 };
@@ -53,7 +53,7 @@ export const POST = (request: NextRequest) => {
       // リクエストボディを取得
       const body = await request.json().catch(() => null) as (TeamFormValues & { pin?: string }) | null;
       if (!body) {
-        return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
+        return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
       }
 
       const { teamName, teamCode, pin } = body;
@@ -63,13 +63,13 @@ export const POST = (request: NextRequest) => {
       const pinValue = pin?.trim();
 
       if (!name || !code) {
-        return NextResponse.json({ status: "チーム名とチームIDは必須です" }, { status: 400 });
+        return NextResponse.json({ message: "チーム名とチームIDは必須です" }, { status: 400 });
       }
       if (!pinValue || pinValue.length < 4) {
-        return NextResponse.json({ status: "PINは4桁以上で入力してください" }, { status: 400 });
+        return NextResponse.json({ message: "PINは4桁以上で入力してください" }, { status: 400 });
       }
       if (!Number.isInteger(adminId)) {
-        return NextResponse.json({ status: "IDが不正です" }, { status: 400});
+        return NextResponse.json({ message: "IDが不正です" }, { status: 400});
       }
 
       const viewPinHash = await bcrypt.hash(pinValue, 10);
@@ -92,12 +92,12 @@ export const POST = (request: NextRequest) => {
       );
     } catch (e: any) {
       if (e?.code === "P2002") {
-        return NextResponse.json({ status: "チームIDが存在します" }, { status: 409 });
+        return NextResponse.json({ message: "チームIDが存在します" }, { status: 409 });
       }
       if (e?.code === "P2025") {
-        return NextResponse.json({ status: "指定したIDが見つかりません"}, { status: 404 });
+        return NextResponse.json({ message: "指定したIDが見つかりません"}, { status: 404 });
       }
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   });
 };

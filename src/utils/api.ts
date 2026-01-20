@@ -29,7 +29,7 @@ export const api = {
       const json = await res.json().catch(() => ({}));
       throw {
         status: res.status,
-        message: json.status || "登録に失敗しました。",
+        message: json.message || "登録に失敗しました。",
       };
     }
     return res.json();

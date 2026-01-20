@@ -99,7 +99,7 @@ export default function Page() {
             disabled={isSubmitting}
             hasValue={!!teamName && teamName.length > 0}
             error={errors.teamName?.message}
-            errorClassName="text-center"
+            errorClassName="text-center ml-16"
             {...register("teamName", { required: "チーム名を入力してください。" })}
           />
 
@@ -109,8 +109,8 @@ export default function Page() {
             disabled={isSubmitting}
             hasValue={!!teamCode && teamCode.length > 0}
             error={errors.teamCode?.message}
-            errorClassName="text-center"
-            {...register("teamCode", { required: "チーム名をIDしてください。" })}
+            errorClassName="text-center ml-16"
+            {...register("teamCode", { required: "チームIDを入力してください。" })}
           />
 
           <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">

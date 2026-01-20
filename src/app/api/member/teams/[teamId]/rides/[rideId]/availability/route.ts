@@ -15,17 +15,17 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const { memberId, availability, seats } = body ?? {};
 
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {
-    return NextResponse.json({ status: "権限がありません" }, { status: 401 });
+    return NextResponse.json({ message: "権限がありません" }, { status: 401 });
   }
   if (!body || !Number.isInteger(memberId) || typeof availability !== "boolean" || !Number.isInteger(seats)) {
-    return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400});
+    return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400});
   }
 
   // PIN認可
   const team = await prisma.team.findFirst({ where: { id: teamIdNum }, select: { viewPinHash: true } });
-  if (!team?.viewPinHash) return NextResponse.json({ status: "チームが見つかりません" }, { status: 404 });
+  if (!team?.viewPinHash) return NextResponse.json({ message: "チームが見つかりません" }, { status: 404 });
   const ok = await bcrypt.compare(pin, team.viewPinHash);
-  if (!ok) return NextResponse.json({ status: "配車閲覧コードが正しくありません" }, { status: 401 });
+  if (!ok) return NextResponse.json({ message: "配車閲覧コードが正しくありません" }, { status: 401 });
 
   try {
     const data = await prisma.$transaction(async (tx) => {
@@ -67,6 +67,6 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
     );
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ status: "サーバ内部でエラーが発生しました" }, { status: 500 });
+    return NextResponse.json({ message: "サーバ内部でエラーが発生しました" }, { status: 500 });
   }
 };

@@ -38,9 +38,9 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       );
     } catch (e: unknown) {
       if (e instanceof Error) {
-        return NextResponse.json({ status: e.message }, { status: 400 });
+        return NextResponse.json({ message: e.message }, { status: 400 });
       }
-      return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   },
   ctx
@@ -52,11 +52,11 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       try {
         const body = await request.json().catch(() => null) as MemberFormValues | null;
         if (!body) {
-          return NextResponse.json({ status: "リクエストの形式が正しくありません" }, { status: 400 });
+          return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
         }
         const name = body.name.trim();
         if (!name) {
-          return NextResponse.json({ status: "メンバー名が必須です" }, { status: 400 });
+          return NextResponse.json({ message: "メンバー名が必須です" }, { status: 400 });
         }
 
         // 子供のデータが配列か確認
@@ -113,7 +113,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
           { status: 201 }
         );
       } catch (e: any) {
-        return NextResponse.json({ status: "サーバー内部でエラーが発生しました" }, { status: 500 });
+        return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
       }
     },
     ctx
