@@ -29,17 +29,32 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
     const perPage = Number.isFinite(pp) && pp > 0 ? Math.min(50, Math.floor(pp)) : 10;
     const skip = (page - 1) * perPage;
 
-    const [total, rides] = await Promise.all([
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const [total, futureRides, pastRides] = await Promise.all([
       prisma.ride.count({ where: { teamId: teamIdNum } }),
       prisma.ride.findMany({
-        where: { teamId: teamIdNum },
+        where: {
+          teamId: teamIdNum,
+          date: { gte: now }
+        },
         select: { id: true, date: true },
-        orderBy: { date : 'desc' },
-        skip,
-        take: perPage,
+        orderBy: { date : 'asc' },
+      }),
+      prisma.ride.findMany({
+        where: {
+          teamId: teamIdNum,
+          date: { lt: now }
+        },
+        select: { id: true, date: true },
+        orderBy: { date: 'desc' },
       }),
     ]);
 
+    const allRides = [...futureRides, ...pastRides];
+
+    const rides = allRides.slice(skip, skip + perPage);
     const totalPages = Math.max(1, Math.ceil(total / perPage));
 
     return NextResponse.json(

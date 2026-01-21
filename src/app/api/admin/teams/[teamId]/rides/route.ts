@@ -19,17 +19,35 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       const perPage = Number.isFinite(pp) && pp > 0 ? Math.min(50, Math.floor(pp)) : 10;
       const skip = (page - 1) * perPage;
 
-      const [total, rides] = await Promise.all([
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      const [total, futureRides, pastRides] = await Promise.all([
         prisma.ride.count({ where: { teamId } }),
+        // 未来の配車（今日を含む）→ 日付が近い順（昇順）
         prisma.ride.findMany({
-          where: { teamId },
+          where: { 
+            teamId,
+            date: { gte: now }
+          },
           select: { id: true, date: true },
-          orderBy: { date : 'desc' },
-          skip,
-          take: perPage,
+          orderBy: { date : 'asc' },
+        }),
+        // 過去の配車 → 新しい順（降順）
+        prisma.ride.findMany({
+          where: {
+            teamId,
+            date: { lt: now }
+          },
+          select: { id: true, date: true },
+          orderBy: { date: 'desc' },
         }),
       ]);
 
+      // 未来 + 過去の順に結合
+      const allRides = [...futureRides, ...pastRides];
+
+      const rides = allRides.slice(skip, skip + perPage);
       const totalPages = Math.max(1, Math.ceil(total / perPage));
 
       return NextResponse.json(
