@@ -2,10 +2,11 @@
 
 import { supabase } from "@/utils/supabase";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
+import { useEffect } from "react";
 
 export default function Page() {
   const {
@@ -16,6 +17,15 @@ export default function Page() {
     defaultValues: { email: "", password: "" },
   });
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // URLパラメータでguest=trueがある場合、自動でゲストログイン
+  useEffect(() => {
+    const isGuest = searchParams.get('guest');
+    if (isGuest === 'true') {
+      handleGuestLogin();
+    }
+  }, [searchParams]);
 
   const onSubmit = async (data: { email: string; password: string }) => {
     try {
@@ -34,6 +44,26 @@ export default function Page() {
         e instanceof Error ? e.message : "通信エラーが発生しました。";
       alert(message);
       console.error(e);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: "guest@carpool.demo",
+        password: "guest123456",
+      });
+      if (error) {
+        alert("ゲストログインに失敗しました。");
+        console.error(error.message);
+      } else {
+        router.replace("/admin/teams");
+      }
+    } catch (e: unknown) {
+      const message =
+        e instanceof Error ? e.message : "通信エラーが発生しました。";
+        alert(message);
+        console.error(e);
     }
   };
 
@@ -85,6 +115,20 @@ export default function Page() {
             isSubmitting={isSubmitting}
           />
         </form>
+
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            disabled={isSubmitting}
+            className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ゲストログイン
+          </button>
+          <p className="text-xs text-center text-gray-500 mt-2">
+          ※ サンプルデータをご覧いただけます
+          </p>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
