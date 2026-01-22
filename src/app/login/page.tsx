@@ -116,20 +116,6 @@ export default function Page() {
           />
         </form>
 
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={handleGuestLogin}
-            disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            ゲストログイン
-          </button>
-          <p className="text-xs text-center text-gray-500 mt-2">
-          ※ サンプルデータをご覧いただけます
-          </p>
-        </div>
-
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             アカウントをお持ちでない方は{" "}
