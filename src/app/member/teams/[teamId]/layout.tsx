@@ -1,8 +1,8 @@
 "use client";
 
 import { Sidebar } from "../../_components/Sidebar";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, usePathname } from "next/navigation";
 
 export default function RootLayout({
   children,
@@ -10,12 +10,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const { teamId } = useParams<{ teamId: string }>();
-  const [hasPin, setHasPin] = useState(false);
+  const pathname = usePathname();
+  const [hasPin, setHasPin] = useState<boolean | null>(null);
 
-  useEffect(() => {
+  const checkPin = useCallback(() => {
     const pin = sessionStorage.getItem(`pin:${teamId}`);
     setHasPin(pin !== null);
   }, [teamId]);
+
+  useEffect(() => {
+    checkPin();
+  }, [checkPin, pathname]);
+
+  if (hasPin === null) {
+    return null;
+  }
 
   return (
     <div className="flex">
