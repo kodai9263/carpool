@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-function getValueByPath(obj: any, path: (string | number)[]) {
+export function getValueByPath(obj: any, path: (string | number)[]) {
   let current = obj;
 
   for(const key of path) {
@@ -36,7 +36,7 @@ export function useExcludeIds<T>(
 
       const value = getValueByPath(item, path);
 
-      // 子どもの配列の場合　childIdを集める
+      // 子どもの配列の場合 childIdを集める
       if (Array.isArray(value)) {
         value.forEach((assignment) => {
           const id = assignment.childId;
