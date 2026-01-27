@@ -6,7 +6,7 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { TeamFormValues } from "@/app/_types/team";
 import { api } from "@/utils/api";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../_components/UpdateDeleteButtons";
 import { EditInput } from "../_components/EditInput";
@@ -28,6 +28,7 @@ export default function Page() {
   const { token } = useSupabaseSession();
 
   const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}`);
+  const isDeleting = useRef(false);
   const memberCount = data?.team?.memberCount ?? 0;
 
   // フォームの値を監視
@@ -67,12 +68,14 @@ export default function Page() {
     if (!token) return;
 
     try {
+      isDeleting.current = true;
       await api.delete(`/api/admin/teams/${teamId}`, token);
 
       alert('チームを削除しました。');
 
       router.replace('/admin/teams');
     } catch (e: unknown) {
+      isDeleting.current = false;
       console.error(e);
       alert('削除中にエラーが発生しました。');
     }
@@ -80,6 +83,10 @@ export default function Page() {
 
   if (isLoading) return <LoadingSpinner />
   if (error) {
+    // 削除中の404エラーは無視（チーム一覧に遷移中のため）
+    if (isDeleting.current) {
+      return <LoadingSpinner />;
+    }
     // 404エラーの場合はnotFound()を呼び出す
     if (error.message?.includes('404') || error.status === 404) {
       notFound();
