@@ -22,3 +22,51 @@ https:.........
 
 <br/>
 
+## 機能一覧
+
+| トップ画面 | ログイン画面 |
+| ---- | ---- |
+| ![トップ画面](./public/screenshots/welcome.png) | ![ログイン画面](./public/screenshots/login.png) |
+| 登録せずにデモをお試しいただける機能を実装しております。 | ログインIDをパスワードでの認証機能を実施しました。 |
+
+| チーム一覧画面 | チーム作成画面 |
+| ---- | ---- |
+| ![チーム一覧画面](./public/screenshots/team-list.png) | ![チーム作成画面](./public/screenshots/create-team.png) |
+| 複数のチームを管理できます。チームごとに配車を作成可能です | 新しいチームを作成します。少年野球やサッカーチームなど |
+
+| メンバー一覧画面 | メンバー作成画面 |
+| ---- | ---- |
+| ![メンバー一覧画面](./public/screenshots/member-list.png) | ![メンバー作成画面](./public/screenshots/create-member.png) |
+| チームメンバーの一覧表示。 | 新しいメンバーを登録。保護者名と子供の名前を登録します。 |
+
+| 配車一覧画面 | 配車作成画面 |
+| ---- | ---- |
+| ![配車一覧画面](./public/screenshots/ride-list.png) | ![配車作成画面](./public/screenshots/create-ride.png) |
+| 配車を時系列で確認できます。現在の日付から近い順に並んでます。 | 日付と行き先を指定して配車を作成します |
+
+| PINコード入力画面 | 配車可否入力画面 |
+| ---- | ---- |
+| ![PINコード入力](./public/screenshots/pin-code.png) | ![配車可否入力](./public/screenshots/member-input.png) |
+| PINコードで簡単アクセス。LINEで共有してメンバー全員が確認できます | 送迎可能かどうかと座席数を入力。リアルタイムで管理者に反映されます。 |
+
+| 配車割り当て画面 | 配車詳細画面 |
+| ---- | ---- |
+| ![配車割り当て](./public/screenshots/assign-edit.png) | ![配車詳細](./public/screenshots/carpool-detail.png) |
+| ドライバーごとに子供を割り当て。候補ドライバーが不足している場合と、指定された座席数を超えないように警告を表示しています。 | 完成した配車をメンバー全員で共有。誰がどの車に乗るか一目瞭然です |
+
+<br/>
+
+## 使用技術
+
+| カテゴリ | テクノロジースタック |
+| ------------------- | ---------------------------------------------------- |
+| フロントエンド | Next.js 14, React 18, TypeScript, TailwindCSS |
+| バックエンド | Next.js API Routes, Prisma |
+| インフラストラクチャー | Vercel, Supabase |
+| データベース | PostgreSQL |
+| 認証 | Supabase Auth, bcryptjs |
+| 状態管理 | SWR, React Hook Form |
+| テスト | Jest, React Testing Library |
+| UIライブラリ | Lucide React, React Datepicker |
+| 環境設定 | Node.js 18+ |
+| 等 | ESLint, PostCSS, date-fns, Git, GitHub |
