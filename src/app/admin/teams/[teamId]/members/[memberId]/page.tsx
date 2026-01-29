@@ -7,7 +7,7 @@ import { MemberFormValues } from "@/app/_types/member";
 import { api } from "@/utils/api";
 import { Baby, Plus, Users, X } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { EditInput } from "../../../_components/EditInput";
@@ -38,6 +38,7 @@ export default function Page() {
   const router = useRouter();
 
   const  { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}/members/${memberId}`);
+  const isDeleting = useRef(false);
 
   // 値を監視
   const memberName = useWatch({ control, name: "name" });
@@ -68,6 +69,7 @@ export default function Page() {
 
       alert('メンバー詳細を更新しました。');
     } catch (e: unknown) {
+      isDeleting.current = false;
       console.error(e);
       alert('更新中にエラーが発生しました。');
     }
@@ -79,7 +81,9 @@ export default function Page() {
     if (!token) return;
 
     try {
+      isDeleting.current = true;
       await api.delete(`/api/admin/teams/${teamId}/members/${memberId}`, token);
+
       alert('メンバーを削除しました。');
 
       router.replace(`/admin/teams/${teamId}/members`);
@@ -91,6 +95,9 @@ export default function Page() {
 
   if (isLoading) return <LoadingSpinner />
   if (error) {
+    if (isDeleting.current) {
+      return <LoadingSpinner />;
+    }
     if (error.message?.includes('404') || error.status === 404) {
       notFound();
     }

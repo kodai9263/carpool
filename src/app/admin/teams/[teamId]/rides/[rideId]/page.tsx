@@ -6,13 +6,14 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { UpdateRideValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import RideBasicForm from "../_components/RideBasicForm";
 import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
+import { FlagTriangleLeft } from "lucide-react";
 
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
@@ -44,9 +45,8 @@ export default function Page() {
   const { token } = useSupabaseSession();
   const router = useRouter();
 
-  const { data, error, isLoading } = useFetch(
-    `/api/admin/teams/${teamId}/rides/${rideId}`
-  );
+  const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}/rides/${rideId}`);
+  const isDeleting = useRef(false);
 
   useEffect(() => {
     if (data?.ride) {
@@ -84,11 +84,16 @@ export default function Page() {
   const handleDeleteRide = async () => {
     if (!confirm("配車を削除しますか？")) return;
     if (!token) return;
+
     try {
+      isDeleting.current = true;
       await api.delete(`/api/admin/teams/${teamId}/rides/${rideId}`, token);
+
       alert("配車を削除しました。");
+
       router.replace(`/admin/teams/${teamId}/rides`);
     } catch (e: unknown) {
+      isDeleting.current = false;
       console.error(e);
       alert("削除中にエラーが発生しました。");
     }
@@ -96,6 +101,9 @@ export default function Page() {
 
   if (isLoading) return <LoadingSpinner />;
   if (error) {
+    if (isDeleting.current) {
+      return <LoadingSpinner />;
+    }
     if (error.message?.includes("404") || error.status === 404) {
       notFound();
     }
