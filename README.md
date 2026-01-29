@@ -70,3 +70,7 @@ https:.........
 | UIライブラリ | Lucide React, React Datepicker |
 | 環境設定 | Node.js 18+ |
 | 等 | ESLint, PostCSS, date-fns, Git, GitHub |
+
+## ER図
+
+![ER図](./public/er-diagram.jpg)
