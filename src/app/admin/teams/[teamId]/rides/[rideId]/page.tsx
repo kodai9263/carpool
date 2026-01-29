@@ -13,7 +13,6 @@ import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
-import { FlagTriangleLeft } from "lucide-react";
 
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
