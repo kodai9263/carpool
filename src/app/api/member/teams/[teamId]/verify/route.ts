@@ -33,7 +33,7 @@ export const POST = async (
     }
 
     return NextResponse.json({ status: "OK" }, { status: 200 });
-  } catch (e: any) {
+  } catch {
     return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
   }
 }

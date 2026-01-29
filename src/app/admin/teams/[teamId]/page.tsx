@@ -4,6 +4,7 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { TeamFormValues } from "@/app/_types/team";
+import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { api } from "@/utils/api";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -27,7 +28,7 @@ export default function Page() {
   const router = useRouter();
   const { token } = useSupabaseSession();
 
-  const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}`);
+  const { data, error, isLoading } = useFetch<TeamDetailResponse>(`/api/admin/teams/${teamId}`);
   const isDeleting = useRef(false);
   const memberCount = data?.team?.memberCount ?? 0;
 

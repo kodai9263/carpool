@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-export function getValueByPath(obj: any, path: (string | number)[]) {
+export function getValueByPath(obj: any, path: (string | number)[]): any {
   let current = obj;
 
   for(const key of path) {

@@ -1,4 +1,4 @@
-import { convertRideDetailToFormValues, DriverFormAPI } from '../rideConverter';
+import { convertRideDetailToFormValues } from '../rideConverter';
 
 describe('convertRideDetailToFormValues', () => {
   test('完全なデータを正しく変換する', () => {

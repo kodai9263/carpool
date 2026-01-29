@@ -24,7 +24,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
       });
       if (!member) return NextResponse.json({ message: "not found" }, { status: 404 });
       return NextResponse.json({ status: "OK", member } satisfies MemberDetailResponse, { status: 200 });
-    } catch (e: any) {
+    } catch {
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
@@ -102,7 +102,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           { status: "OK", message: "更新しました", member } satisfies UpdateMemberResponse,
           { status: 200 }
         );
-      } catch (e: any) {
+      } catch {
         return NextResponse.json({ message: "サーバ内部でエラーが発生しました" }, { status: 500 });
       }
     }, ctx);
@@ -115,8 +115,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
             where: {id: memberId, teamId },
           });
           return NextResponse.json({ status: "OK", message: "削除しました" }, { status: 200 });
-        } catch (e: any) {
-          if (e.code === "P2025") {
+        } catch (e) {
+          if (e && typeof e === 'object' && 'code' in e && e.code === "P2025") {
             return NextResponse.json({ message: "not found" }, { status: 400 });
           }
           return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });

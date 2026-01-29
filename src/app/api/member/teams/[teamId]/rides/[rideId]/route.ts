@@ -84,7 +84,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         members,
       }
     } satisfies RideDetailResponse, { status: 200 });
-  } catch (e: any) {
+  } catch {
     return NextResponse.json({ message: "サーバ内部でエラーが発生しました" }, { status: 500 });
   }
 }

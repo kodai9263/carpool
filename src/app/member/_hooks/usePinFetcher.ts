@@ -25,7 +25,7 @@ export function usePinFetcher() {
           sessionStorage.removeItem(`pin:${teamId}`);
           router.replace(`/member/teams/${teamId}`);
         }
-        const error: any = new Error('API呼び出しに失敗しました');
+        const error = new Error('API呼び出しに失敗しました') as Error & { status: number };
         error.status = response.status;
         throw error;
       }

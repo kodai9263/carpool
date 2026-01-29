@@ -65,7 +65,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
       { status: "OK", message: "更新しました", availabilityDriver: data } satisfies AvailabilityResponse,
       { status: 200 }
     );
-  } catch (e: any) {
+  } catch (e) {
     console.error(e);
     return NextResponse.json({ message: "サーバ内部でエラーが発生しました" }, { status: 500 });
   }

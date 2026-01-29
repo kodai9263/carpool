@@ -2,6 +2,7 @@
 
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Team } from "@/app/_types/team";
+import { TeamsListResponse } from "@/app/_types/response/teamResponse";
 import { Users } from "lucide-react";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useMemo, useState } from "react";
@@ -15,12 +16,11 @@ export default function Page() {
 
   // ページ番号が押されたときだけレンダリングしたいので、useMemoを使用
   const url = useMemo(() => `/api/admin/teams?page=${page}`,[page]);
-  const { data, error, isLoading } = useFetch(url);
+  const { data, error, isLoading } = useFetch<TeamsListResponse>(url);
 
   if (!data) return;
   const teams = (data.teams || []) as Team[];
   const totalPages = data.totalPages || 1;
-  const delta = data.delta;
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
@@ -56,11 +56,10 @@ export default function Page() {
 
         <div className="mt-10">
           {totalPages > 1 && (
-          <PaginationNav 
+          <PaginationNav
             page={page}
             totalPages={totalPages}
             onPageChange={setPage}
-            delta={delta}
           />
         )}
         </div>

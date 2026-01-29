@@ -18,7 +18,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       });
       if (!team) return NextResponse.json({ message: "not found" }, { status: 404});
       return NextResponse.json({ status: "OK", team } satisfies TeamDetailResponse, { status: 200 });
-    } catch (e: any) {
+    } catch {
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
@@ -41,8 +41,8 @@ export const PUT = (request: NextRequest, ctx: { params: { teamId: string } }) =
         select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true },
       });
       return NextResponse.json({ status: 'OK', message: '更新しました', team } satisfies UpdateTeamResponse, { status: 200 });
-    } catch (e: any) {
-      if (e.code === "P2025") {
+    } catch (e) {
+      if (e && typeof e === 'object' && 'code' in e && e.code === "P2025") {
         return NextResponse.json({ message: "not found" }, { status: 404 });
       }
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
@@ -57,8 +57,8 @@ export const DELETE = (request: NextRequest, ctx: { params: { teamId: string } }
         where: { id: teamId, adminId },
       });
       return NextResponse.json({ status: 'OK', message: '削除しました' }, { status: 200 });
-    } catch (e: any) {
-      if (e.code === "P2025") {
+    } catch (e) {
+      if (e && typeof e === 'object' && 'code' in e && e.code === "P2025") {
         return NextResponse.json({ message: "not found"}, { status: 400 });
       }
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });

@@ -91,7 +91,7 @@ export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =
         { status: "OK", message: "作成しました", id: data.id } satisfies CreateRideResponse,
         { status: 201 }
       );
-    } catch (e: any) {
+    } catch {
       return NextResponse.json({ message: "サーバ内部でエラーが発生しました" }, { status: 500 });
     }
   },

@@ -8,7 +8,7 @@ export const api = {
       },
     });
     if (!res.ok) {
-      const error: any = new Error("取得に失敗しました。");
+      const error = new Error("取得に失敗しました。") as Error & { status: number };
       error.status = res.status;
       throw error;
     }

@@ -36,7 +36,7 @@ export default function Page() {
 
       sessionStorage.setItem(`pin:${teamId}`, p);
       router.push(`/member/teams/${teamId}/rides`);
-    } catch (e: any) {
+    } catch {
       alert("エラーが発生しました");
     }
   };

@@ -112,7 +112,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
           { status: "OK", message: "作成しました", memberId: result.memberId, children: result.createdChildren } satisfies CreateMemberResponse,
           { status: 201 }
         );
-      } catch (e: any) {
+      } catch {
         return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
       }
     },

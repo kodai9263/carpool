@@ -21,6 +21,7 @@ export const FormButton: React.FC<FormButtonProps> = ({
     <div className="flex justify-center">
       <button
         {...props}
+        type={type}
         disabled={isSubmitting}
         className={`${className} w-[160px]  bg-teal-700 text-white mt-4 py-2 px-4 rounded-md hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors`}
       >

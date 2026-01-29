@@ -90,12 +90,14 @@ export const POST = (request: NextRequest) => {
         { status: "OK", message: "作成しました", id: data.id } satisfies CreateTeamResponse,
         { status: 201 }
       );
-    } catch (e: any) {
-      if (e?.code === "P2002") {
-        return NextResponse.json({ message: "チームIDが存在します" }, { status: 409 });
-      }
-      if (e?.code === "P2025") {
-        return NextResponse.json({ message: "指定したIDが見つかりません"}, { status: 404 });
+    } catch (e) {
+      if (e && typeof e === 'object' && 'code' in e) {
+        if (e.code === "P2002") {
+          return NextResponse.json({ message: "チームIDが存在します" }, { status: 409 });
+        }
+        if (e.code === "P2025") {
+          return NextResponse.json({ message: "指定したIDが見つかりません"}, { status: 404 });
+        }
       }
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }

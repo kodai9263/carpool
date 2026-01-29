@@ -4,6 +4,7 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member";
+import { MemberDetailResponse } from "@/app/_types/response/memberResponse";
 import { api } from "@/utils/api";
 import { Baby, Plus, Users, X } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -37,7 +38,7 @@ export default function Page() {
   const { token } = useSupabaseSession();
   const router = useRouter();
 
-  const  { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}/members/${memberId}`);
+  const  { data, error, isLoading } = useFetch<MemberDetailResponse>(`/api/admin/teams/${teamId}/members/${memberId}`);
   const isDeleting = useRef(false);
 
   // 値を監視

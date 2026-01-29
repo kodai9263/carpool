@@ -4,6 +4,7 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Member } from "@/app/_types/member";
+import { MemberListResponse } from "@/app/_types/response/memberResponse";
 import { User } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -18,11 +19,10 @@ export default function Page() {
     return `/api/admin/teams/${teamId}/members?page=${page}`;
   }, [teamId, page]);
 
-  const { data, error, isLoading } = useFetch(url);
+  const { data, error, isLoading } = useFetch<MemberListResponse>(url);
 
   const members = (data?.members || []) as Member[];
   const totalPages = data?.totalPages || 1;
-  const delta = data?.delta;
 
   if (!teamId) return <LoadingSpinner />
   if (isLoading) return <LoadingSpinner />
@@ -59,11 +59,10 @@ export default function Page() {
     
         <div className="mt-10">
           {totalPages > 1 && (
-            <PaginationNav 
+            <PaginationNav
               page={page}
               totalPages={totalPages}
               onPageChange={setPage}
-              delta={delta}
             />
           )}
         </div>

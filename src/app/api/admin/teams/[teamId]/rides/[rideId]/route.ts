@@ -73,7 +73,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           children,
         }
       } satisfies RideDetailResponse, { status: 200 });
-    } catch (e: any) {
+    } catch {
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);
@@ -134,9 +134,9 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
 
         return NextResponse.json(
           { status: "OK", message: "更新しました" } satisfies UpdateRideResponse, { status: 200 });
-      } catch (e: any) {
+      } catch (e) {
         console.error(e);
-        if (e.code === "P2002") return NextResponse.json({ message: "同じ子供を複数回選択しています" }, { status: 400 });
+        if (e && typeof e === 'object' && 'code' in e && e.code === "P2002") return NextResponse.json({ message: "同じ子供を複数回選択しています" }, { status: 400 });
         return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
       }
   }, ctx);
@@ -149,8 +149,8 @@ export const DELETE = (request: NextRequest, ctx: { params: {teamId: string; rid
         where: {id: rideId, teamId },
       });
       return NextResponse.json({ status: "OK", message: "削除しました" }, { status: 200 });
-    } catch(e: any) {
-      if (e.code === "P2025") return NextResponse.json({ message: "not found" }, { status: 400 });
+    } catch (e) {
+      if (e && typeof e === 'object' && 'code' in e && e.code === "P2025") return NextResponse.json({ message: "not found" }, { status: 400 });
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }
   }, ctx);

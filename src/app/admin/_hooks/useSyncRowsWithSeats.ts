@@ -22,10 +22,10 @@ export function useSyncRowsWithSeats(
   const prevSeatCountRef = useRef<number>(0);
 
   // 既存データかどうかを判定
-  if (!currentAssignments) return;
-  const hasExistingAssignments = currentAssignments.some(a => a.childId && a.childId !== 0) ?? false;
+  const hasExistingAssignments = currentAssignments?.some(a => a.childId && a.childId !== 0) ?? false;
 
   useEffect(() => {
+    if (!currentAssignments) return;
     const isDriverChanged = prevDriverIdRef.current !== selectedDriverId;
     const isSeatCountChanged = prevSeatCountRef.current !== seatCount;
 
@@ -66,5 +66,5 @@ export function useSyncRowsWithSeats(
 
     prevDriverIdRef.current = selectedDriverId;
     prevSeatCountRef.current = seatCount;
-  }, [selectedDriverId, seatCount, currentCount, append, remove, replace]);
+  }, [selectedDriverId, seatCount, currentCount, append, remove, replace, currentAssignments, hasExistingAssignments]);
 }
