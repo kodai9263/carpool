@@ -19,6 +19,9 @@ export interface RideDetailResponse {
     id: number;
     date: string;
     destination: string;
+    team?: {
+      viewPinHash: string;
+    };
     drivers: {
       id: number;
       availabilityDriverId: number;
