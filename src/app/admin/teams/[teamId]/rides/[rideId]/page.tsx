@@ -6,13 +6,16 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { UpdateRideValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import RideBasicForm from "../_components/RideBasicForm";
 import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
+import { Copy, Share2 } from "lucide-react";
+import { formatDate } from "@/utils/formatDate";
+import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
@@ -44,8 +47,9 @@ export default function Page() {
   const { token } = useSupabaseSession();
   const router = useRouter();
 
-  const { data, error, isLoading } = useFetch(`/api/admin/teams/${teamId}/rides/${rideId}`);
+  const { data, error, isLoading } = useFetch<RideDetailResponse>(`/api/admin/teams/${teamId}/rides/${rideId}`);
   const isDeleting = useRef(false);
+  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
     if (data?.ride) {
@@ -98,6 +102,35 @@ export default function Page() {
     }
   };
 
+  // クリップボードにコピー
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setTimeout(() => setCopied(null), 2000);
+    } catch (err) {
+      alert("コピーに失敗しました");
+    }
+  };
+
+  // 共有用テキストをコピー
+  const copyShareText = () => {
+    if (!data?.ride) return;
+    
+    const memberUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
+    
+    const text = `【${formatDate(data.ride.date)}の配車について】
+
+以下のURLからPINコードを入力して、配車可否を入力してください！
+
+🔗 URL:
+${memberUrl}
+
+よろしくお願いします！`;
+
+    copyToClipboard(text, "共有テキスト");
+  };
+
   if (isLoading) return <LoadingSpinner />;
   if (error) {
     if (isDeleting.current) {
@@ -137,6 +170,47 @@ export default function Page() {
               }
               removeDriver={remove}
             />
+
+            {/* メンバー共有セクション */}
+            <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Share2 size={20} className="text-blue-600" />
+                メンバー共有用
+              </h3>
+              
+              {/* URL */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-gray-700">
+                  アクセスURL
+                </label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={typeof window !== 'undefined' ? `${window.location.origin}/member/teams/${teamId}/rides/${rideId}` : ''}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => copyToClipboard(`${window.location.origin}/member/teams/${teamId}/rides/${rideId}`, "URL")}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <Copy size={16} />
+                    {copied === "URL" ? "✓" : "コピー"}
+                  </button>
+                </div>
+              </div>
+
+              {/* 共有用テキスト一括コピー */}
+              <button
+                type="button"
+                onClick={copyShareText}
+                className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Share2 size={20} />
+                {copied === "共有テキスト" ? "コピーしました！" : "LINEで共有するテキストをコピー"}
+              </button>
+            </div>
 
             <UpdateDeleteButtons
               onUpdate={handleSubmit(onSubmit)}

@@ -1,8 +1,9 @@
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function useMemberRideAuth(teamId: string, rideId: string) {
   const router = useRouter();
+  const pathname = usePathname();
   const [pin, setPin] = useState('');
 
   useEffect(() => { 
@@ -11,11 +12,13 @@ export function useMemberRideAuth(teamId: string, rideId: string) {
     const p = sessionStorage.getItem(`pin:${teamId}`) ?? '';
 
     if (!p) {
+      // 現在のパスを保存してからリダイレクト
+      sessionStorage.setItem(`returnTo:${teamId}`, pathname);
       router.replace(`/member/teams/${teamId}`);
     } else {
       setPin(p);
     }
-  }, [teamId, router]);
+  }, [teamId, router, pathname]);
 
   const url = `/api/member/teams/${teamId}/rides/${rideId}`;
 

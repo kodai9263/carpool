@@ -35,7 +35,15 @@ export default function Page() {
       }
 
       sessionStorage.setItem(`pin:${teamId}`, p);
-      router.push(`/member/teams/${teamId}/rides`);
+      
+      // 保存されたリダイレクト先があればそこに、なければ配車一覧へ
+      const returnTo = sessionStorage.getItem(`returnTo:${teamId}`);
+      if (returnTo) {
+        sessionStorage.removeItem(`returnTo:${teamId}`);
+        router.push(returnTo);
+      } else {
+        router.push(`/member/teams/${teamId}/rides`);
+      }
     } catch {
       alert("エラーが発生しました");
     }
