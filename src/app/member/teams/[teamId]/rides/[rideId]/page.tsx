@@ -14,12 +14,16 @@ export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
   const router = useRouter();
 
-  const { url } = useMemberRideAuth(teamId, rideId);
+  const { pin, url } = useMemberRideAuth(teamId, rideId);
   const fetcher = usePinFetcher();
 
-  const { data, error, isLoading } = useSWR<RideDetailResponse>(url, fetcher);
+  const { data, error, isLoading } = useSWR<RideDetailResponse>(
+    pin ? url : null,
+    fetcher
+  );
 
   if (!teamId || !rideId) return <LoadingSpinner />;
+  if (!pin) return <LoadingSpinner />;
   if (isLoading) return <LoadingSpinner />;
   if (error) {
     if (error.message?.includes("404") || error.status === 404) {
