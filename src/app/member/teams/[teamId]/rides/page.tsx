@@ -1,7 +1,7 @@
 "use client";
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
 import { Calendar } from "lucide-react";
 import Link from "next/link";
@@ -10,24 +10,34 @@ import { formatDate } from "@/utils/formatDate";
 import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 import useSWR from "swr";
 import { RideListResponse } from "@/app/_types/response/rideResponse";
+import { useMemberTeamAuth } from "@/app/member/_hooks/useMemberTeamAuth";
 
 export default function Page() {
   const [page, setPage] = useState(1);
   const { teamId } = useParams<{ teamId: string }>();
 
+  const pin = useMemberTeamAuth(teamId);
   const fetcher = usePinFetcher();
 
   const { data, error, isLoading } = useSWR<RideListResponse>(
-    `/api/member/teams/${teamId}/rides?page=${page}`,
+    pin ? `/api/member/teams/${teamId}/rides?page=${page}` : null,
     fetcher
   );
 
-  const rides = data?.rides;
-  const totalPages = data?.totalPages || 1;
-
   if (!teamId) return <LoadingSpinner />;
+  if (!pin) return<LoadingSpinner />;
   if (isLoading) return <LoadingSpinner />;
-  if (error) return <div>エラーが発生しました。</div>;
+  if (error) {
+    if (error.message?.includes("404") || error.status === 404) {
+      notFound();
+    }
+  }
+
+  if (!data) return <div>データの取得に失敗しました。</div>;
+  if (!data.rides) <div>配車が見つかりません。</div>;
+
+  const rides = data.rides;
+  const totalPages = data.totalPages || 1;
 
   return (
     <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
