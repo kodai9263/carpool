@@ -6,8 +6,8 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* ヒーローセクション */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen text-center px-4">
-        <p className="text-xl mb-8 text-gray-800 font-medium">ExcelやLINEのやり取りはもう終わり</p>
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center px-4 pb-16 md:pb-20">
+        <p className="text-xl mb-4 text-gray-800 font-medium">ExcelやLINEのやり取りはもう終わり</p>
         <h1 className="text-6xl font-bold my-8">Carpool</h1>
         <p className="text-2xl text-gray-700 mb-12 font-medium">少年野球・サッカーチームの配車を、<br />アプリ1つで管理</p>
 
@@ -16,7 +16,7 @@ export default function Home() {
         <Image src="/car.png" alt="car" width={160} height={120}/>
       </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 mb-8 mt-4">
+        <div className="flex flex-col sm:flex-row gap-6 mb-8 mt-2">
           <Link 
             href="/login"
             className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium transition-all shadow-md hover:shadow-lg"
@@ -40,7 +40,7 @@ export default function Home() {
         </div>
         
         {/* スクロール促進矢印 */}
-        <div className="absolute bottom-8 animate-bounce">
+        <div className="absolute bottom-8 md:bottom-4 animate-bounce">
           <ChevronDown size={32} className="text-gray-600" />
         </div>
       </section>
