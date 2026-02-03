@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { LoadingSpinner } from "../_components/LoadingSpinner";
 
 export default function Page() {
   const {
@@ -18,11 +19,13 @@ export default function Page() {
   });
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   // URLパラメータでguest=trueがある場合、自動でゲストログイン
   useEffect(() => {
     const isGuest = searchParams.get('guest');
     if (isGuest === 'true') {
+      setIsGuestLoading(true);
       handleGuestLogin();
     }
   }, [searchParams]);
@@ -56,6 +59,7 @@ export default function Page() {
       if (error) {
         alert("ゲストログインに失敗しました。");
         console.error(error.message);
+        setIsGuestLoading(false);
       } else {
         router.replace("/admin/teams");
       }
@@ -64,8 +68,13 @@ export default function Page() {
         e instanceof Error ? e.message : "通信エラーが発生しました。";
         alert(message);
         console.error(e);
+        setIsGuestLoading(false);
     }
   };
+
+  if (isGuestLoading) {
+    return <LoadingSpinner />
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-[#5d9b94] via-[#7fb5ae] to-[#a8cec8] p-4">
