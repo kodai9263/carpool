@@ -16,6 +16,7 @@ import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 import { Copy, Share2 } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
+import { supabase } from "@/utils/supabase";
 
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
@@ -50,6 +51,17 @@ export default function Page() {
   const { data, error, isLoading } = useFetch<RideDetailResponse>(`/api/admin/teams/${teamId}/rides/${rideId}`);
   const isDeleting = useRef(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [isGuestUser, setIsGuestUser] = useState(false);
+
+  useEffect(() => {
+    const checkGuestUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email === 'guest@carpool.demo') {
+        setIsGuestUser(true);
+      }
+    };
+    checkGuestUser();
+  }, []);
 
   useEffect(() => {
     if (data?.ride) {
@@ -177,6 +189,19 @@ ${memberUrl}
                 <Share2 size={20} className="text-blue-600" />
                 メンバー共有用
               </h3>
+
+              {/* ゲストユーザーの場合のみPINコードを表示 */}
+              {isGuestUser && (
+                <div className="mb-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
+                  <p className="text-sm font-bold text-amber-800 mb-1 flex items-center gap-1">
+                    🎭 デモ用PINコード
+                  </p>
+                  <p className="text-3xl font-mono font-bold text-amber-900 my-2">1234</p>
+                  <p className="text-xs text-amber-700">
+                    メンバー画面を試すには、下記のURLにアクセスしてこのPINコードを入力してください
+                  </p>
+                </div>
+              )}
               
               {/* URL */}
               <div className="mb-4">
