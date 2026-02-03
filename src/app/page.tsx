@@ -221,24 +221,24 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-3xl font-bold mb-6">さあ、始めましょう！</h2>
           <p className="text-gray-600 mb-10">チームの送迎を、もっとスムーズに</p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link 
               href="/login"
-              className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium transition-all shadow-md hover:shadow-lg"
+              className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium transition-all shadow-md hover:shadow-lg text-sm w-full sm:w-auto max-w-[140px]"
             >
               ログイン
             </Link>
             <Link 
               href="/signup"
-              className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-[#5d9b94] to-[#0F766E] hover:from-[#4a7d77] hover:to-[#0D6B64] text-white font-medium transition-all shadow-lg hover:shadow-xl"
+              className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-gradient-to-r from-[#5d9b94] to-[#0F766E] hover:from-[#4a7d77] hover:to-[#0D6B64] text-white font-medium transition-all shadow-lg hover:shadow-xl text-sm w-full sm:w-auto max-w-[140px]"
             >
               会員登録
             </Link>
           </div>
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-center mt-4">
             <Link 
               href="/login?guest=true"
-              className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium transition-all shadow-lg hover:shadow-xl"
+              className="inline-flex items-center justify-center h-10 px-5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium transition-all shadow-lg hover:shadow-xl text-sm w-full sm:w-auto max-w-[200px]"
             >
               🎭 デモを試す
             </Link>
