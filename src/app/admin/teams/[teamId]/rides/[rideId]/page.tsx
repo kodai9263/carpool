@@ -143,10 +143,10 @@ ${memberUrl}
 
   return (
     <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">🚗 配車詳細</h1>
+      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
+        <h1 className="text-3xl font-bold text-center mb-6 md:mb-8 break-words">🚗 配車詳細</h1>
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:space-y-8 min-w-0">
             <div className="flex justify-center">
               <div className="w-full max-w-md">
                 <RideBasicForm
@@ -183,7 +183,7 @@ ${memberUrl}
                 <label className="block text-sm font-medium mb-2 text-gray-700">
                   アクセスURL
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
                   <input 
                     type="text" 
                     readOnly 
@@ -193,7 +193,7 @@ ${memberUrl}
                   <button 
                     type="button"
                     onClick={() => copyToClipboard(`${window.location.origin}/member/teams/${teamId}/rides/${rideId}`, "URL")}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
                   >
                     <Copy size={16} />
                     {copied === "URL" ? "✓" : "コピー"}
@@ -202,14 +202,16 @@ ${memberUrl}
               </div>
 
               {/* 共有用テキスト一括コピー */}
-              <button
-                type="button"
-                onClick={copyShareText}
-                className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Share2 size={20} />
-                {copied === "共有テキスト" ? "コピーしました！" : "LINEで共有するテキストをコピー"}
-              </button>
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={copyShareText}
+                  className="w-full max-w-md py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
+                >
+                  <Share2 size={18} />
+                  {copied === "共有テキスト" ? "コピーしました！" : "LINEで共有するテキストをコピー"}
+                </button>
+              </div>
             </div>
 
             <UpdateDeleteButtons
