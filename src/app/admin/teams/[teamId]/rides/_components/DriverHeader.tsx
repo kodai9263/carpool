@@ -3,6 +3,7 @@
 import { UpdateRideValues } from "@/app/_types/ride";
 import { useExcludeIds } from "@/app/admin/_hooks/useExcludeIds";
 import { CarFront, X } from "lucide-react";
+import { useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 interface Props {
@@ -21,6 +22,26 @@ export default function DriverHeader({
   onRemove,
 }: Props) {
   const { control, register } = useFormContext<UpdateRideValues>();
+  const selectRef = useRef<HTMLSelectElement>(null);
+
+  // registerを一度だけ呼び出す
+  const { onChange, onBlur, name, ref } = register(`drivers.${index}.availabilityDriverId`, {
+    required: true,
+    valueAsNumber: true,
+  });
+
+  // スマホで保護者選択後に子供行が展開された際、
+  // 1. スクロールが下に行かないようにする
+  // 2. 子供のセレクトが自動で開かないようにフォーカスを保持する
+  const handleDriverChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // react-hook-formのonChangeを先に実行
+    onChange(e);
+    // フォーカスを一旦外してから戻すことで、子供のセレクトが開くのを防ぐ
+    selectRef.current?.blur();
+    requestAnimationFrame(() => {
+      selectRef.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
+    });
+  };
 
   const watchedDrivers = useWatch({ control, name: "drivers" });
 
@@ -42,10 +63,13 @@ export default function DriverHeader({
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <CarFront size={24} className="text-[#5d9b94] flex-shrink-0" />
           <select
-            {...register(`drivers.${index}.availabilityDriverId`, {
-              required: true,
-              valueAsNumber: true,
-            })}
+            name={name}
+            onBlur={onBlur}
+            onChange={handleDriverChange}
+            ref={(e) => {
+              ref(e);
+              (selectRef as React.MutableRefObject<HTMLSelectElement | null>).current = e;
+            }}
             className="w-full min-w-0 truncate border-2 border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-[#5d9b94] focus:ring-2 focus:ring-[#5d9b94] focus:outline-none"
           >
             <option value={0}>ドライバーを選択</option>
