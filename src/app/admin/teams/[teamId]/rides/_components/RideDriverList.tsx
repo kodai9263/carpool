@@ -60,7 +60,13 @@ export default function RideDriverList({
         {isDriverSlotAvailable ? (
           <button
             type="button"
-            onClick={appendDriver}
+            onClick={() => {
+              appendDriver();
+              // スマホでセレクトが自動で開かないようにフォーカスを外す
+              requestAnimationFrame(() => {
+                (document.activeElement as HTMLElement)?.blur();
+              });
+            }}
             className="flex items-center gap-2 px-4 py-2 bg-[#5d9b94] text-white rounded-lg hover:bg-[#4a7d77] transition font-medium"
           >
             <Plus size={20} />

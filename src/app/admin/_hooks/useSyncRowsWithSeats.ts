@@ -13,7 +13,7 @@ export function useSyncRowsWithSeats(
   selectedDriverId: number | null,
   seatCount: number,
   currentCount: number,
-  append: (value: { childId: number }) => void,
+  append: (value: { childId: number }, options?: { shouldFocus?: boolean }) => void,
   remove: (index: number) => void,
   replace?: (value: { childId: number}[]) => void,
   currentAssignments?: { childId: number }[] // 現在の割当を監視
@@ -53,7 +53,7 @@ export function useSyncRowsWithSeats(
       if (currentCount < seatCount) {
         const diff = seatCount - currentCount;
         for (let i = 0; i < diff; i++) {
-          append({ childId: 0});
+          append({ childId: 0 }, { shouldFocus: false });
         }
       } else if (currentCount > seatCount) {
         // 余分な場合
