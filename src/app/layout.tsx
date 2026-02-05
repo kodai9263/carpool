@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Carpool",
   description: "チームの移動、もう迷わない",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export const viewport: Viewport = {
