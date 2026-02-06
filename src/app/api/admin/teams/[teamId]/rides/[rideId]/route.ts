@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 export const runtime = "nodejs";
 
 // 配車詳細取得(自分のチームのみ)
+// チーム名とPINコードも含めて返す
 export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
   withAdminTeamRide(request, async({ teamId, rideId }) => {
     try {
@@ -39,6 +40,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             },
             team: {
               select: {
+                teamName: true,
+                pin: true,
                 availabilityDrivers: {
                   where: {
                     rideId: rideId,
@@ -62,6 +65,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
       ]);
       
       if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
+      
       return NextResponse.json({
         status: "OK",
         ride: {
@@ -71,6 +75,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           drivers: ride.drivers,
           availabilityDrivers: ride.team.availabilityDrivers,
           children,
+          teamName: ride.team.teamName,
+          pin: ride.team.pin,
         }
       } satisfies RideDetailResponse, { status: 200 });
     } catch {

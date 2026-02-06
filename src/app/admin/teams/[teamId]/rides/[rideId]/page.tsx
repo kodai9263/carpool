@@ -48,15 +48,19 @@ export default function Page() {
   const { token } = useSupabaseSession();
   const router = useRouter();
 
-  const { data, error, isLoading } = useFetch<RideDetailResponse>(`/api/admin/teams/${teamId}/rides/${rideId}`);
+  const { data, error, isLoading } = useFetch<RideDetailResponse>(
+    `/api/admin/teams/${teamId}/rides/${rideId}`,
+  );
   const isDeleting = useRef(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [isGuestUser, setIsGuestUser] = useState(false);
 
   useEffect(() => {
     const checkGuestUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email === 'guest@carpool.demo') {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user?.email === "guest@carpool.demo") {
         setIsGuestUser(true);
       }
     };
@@ -70,7 +74,7 @@ export default function Page() {
       formValues.drivers = formValues.drivers.map((driver) => ({
         ...driver,
         rideAssignments: driver.rideAssignments.filter(
-          (child) => child.childId !== 0
+          (child) => child.childId !== 0,
         ),
       }));
       reset(formValues);
@@ -86,7 +90,7 @@ export default function Page() {
       await api.put<UpdateRideValues>(
         `/api/admin/teams/${teamId}/rides/${rideId}`,
         data,
-        token
+        token,
       );
       alert("配車詳細を更新しました。");
     } catch (e: unknown) {
@@ -128,17 +132,23 @@ export default function Page() {
   // 共有用テキストをコピー
   const copyShareText = () => {
     if (!data?.ride) return;
-    
-    const memberUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
-    
-    const text = `【${formatDate(data.ride.date)}の配車について】
 
-以下のURLからPINコードを入力して、配車可否を入力してください！
+    const memberUrl = `${window.location.origin}/member/teams/${teamId}`;
+    const pin = data.ride.pin;
 
-🔗 URL:
+    if (!pin) {
+      alert("PINコードが設定されていません。チームを再作成してください。");
+      return;
+    }
+
+    const text = `🚗 チーム「${data.ride.teamName}」の配車確認
+
+配車の可否を入力してください：
 ${memberUrl}
 
-よろしくお願いします！`;
+📌 PINコード: ${pin}
+
+よろしくお願いします`;
 
     copyToClipboard(text, "共有テキスト");
   };
@@ -156,9 +166,14 @@ ${memberUrl}
   return (
     <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
       <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
-        <h1 className="text-3xl font-bold text-center mb-6 md:mb-8 break-words">🚗 配車詳細</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 md:mb-8 break-words">
+          🚗 配車詳細
+        </h1>
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:space-y-8 min-w-0">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6 md:space-y-8 min-w-0"
+          >
             <div className="flex justify-center">
               <div className="w-full max-w-md">
                 <RideBasicForm
@@ -196,28 +211,39 @@ ${memberUrl}
                   <p className="text-sm font-bold text-amber-800 mb-1 flex items-center gap-1">
                     🎭 デモ用PINコード
                   </p>
-                  <p className="text-3xl font-mono font-bold text-amber-900 my-2">1234</p>
+                  <p className="text-3xl font-mono font-bold text-amber-900 my-2">
+                    1234
+                  </p>
                   <p className="text-xs text-amber-700">
                     メンバー画面を試すには、下記のURLにアクセスしてこのPINコードを入力してください
                   </p>
                 </div>
               )}
-              
+
               {/* URL */}
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2 text-gray-700">
                   アクセスURL
                 </label>
                 <div className="flex flex-col md:flex-row gap-2">
-                  <input 
-                    type="text" 
-                    readOnly 
-                    value={typeof window !== 'undefined' ? `${window.location.origin}/member/teams/${teamId}/rides/${rideId}` : ''}
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      typeof window !== "undefined"
+                        ? `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`
+                        : ""
+                    }
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
                   />
-                  <button 
+                  <button
                     type="button"
-                    onClick={() => copyToClipboard(`${window.location.origin}/member/teams/${teamId}/rides/${rideId}`, "URL")}
+                    onClick={() =>
+                      copyToClipboard(
+                        `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`,
+                        "URL",
+                      )
+                    }
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
                   >
                     <Copy size={16} />
@@ -234,7 +260,9 @@ ${memberUrl}
                   className="w-full max-w-md py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
                 >
                   <Share2 size={18} />
-                  {copied === "共有テキスト" ? "コピーしました！" : "LINEで共有するテキストをコピー"}
+                  {copied === "共有テキスト"
+                    ? "コピーしました！"
+                    : "LINEで共有するテキストをコピー"}
                 </button>
               </div>
             </div>
