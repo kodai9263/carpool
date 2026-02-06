@@ -1,5 +1,5 @@
 export interface RideListResponse {
-  status: 'OK';
+  status: "OK";
   rides: { id: number; date: Date }[];
   page: number;
   perPage: number;
@@ -8,13 +8,13 @@ export interface RideListResponse {
 }
 
 export interface CreateRideResponse {
-  status: 'OK';
+  status: "OK";
   message: string;
   id: number;
 }
 
 export interface RideDetailResponse {
-  status: 'OK';
+  status: "OK";
   ride: {
     id: number;
     date: string;
@@ -46,6 +46,9 @@ export interface RideDetailResponse {
       name: string;
     }[];
 
+    teamName: string;
+    pin: string | null;
+
     members?: {
       id: number;
       name: string;
@@ -54,7 +57,7 @@ export interface RideDetailResponse {
 }
 
 export interface UpdateRideResponse {
-  status: 'OK';
+  status: "OK";
   message: string;
   ride?: {
     id: number;

@@ -35,6 +35,7 @@ model Team {
   rides               Ride[]
   availabilityDrivers AvailabilityDriver[]
   viewPinHash         String?
+  pin                 String?
 }
 
 // 保護者テーブル

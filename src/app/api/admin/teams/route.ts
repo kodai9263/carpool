@@ -81,6 +81,7 @@ export const POST = (request: NextRequest) => {
           teamCode: code,
           memberCount: 0,
           viewPinHash,
+          pin: pinValue,
           admin: { connect: { id: adminId } },
         },
         select: { id: true, teamName: true, teamCode: true },
