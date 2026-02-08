@@ -8,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import RideBasicForm from "./RideBasicForm";
 import { createRideDateValidation } from "../_hooks/useRideDateValidation";
+import toast from "react-hot-toast";
 
 export default function RideForm() {
   const methods = useForm<RideFormValues>({
@@ -40,7 +41,7 @@ export default function RideForm() {
       );
 
       router.push(`/admin/teams/${teamId}/rides`);
-      alert('配車を作成しました。');
+      toast.success('配車を作成しました。');
     } catch (e: unknown) {
       console.error(e);
       alert('作成中にエラーが発生しました。');
