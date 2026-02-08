@@ -8,6 +8,7 @@ import { api } from "@/utils/api";
 import { Building2, Key, KeyRound, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 
 export default function TeamForm() {
   const {
@@ -37,7 +38,7 @@ export default function TeamForm() {
       );
 
       router.push(`/admin/teams/${id}/rides`);
-      alert("チームを作成しました。");
+      toast.success("チームを作成しました。");
     } catch (e: unknown) {
       console.error(e);
 

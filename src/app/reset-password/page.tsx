@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
+import toast from "react-hot-toast";
 
 type Phase = "request" | "reset";
 
@@ -57,7 +58,7 @@ export default function Page() {
           redirectTo: redirectUrl, // メールのリンク先
         });
         if (error) throw error;
-        alert("パスワード再設定用のメールを送信しました。");
+        toast.success("パスワード再設定用のメールを送信しました。");
         reset({ email: "", password: "", confirmPassword: "" }); //入力をクリア
       } else {
         // フェーズ2: パスワードチェックをクリアした後、新しいパスワードに更新
@@ -67,7 +68,7 @@ export default function Page() {
         }
         const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
-        alert("パスワードを更新しました。ログインしてください。");
+        toast.success("パスワードを更新しました。ログインしてください。");
         router.push("/login");
       }
     } catch (e: unknown) {

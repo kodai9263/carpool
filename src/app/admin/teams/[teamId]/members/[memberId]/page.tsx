@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { EditInput } from "../../../_components/EditInput";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const  { 
@@ -68,7 +69,7 @@ export default function Page() {
         token,
       );
 
-      alert('メンバー詳細を更新しました。');
+      toast.success('メンバー詳細を更新しました。');
     } catch (e: unknown) {
       isDeleting.current = false;
       console.error(e);
@@ -85,7 +86,7 @@ export default function Page() {
       isDeleting.current = true;
       await api.delete(`/api/admin/teams/${teamId}/members/${memberId}`, token);
 
-      alert('メンバーを削除しました。');
+      toast.success('メンバーを削除しました。');
 
       router.replace(`/admin/teams/${teamId}/members`);
     } catch (e: unknown) {

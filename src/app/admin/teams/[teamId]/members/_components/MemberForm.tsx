@@ -8,6 +8,7 @@ import { api } from "@/utils/api";
 import { Baby, Plus, User, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 
 export default function MemberForm() {
   const { 
@@ -42,7 +43,7 @@ export default function MemberForm() {
       );
 
       router.push(`/admin/teams/${teamId}/members`);
-      alert('メンバーを登録しました。');
+      toast.success('メンバーを登録しました。');
     } catch (e: unknown) {
       console.error(e);
       alert('登録中にエラーが発生しました。');

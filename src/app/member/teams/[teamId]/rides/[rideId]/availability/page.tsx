@@ -12,6 +12,7 @@ import { AvailabilityListFormValues } from "@/app/_types/availability";
 import { useMemberRideAuth } from "@/app/member/_hooks/useMemberRideAuth";
 import { useAvailabilityMembers } from "@/app/member/_hooks/useAvailabilityMembers";
 import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
@@ -113,7 +114,7 @@ export default function Page() {
         );
       }
 
-      alert("配車可否を送信しました");
+      toast.success("配車可否を送信しました");
       mutate(); // データを再取得
       router.push(`/member/teams/${teamId}/rides/${rideId}`);
     } catch (e: unknown) {

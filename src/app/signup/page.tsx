@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
+import toast from "react-hot-toast";
 
 interface InputValue {
   email: string;
@@ -36,7 +37,7 @@ export default function Page() {
         password: data.password,
       });
 
-      alert("確認メールを送信しました。");
+      toast.success("確認メールを送信しました。");
       router.push("/login");
     } catch (e: unknown) {
       const message =

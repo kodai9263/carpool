@@ -8,6 +8,7 @@ import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../_components/LoadingSpinner";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const {

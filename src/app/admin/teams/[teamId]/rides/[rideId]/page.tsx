@@ -17,6 +17,7 @@ import { Copy, Share2 } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { supabase } from "@/utils/supabase";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
@@ -92,7 +93,7 @@ export default function Page() {
         data,
         token,
       );
-      alert("配車詳細を更新しました。");
+      toast.success("配車詳細を更新しました。");
     } catch (e: unknown) {
       console.error(e);
       alert("更新中にエラーが発生しました。");
@@ -108,7 +109,7 @@ export default function Page() {
       isDeleting.current = true;
       await api.delete(`/api/admin/teams/${teamId}/rides/${rideId}`, token);
 
-      alert("配車を削除しました。");
+      toast.success("配車を削除しました。");
 
       router.replace(`/admin/teams/${teamId}/rides`);
     } catch (e: unknown) {
