@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../_components/UpdateDeleteButtons";
 import { EditInput } from "../_components/EditInput";
+import { Breadcrumb } from "../../_components/Breadcrumb";
 import { Building2, Users } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -99,6 +100,12 @@ export default function Page() {
   return (
     <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
       <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
+        <Breadcrumb
+          items={[
+            { label: 'チーム一覧', href: '/admin/teams' },
+            { label: data?.team.teamName || '' },
+          ]}
+        />
         <h1 className="text-3xl font-bold mb-8 text-center">👥 チーム詳細</h1>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
