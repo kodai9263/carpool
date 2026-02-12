@@ -5,10 +5,12 @@ import PaginationNav from "@/app/_components/PaginationNav";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Member } from "@/app/_types/member";
 import { MemberListResponse } from "@/app/_types/response/memberResponse";
+import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { User } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
+import { Breadcrumb } from "../../../_components/Breadcrumb";
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -20,6 +22,7 @@ export default function Page() {
   }, [teamId, page]);
 
   const { data, error, isLoading } = useFetch<MemberListResponse>(url);
+  const { data: teamData } = useFetch<TeamDetailResponse>(`/api/admin/teams/${teamId}`);
 
   const members = (data?.members || []) as Member[];
   const totalPages = data?.totalPages || 1;
@@ -31,6 +34,13 @@ export default function Page() {
   return (
     <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
       <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
+        <Breadcrumb
+          items={[
+            { label: 'チーム一覧', href: '/admin/teams' },
+            { label: teamData?.team.teamName || '', href: `/admin/teams/${teamId}` },
+            { label: 'メンバー一覧' },
+          ]}
+        />
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-center flex-1 -ml-6">👤 メンバー一覧</h1>
           <NewButton 

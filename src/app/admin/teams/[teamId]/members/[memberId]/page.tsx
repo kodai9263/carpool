@@ -5,6 +5,7 @@ import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member";
 import { MemberDetailResponse } from "@/app/_types/response/memberResponse";
+import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { api } from "@/utils/api";
 import { Baby, Plus, Users, X } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
@@ -12,6 +13,7 @@ import { useEffect, useRef } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { EditInput } from "../../../_components/EditInput";
+import { Breadcrumb } from "../../../../_components/Breadcrumb";
 import toast from "react-hot-toast";
 
 export default function Page() {
@@ -40,6 +42,7 @@ export default function Page() {
   const router = useRouter();
 
   const  { data, error, isLoading } = useFetch<MemberDetailResponse>(`/api/admin/teams/${teamId}/members/${memberId}`);
+  const { data: teamData } = useFetch<TeamDetailResponse>(`/api/admin/teams/${teamId}`);
   const isDeleting = useRef(false);
 
   // 値を監視
@@ -108,6 +111,14 @@ export default function Page() {
   return (
     <div className="flex justify-center items-start py-4 md:py-10 px-4">
       <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
+        <Breadcrumb
+          items={[
+            { label: 'チーム一覧', href: '/admin/teams' },
+            { label: teamData?.team.teamName || '', href: `/admin/teams/${teamId}` },
+            { label: 'メンバー一覧', href: `/admin/teams/${teamId}/members` },
+            { label: data?.member.name || '' },
+          ]}
+        />
         <h1 className="text-3xl font-bold mb-8 text-center">👤 メンバー詳細</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
