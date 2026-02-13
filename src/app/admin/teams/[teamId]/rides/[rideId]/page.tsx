@@ -20,6 +20,17 @@ import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { supabase } from "@/utils/supabase";
 import toast from "react-hot-toast";
 
+function formatRideDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  const dow = ['日', '月', '火', '水', '木', '金', '土'];
+  return `${d.getMonth() + 1}月${d.getDate()}日(${dow[d.getDay()]})`;
+}
+
+function toDateInputStr(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
     defaultValues: {
@@ -56,6 +67,8 @@ export default function Page() {
   const isDeleting = useRef(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [isGuestUser, setIsGuestUser] = useState(false);
+  const [deadline, setDeadline] = useState("");
+  const [deadlineError, setDeadlineError] = useState("");
 
   useEffect(() => {
     const checkGuestUser = async () => {
@@ -131,11 +144,11 @@ export default function Page() {
     }
   };
 
-  // 共有用テキストをコピー
+  // 配車可否の入力依頼テキストをコピー
   const copyShareText = () => {
     if (!data?.ride) return;
 
-    const memberUrl = `${window.location.origin}/member/teams/${teamId}`;
+    const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
     const pin = data.ride.pin;
 
     if (!pin) {
@@ -143,16 +156,46 @@ export default function Page() {
       return;
     }
 
-    const text = `🚗 チーム「${data.ride.teamName}」の配車確認
+    const dateLabel = formatRideDate(data.ride.date);
+    const dl = deadline ? new Date(deadline) : null;
+    const deadlineText = dl
+      ? `\n${dl.getMonth() + 1}月${dl.getDate()}日までにご回答をお願いします。`
+      : "";
 
-配車の可否を入力してください：
-${memberUrl}
+    const destination = data.ride.destination ? ` ${data.ride.destination}` : "";
+
+    const text = `${dateLabel}${destination}への車出し可否の入力をお願いします。
+${rideUrl}
+
+📌 PINコード: ${pin}
+${deadlineText}`;
+
+    copyToClipboard(text, "入力依頼テキスト");
+  };
+
+  // 配車決定後の案内テキストをコピー
+  const copyAssignmentText = () => {
+    if (!data?.ride) return;
+
+    const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
+    const pin = data.ride.pin;
+
+    if (!pin) {
+      alert("PINコードが設定されていません。チームを再作成してください。");
+      return;
+    }
+
+    const dateLabel = formatRideDate(data.ride.date);
+    const destination = data.ride.destination ? ` ${data.ride.destination}` : "";
+
+    const text = `${dateLabel}${destination}への配車割をご確認ください。
+${rideUrl}
 
 📌 PINコード: ${pin}
 
-よろしくお願いします`;
+よろしくお願いします。`;
 
-    copyToClipboard(text, "共有テキスト");
+    copyToClipboard(text, "配車割テキスト");
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -262,17 +305,62 @@ ${memberUrl}
                 </div>
               </div>
 
-              {/* 共有用テキスト一括コピー */}
-              <div className="flex justify-center">
+              {/* 回答期限 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2 text-gray-700">
+                  回答期限（任意）
+                </label>
+                <input
+                  type="date"
+                  value={deadline}
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    if (!selected) {
+                      setDeadline("");
+                      setDeadlineError("");
+                      return;
+                    }
+                    const minStr = data?.ride?.date ? toDateInputStr(data.ride.date) : "";
+                    if (minStr && selected < minStr) {
+                      setDeadline(minStr);
+                      setDeadlineError("配車日より前の日付は選択できません。配車日に設定しました。");
+                    } else {
+                      setDeadline(selected);
+                      setDeadlineError("");
+                    }
+                  }}
+                  min={data?.ride?.date ? toDateInputStr(data.ride.date) : ""}
+                  className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+                />
+                {deadlineError && (
+                  <p className="text-xs text-red-500 mt-1">{deadlineError}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  設定すると①のテキストに「〇月〇日までにご回答をお願いします。」が追加されます
+                </p>
+              </div>
+
+              {/* 共有用テキストコピーボタン */}
+              <div className="flex flex-col gap-3">
                 <button
                   type="button"
                   onClick={copyShareText}
-                  className="w-full max-w-md py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
+                  className="w-full py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                 >
                   <Share2 size={18} />
-                  {copied === "共有テキスト"
+                  {copied === "入力依頼テキスト"
                     ? "コピーしました！"
-                    : "LINEで共有するテキストをコピー"}
+                    : "①配車可否の入力依頼をコピー"}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyAssignmentText}
+                  className="w-full py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <Share2 size={18} />
+                  {copied === "配車割テキスト"
+                    ? "コピーしました！"
+                    : "②配車決定後の案内をコピー"}
                 </button>
               </div>
             </div>
