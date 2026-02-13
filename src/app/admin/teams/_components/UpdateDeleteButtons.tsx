@@ -17,7 +17,7 @@ export const UpdateDeleteButtons: React.FC<UpdateDeleteButtonsProps> = ({
         disabled={isSubmitting}
         className="bg-green-700 text-white px-8 py-2 mx-4 rounded-lg hover:bg-green-800 transition"
       >
-        {isSubmitting ? "更新中..." : "編集"}
+        {isSubmitting ? "更新中..." : "編集・更新"}
       </button>
       <button
         type="button"
