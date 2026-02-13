@@ -30,7 +30,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
             teamId,
             date: { gte: now }
           },
-          select: { id: true, date: true },
+          select: { id: true, date: true, destination: true },
           orderBy: { date : 'asc' },
         }),
         // 過去の配車 → 新しい順（降順）
