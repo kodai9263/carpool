@@ -26,10 +26,6 @@ function formatRideDate(dateStr: string): string {
   return `${d.getMonth() + 1}月${d.getDate()}日(${dow[d.getDay()]})`;
 }
 
-function toDateInputStr(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 export default function Page() {
   const methods = useForm<UpdateRideValues>({
@@ -68,7 +64,6 @@ export default function Page() {
   const [copied, setCopied] = useState<string | null>(null);
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [deadline, setDeadline] = useState("");
-  const [deadlineError, setDeadlineError] = useState("");
 
   useEffect(() => {
     const checkGuestUser = async () => {
@@ -313,28 +308,9 @@ ${rideUrl}
                 <input
                   type="date"
                   value={deadline}
-                  onChange={(e) => {
-                    const selected = e.target.value;
-                    if (!selected) {
-                      setDeadline("");
-                      setDeadlineError("");
-                      return;
-                    }
-                    const minStr = data?.ride?.date ? toDateInputStr(data.ride.date) : "";
-                    if (minStr && selected < minStr) {
-                      setDeadline(minStr);
-                      setDeadlineError("配車日より前の日付は選択できません。配車日に設定しました。");
-                    } else {
-                      setDeadline(selected);
-                      setDeadlineError("");
-                    }
-                  }}
-                  min={data?.ride?.date ? toDateInputStr(data.ride.date) : ""}
+                  onChange={(e) => setDeadline(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
                 />
-                {deadlineError && (
-                  <p className="text-xs text-red-500 mt-1">{deadlineError}</p>
-                )}
                 <p className="text-xs text-gray-500 mt-1">
                   設定すると①のテキストに「〇月〇日までにご回答をお願いします。」が追加されます
                 </p>
