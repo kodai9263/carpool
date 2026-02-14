@@ -20,6 +20,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             id: true,
             date: true,
             destination: true,
+            deadline: true,
             drivers: {
               select: {
                 id: true,
@@ -72,6 +73,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           id: ride.id,
           date: ride.date.toISOString(),
           destination: ride.destination,
+          deadline: ride.deadline ? ride.deadline.toISOString() : null,
           drivers: ride.drivers,
           availabilityDrivers: ride.team.availabilityDrivers,
           children,
@@ -146,6 +148,25 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
       }
   }, ctx);
+
+  // 回答期限の更新
+  export const PATCH = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
+    withAdminTeamRide(request, async({ rideId }) => {
+      const body = await request.json().catch(() => null) as { deadline: string | null } | null;
+
+      if (!body) return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
+
+      try {
+        await prisma.ride.update({
+          where: { id: rideId },
+          data: { deadline: body.deadline ? new Date(body.deadline) : null },
+        });
+
+        return NextResponse.json({ status: "OK", message: "回答期限を更新しました" }, { status: 200 });
+      } catch {
+        return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
+      }
+    }, ctx);
 
   // 配車削除
 export const DELETE = (request: NextRequest, ctx: { params: {teamId: string; rideId: string } }) =>

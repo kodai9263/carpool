@@ -19,6 +19,7 @@ export interface RideDetailResponse {
     id: number;
     date: string;
     destination: string;
+    deadline: string | null;
     team?: {
       viewPinHash: string;
     };
