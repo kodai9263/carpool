@@ -48,6 +48,19 @@ export const api = {
     return res.json();
   },
 
+  async patch<TBody = unknown>(url: string, body: TBody, token: string) {
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error("更新に失敗しました。");
+    return res.json();
+  },
+
   async delete(url: string, token: string) {
     const res = await fetch(url, {
       method: "DELETE",

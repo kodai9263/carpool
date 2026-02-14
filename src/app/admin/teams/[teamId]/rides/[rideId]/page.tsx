@@ -64,6 +64,7 @@ export default function Page() {
   const [copied, setCopied] = useState<string | null>(null);
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [deadline, setDeadline] = useState("");
+  const [isSavingDeadline, setIsSavingDeadline] = useState(false);
 
   useEffect(() => {
     const checkGuestUser = async () => {
@@ -88,6 +89,15 @@ export default function Page() {
         ),
       }));
       reset(formValues);
+
+      // 回答期限の初期化
+      if (data.ride.deadline) {
+        const d = new Date(data.ride.deadline);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        setDeadline(`${yyyy}-${mm}-${dd}`);
+      }
     }
   }, [data, reset]);
 
@@ -125,6 +135,25 @@ export default function Page() {
       isDeleting.current = false;
       console.error(e);
       alert("削除中にエラーが発生しました。");
+    }
+  };
+
+  // 回答期限を保存
+  const saveDeadline = async () => {
+    if (!token) return;
+    setIsSavingDeadline(true);
+    try {
+      await api.patch(
+        `/api/admin/teams/${teamId}/rides/${rideId}`,
+        { deadline: deadline || null },
+        token,
+      );
+      toast.success("回答期限を保存しました。");
+    } catch (e) {
+      console.error(e);
+      alert("回答期限の保存に失敗しました。");
+    } finally {
+      setIsSavingDeadline(false);
     }
   };
 
@@ -305,12 +334,22 @@ ${rideUrl}
                 <label className="block text-sm font-medium mb-2 text-gray-700">
                   回答期限（任意）
                 </label>
-                <input
-                  type="date"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={saveDeadline}
+                    disabled={isSavingDeadline}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap disabled:opacity-50"
+                  >
+                    {isSavingDeadline ? "保存中..." : "設定"}
+                  </button>
+                </div>
                 <p className="text-xs text-gray-500 mt-1">
                   設定すると①のテキストに「〇月〇日までにご回答をお願いします。」が追加されます
                 </p>

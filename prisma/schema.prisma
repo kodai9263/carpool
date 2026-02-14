@@ -66,6 +66,7 @@ model Ride {
   id                  Int                  @id @default(autoincrement())
   date                DateTime
   destination         String
+  deadline            DateTime?
   teamId              Int
   team                Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdAt           DateTime             @default(now())
