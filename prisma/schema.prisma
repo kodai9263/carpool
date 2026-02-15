@@ -81,6 +81,7 @@ model AvailabilityDriver {
   id           Int      @id @default(autoincrement())
   availability Boolean  @default(false)
   seats        Int      @default(0)
+  comment      String?
   memberId     Int
   member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
   teamId       Int

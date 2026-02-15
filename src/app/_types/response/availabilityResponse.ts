@@ -5,6 +5,7 @@ export interface AvailabilityResponse {
     id: number;
     availability: boolean;
     seats: number;
+    comment: string | null;
     memberId: number;
     rideId: number;
   };

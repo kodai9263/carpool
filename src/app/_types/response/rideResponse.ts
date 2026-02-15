@@ -39,6 +39,7 @@ export interface RideDetailResponse {
       id: number;
       seats: number;
       availability: boolean;
+      comment: string | null;
       member: { id: number; name: string };
     }[];
 

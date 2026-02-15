@@ -29,7 +29,7 @@ export default function Page() {
 
   const methods = useForm<AvailabilityListFormValues>({
     defaultValues: {
-      availabilities: [{ memberId: 0, availability: false, seats: 1 }],
+      availabilities: [{ memberId: 0, availability: false, seats: 1, comment: "" }],
     },
   });
 

@@ -17,11 +17,12 @@ export function useAvailabilityMembers(ride: RideDetailResponse['ride'] | undefi
   }, [ride]);
 
   const existingAvailabilities = useMemo(() => {
-    const map = new Map<number, { seats: number; availability: boolean }>();
+    const map = new Map<number, { seats: number; availability: boolean; comment: string | null }>();
     ride?.availabilityDrivers.forEach(driver => {
       map.set(driver.member.id, {
         seats: driver.seats,
         availability: driver.availability,
+        comment: driver.comment,
       });
     });
     return map;
