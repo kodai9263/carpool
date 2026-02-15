@@ -9,7 +9,7 @@ import { useMemo } from "react";
 interface Props {
   members: Array<{ id: number; name: string }>;
   registeredMemberIds: Set<number>;
-  existingAvailabilities: Map<number, { seats: number; availability: boolean }>;
+  existingAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
   register: UseFormRegister<AvailabilityListFormValues>;
   control: Control<AvailabilityListFormValues>;
 }
@@ -62,7 +62,7 @@ export default function AvailabilityFormList({
 
       <button
         type="button"
-        onClick={() => append({ memberId: 0, availability: false, seats: 1 })}
+        onClick={() => append({ memberId: 0, availability: false, seats: 1, comment: "" })}
         className="flex items-center gap-2 px-4 py-2 text-teal-700 hover:text-teal-800 transition"
       >
         <Plus size={18} />

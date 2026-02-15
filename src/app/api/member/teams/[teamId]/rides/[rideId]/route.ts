@@ -54,6 +54,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               member: { select: { id: true, name: true } },
               seats: true,
               availability: true,
+              comment: true,
             },
           },
         },

@@ -11,7 +11,7 @@ interface Props {
   registeredMemberIds: Set<number>;
   selectedMemberIds: Set<number>;
   onRemove: () => void;
-  existingAvailabilities: Map<number, { seats: number; availability: boolean }>;
+  existingAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
   register: UseFormRegister<AvailabilityListFormValues>;
   control: Control<AvailabilityListFormValues>;
   canRemove: boolean;
@@ -58,15 +58,18 @@ export default function AvailabilityFormItem({
           existingData.availability
         );
         setValue(`availabilities.${index}.seats`, existingData.seats);
+        setValue(`availabilities.${index}.comment`, existingData.comment || "");
       } else {
         // 既存データがなければデフォルト値
         setValue(`availabilities.${index}.availability`, false);
         setValue(`availabilities.${index}.seats`, 1);
+        setValue(`availabilities.${index}.comment`, "");
       }
     } else {
       // 「選択してください」に戻した場合はリセット。
       setValue(`availabilities.${index}.availability`, false);
       setValue(`availabilities.${index}.seats`, 1);
+      setValue(`availabilities.${index}.comment`, "");
     }
   }, [memberId, existingAvailabilities, index, setValue]);
 
@@ -169,21 +172,34 @@ export default function AvailabilityFormItem({
 
       {/* 配車可能人数（配車可の場合のみ表示） */}
       {availability && (
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-          <span className="text-sm md:text-base font-bold">乗車人数</span>
-          <select
-            {...register(`availabilities.${index}.seats`, {
-              valueAsNumber: true,
-            })}
-            className="border-2 border-gray-300 rounded px-3 py-2 w-full md:w-32 text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
-          >
-            {[...Array(10)].map((_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {i + 1}人
-              </option>
-            ))}
-          </select>
-        </div>
+        <>
+          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            <span className="text-sm md:text-base font-bold">乗車人数</span>
+            <select
+              {...register(`availabilities.${index}.seats`, {
+                valueAsNumber: true,
+              })}
+              className="border-2 border-gray-300 rounded px-3 py-2 w-full md:w-32 text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+            >
+              {[...Array(10)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}人
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* コメント */}
+          <div className="flex flex-col gap-1">
+            <span className="text-sm md:text-base font-bold">コメント</span>
+            <input
+              type="text"
+              {...register(`availabilities.${index}.comment`)}
+              placeholder="例: 兄弟2人も同乗、行きのみ可など"
+              className="border-2 border-gray-300 rounded px-3 py-2 w-full text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+            />
+          </div>
+        </>
       )}
 
       {isChangingToUnavailable && (

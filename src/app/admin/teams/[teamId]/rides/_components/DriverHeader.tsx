@@ -2,7 +2,7 @@
 
 import { UpdateRideValues } from "@/app/_types/ride";
 import { useExcludeIds } from "@/app/admin/_hooks/useExcludeIds";
-import { CarFront, X } from "lucide-react";
+import { CarFront, MessageSquare, X } from "lucide-react";
 import { useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -11,6 +11,7 @@ interface Props {
   availabilityDrivers: {
     id: number;
     availability: boolean;
+    comment: string | null;
     member: { id: number; name: string };
   }[];
   onRemove: () => void;
@@ -54,10 +55,14 @@ export default function DriverHeader({
     (driver) => driver.availability === true
   );
 
+  const selectedDriverId = useWatch({ control, name: `drivers.${index}.availabilityDriverId` });
+  const selectedDriver = availabilityDrivers.find((d) => d.id === Number(selectedDriverId));
+  const comment = selectedDriver?.comment;
+
   if (!excluded) return null;
 
   return (
-    <div>
+    <div className="space-y-1">
       {/* 削除ボタンとドライバー選択を横並び */}
       <div className="flex items-start gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -97,6 +102,14 @@ export default function DriverHeader({
           <X size={20} />
         </button>
       </div>
+
+      {/* ドライバーのコメント表示 */}
+      {comment && (
+        <div className="flex items-start gap-1.5 ml-8 mr-7 text-sm text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+          <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
+          <span>{comment}</span>
+        </div>
+      )}
     </div>
   );
 }

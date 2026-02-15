@@ -12,6 +12,7 @@ interface Props {
     member: { id: number; name: string };
     seats: number;
     availability: boolean;
+    comment: string | null;
   }[];
   childrenList: { id: number; name: string }[];
   removeDriver: (index: number) => void;

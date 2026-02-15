@@ -52,6 +52,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                     member: { select: { id: true, name: true } },
                     seats: true,
                     availability: true,
+                    comment: true,
                   },
                 },
               },
