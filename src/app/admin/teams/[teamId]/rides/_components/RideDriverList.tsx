@@ -74,7 +74,7 @@ export default function RideDriverList({
             <span>ドライバー追加</span>
           </button>
         ) : (
-          <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-700 font-medium">
+          <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-3 text-xs text-yellow-700 font-medium">
             {totalAvailableDrivers == 0 ? "候補のドライバーがいません" : `候補のドライバーがいません（${totalAvailableDrivers}人まで配車可能）`}
           </div>
         )}

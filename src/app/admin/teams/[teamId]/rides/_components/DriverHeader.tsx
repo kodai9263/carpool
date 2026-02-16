@@ -105,7 +105,7 @@ export default function DriverHeader({
 
       {/* ドライバーのコメント表示 */}
       {comment && (
-        <div className="flex items-start gap-1.5 ml-8 mr-7 text-sm text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+        <div className="flex items-start gap-1.5 ml-8 mr-7 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
           <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
           <span>{comment}</span>
         </div>
