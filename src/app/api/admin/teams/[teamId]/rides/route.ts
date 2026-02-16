@@ -39,7 +39,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
             teamId,
             date: { lt: now }
           },
-          select: { id: true, date: true },
+          select: { id: true, date: true, destination: true },
           orderBy: { date: 'desc' },
         }),
       ]);

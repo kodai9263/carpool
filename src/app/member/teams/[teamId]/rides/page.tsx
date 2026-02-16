@@ -11,6 +11,7 @@ import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 import useSWR from "swr";
 import { RideListResponse } from "@/app/_types/response/rideResponse";
 import { useMemberTeamAuth } from "@/app/member/_hooks/useMemberTeamAuth";
+import { Ride } from "@/app/_types/ride";
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -53,10 +54,13 @@ export default function Page() {
                 className="block p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <Calendar size={24} className="text-[#5d9b94]" />
-                  <span className="text-lg font-medium">
+                  <Calendar size={24} className="text-[#5d9b94] shrink-0" />
+                  <span className="text-lg font-medium whitespace-nowrap">
                     {formatDate(ride.date)}
                   </span>
+                  {ride.destination && (
+                    <span className="text-sm text-gray-500 ml-auto truncate">{ride.destination}</span>
+                  )}
                 </div>
               </Link>
             );

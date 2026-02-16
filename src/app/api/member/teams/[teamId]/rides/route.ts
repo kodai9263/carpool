@@ -39,7 +39,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           teamId: teamIdNum,
           date: { gte: now }
         },
-        select: { id: true, date: true },
+        select: { id: true, date: true, destination: true },
         orderBy: { date : 'asc' },
       }),
       prisma.ride.findMany({
@@ -47,7 +47,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           teamId: teamIdNum,
           date: { lt: now }
         },
-        select: { id: true, date: true },
+        select: { id: true, date: true, destination: true },
         orderBy: { date: 'desc' },
       }),
     ]);
