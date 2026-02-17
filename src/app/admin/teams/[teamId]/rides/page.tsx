@@ -63,6 +63,15 @@ export default function Page() {
                   <span className="text-lg font-medium whitespace-nowrap">
                     {formatDate(ride.date)}
                   </span>
+                  {ride.isAssignmentComplete ? (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium whitespace-nowrap">
+                      完了
+                    </span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium whitespace-nowrap">
+                      未完了
+                    </span>
+                  )}
                   {ride.destination && (
                     <span className="text-sm text-gray-500 ml-auto truncate">{ride.destination}</span>
                   )}

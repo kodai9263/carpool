@@ -1,6 +1,6 @@
 export interface RideListResponse {
   status: "OK";
-  rides: { id: number; date: Date, destination: string }[];
+  rides: { id: number; date: Date, destination: string; isAssignmentComplete: boolean }[];
   page: number;
   perPage: number;
   total: number;

@@ -22,15 +22,22 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
-      const [total, futureRides, pastRides] = await Promise.all([
+      const [total, totalChildren, futureRides, pastRides] = await Promise.all([
         prisma.ride.count({ where: { teamId } }),
+        // チームに属する全子供数を取得
+        prisma.child.count({ where: { member: { teamId } } }),
         // 未来の配車（今日を含む）→ 日付が近い順（昇順）
         prisma.ride.findMany({
           where: { 
             teamId,
             date: { gte: now }
           },
-          select: { id: true, date: true, destination: true },
+          select: { 
+            id: true, 
+            date: true, 
+            destination: true,
+            _count: { select: { rideAssignments: true } }
+          },
           orderBy: { date : 'asc' },
         }),
         // 過去の配車 → 新しい順（降順）
@@ -39,7 +46,12 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
             teamId,
             date: { lt: now }
           },
-          select: { id: true, date: true, destination: true },
+          select: { 
+            id: true,
+            date: true,
+            destination: true,
+            _count: { select: { rideAssignments: true } } 
+          },
           orderBy: { date: 'desc' },
         }),
       ]);
@@ -47,8 +59,16 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       // 未来 + 過去の順に結合
       const allRides = [...futureRides, ...pastRides];
 
-      const rides = allRides.slice(skip, skip + perPage);
+      const paginatedRides = allRides.slice(skip, skip + perPage);
       const totalPages = Math.max(1, Math.ceil(total / perPage));
+
+      // 各配車に割り当て完了フラグを付与
+      const rides = paginatedRides.map((ride) => ({
+        id: ride.id,
+        date: ride.date,
+        destination: ride.destination,
+        isAssignmentComplete: totalChildren > 0 && ride._count.rideAssignments >= totalChildren,
+      }))
 
       return NextResponse.json(
         { status: "OK", rides, page, perPage, total, totalPages } satisfies RideListResponse,
