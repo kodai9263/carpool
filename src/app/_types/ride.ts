@@ -2,6 +2,7 @@ export interface Ride {
   id: number;
   date: string;
   destination: string;
+  isAssignmentComplete?: boolean;
 }
 
 export interface RideFormValues {
