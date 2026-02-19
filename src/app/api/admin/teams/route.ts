@@ -56,7 +56,7 @@ export const POST = (request: NextRequest) => {
         return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
       }
 
-      const { teamName, teamCode, pin } = body;
+      const { teamName, teamCode, pin, isMiddleSchool } = body;
 
       const name = teamName.trim();
       const code = teamCode.trim();
@@ -80,6 +80,7 @@ export const POST = (request: NextRequest) => {
           teamName: name,
           teamCode: code,
           memberCount: 0,
+          maxGrade: isMiddleSchool ? 3 : 6,
           viewPinHash,
           pin: pinValue,
           admin: { connect: { id: adminId } },

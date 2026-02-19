@@ -2,8 +2,10 @@
 
 import { FormButton } from "@/app/_components/FormButton";
 import { FormInput } from "@/app/_components/FormInput";
+import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member";
+import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { api } from "@/utils/api";
 import { Baby, Plus, User, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -19,7 +21,7 @@ export default function MemberForm() {
   } = useForm<MemberFormValues>({
     defaultValues: {
       name: '',
-      children: [{ name: '' }],
+      children: [{ name: '', grade: undefined }],
     },
   });
 
@@ -31,6 +33,7 @@ export default function MemberForm() {
   const { teamId } = useParams<{ teamId: string }>();
   const { token } = useSupabaseSession();
   const router = useRouter();
+  const { data: teamData } = useFetch<TeamDetailResponse>(`/api/admin/teams/${teamId}`);
 
   const onSubmit = async (data: MemberFormValues) => {
     if (!token) return;
@@ -74,6 +77,22 @@ export default function MemberForm() {
                 {...register(`children.${index}.name` as const)}
                 disabled={isSubmitting}
               />
+              <select
+                className="w-20 rounded-lg px-2 py-2 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-sm"
+                {...register(`children.${index}.grade` as const, { valueAsNumber: true })}
+                disabled={isSubmitting}
+              >
+                <option value="">学年</option>
+                {teamData?.team.maxGrade === 6 ? 
+                  [1, 2, 3, 4, 5, 6].map((g) => (
+                    <option key={g} value={g}>{g}年</option>
+                  )) :
+                  [1, 2, 3].map((g) => (
+                    <option key={g} value={g}>{g}年</option>
+                  ))
+                }
+                
+              </select>
               {fields.length > 1 && (
                 <button
                   type="button"
@@ -90,7 +109,7 @@ export default function MemberForm() {
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => append({ name: '' })}
+            onClick={() => append({ name: '', grade: undefined })}
             className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
             disabled={isSubmitting}
           >

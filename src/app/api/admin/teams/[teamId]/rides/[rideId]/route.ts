@@ -1,5 +1,6 @@
 import { RideDetailResponse, UpdateRideResponse } from "@/app/_types/response/rideResponse";
 import { UpdateRideValues } from "@/app/_types/ride"; 
+import { calcCurrentGrade, isGraduated } from "@/utils/gradeUtils";
 import { withAdminTeamRide } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,7 +14,7 @@ export const runtime = "nodejs";
 export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
   withAdminTeamRide(request, async({ teamId, rideId }) => {
     try {
-      const [ride, children] = await prisma.$transaction([
+      const [ride, rawChildren, team] = await prisma.$transaction([
         prisma.ride.findFirst({
           where: { id: rideId, teamId },
           select: {
@@ -61,12 +62,33 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         }),
         prisma.child.findMany({
           where: { member: { teamId } },
-          select: { id: true, name: true, memberId: true },
+          select: { id: true, name: true, memberId: true, grade: true, gradeYear: true },
           distinct: ["id"],
+        }),
+        prisma.team.findFirst({
+          where: { id: teamId },
+          select: { maxGrade: true },
         }),
       ]);
       
       if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
+
+      const maxGrade = team?.maxGrade ?? 6;
+
+      // 現在の学年を計算し、卒業した子供を除外
+      const children = rawChildren
+        .map((child) => ({
+          ...child,
+          currentGrade: calcCurrentGrade(child.grade, child.gradeYear),
+        }))
+        .filter((child) => !isGraduated(child.currentGrade, maxGrade))
+        .sort((a, b) => {
+          // 学年降順（高学年が先）、未設定が末尾
+          if (a.currentGrade === null && b.currentGrade === null) return 0;
+          if (a.currentGrade === null) return 1;
+          if (b.currentGrade === null) return -1;
+          return b.currentGrade - a.currentGrade;
+        })
       
       return NextResponse.json({
         status: "OK",

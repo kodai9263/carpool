@@ -23,7 +23,7 @@ export default function Page() {
     reset, 
     control 
   } = useForm<TeamFormValues>({
-    defaultValues: { teamName: '', teamCode: '' }
+    defaultValues: { teamName: '', teamCode: '', isMiddleSchool: false }
   });
   
   const { teamId } = useParams<{ teamId: string }>();
@@ -37,6 +37,7 @@ export default function Page() {
   // フォームの値を監視
   const teamName = useWatch({ control, name: "teamName" });
   const teamCode = useWatch({ control, name: "teamCode" });
+  const isMiddleSchool = useWatch({ control, name: "isMiddleSchool" });
 
   // 既存内容を表示
   useEffect(() => {
@@ -44,6 +45,7 @@ export default function Page() {
       reset({
         teamName: data.team.teamName,
         teamCode: data.team.teamCode,
+        isMiddleSchool: data.team.maxGrade === 3,
     });
   },[data]);
 
@@ -128,6 +130,17 @@ export default function Page() {
             errorClassName="text-center ml-16"
             {...register("teamCode", { required: "チームIDを入力してください。" })}
           />
+
+          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register("isMiddleSchool")}
+                className="w-4 h-4 accent-[#5d9b94]"
+              />
+              <span className="text-sm font-medium text-gray-700">中学生チーム（学年を3年までに制限）</span>
+            </label>
+          </div>
 
           <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex items-center gap-3">

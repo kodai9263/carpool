@@ -14,7 +14,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
     try {
       const team = await prisma.team.findFirst({
         where: { id: teamId, adminId },
-        select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true },
+        select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true, maxGrade: true },
       });
       if (!team) return NextResponse.json({ message: "not found" }, { status: 404});
       return NextResponse.json({ status: "OK", team } satisfies TeamDetailResponse, { status: 200 });
@@ -37,8 +37,8 @@ export const PUT = (request: NextRequest, ctx: { params: { teamId: string } }) =
     try {
       const team = await prisma.team.update({
         where: { id: teamId, adminId },
-        data: { teamName: name, teamCode: code },
-        select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true },
+        data: { teamName: name, teamCode: code, maxGrade: body.isMiddleSchool ? 3 : 6 },
+        select: { id: true, teamName: true, teamCode: true, memberCount: true, adminId: true, maxGrade: true },
       });
       return NextResponse.json({ status: 'OK', message: '更新しました', team } satisfies UpdateTeamResponse, { status: 200 });
     } catch (e) {

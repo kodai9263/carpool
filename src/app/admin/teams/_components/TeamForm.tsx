@@ -17,7 +17,7 @@ export default function TeamForm() {
     formState: { isSubmitting, errors },
     setError,
   } = useForm<TeamFormValues>({
-    defaultValues: { teamName: "", teamCode: "" },
+    defaultValues: { teamName: "", teamCode: "", isMiddleSchool: false },
   });
 
   const { token } = useSupabaseSession();
@@ -110,6 +110,17 @@ export default function TeamForm() {
         <p className="text-xs text-gray-600">
           💡 配車閲覧時に必要なコードです。メンバーに共有してください。
         </p>
+      </div>
+
+      <div className="w-[300px]">
+        <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition">
+          <input
+            type="checkbox"
+            {...register("isMiddleSchool")}
+            className="w-4 h-4 accent-[#5d9b94]"
+          />
+          <span className="text-sm font-medium text-gray-700">中学生チーム（学年を3年までに制限）</span>
+        </label>
       </div>
 
       <FormButton

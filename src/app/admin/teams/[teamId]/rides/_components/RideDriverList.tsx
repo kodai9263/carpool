@@ -14,7 +14,7 @@ interface Props {
     availability: boolean;
     comment: string | null;
   }[];
-  childrenList: { id: number; name: string }[];
+  childrenList: { id: number; name: string; currentGrade: number | null }[];
   removeDriver: (index: number) => void;
   appendDriver: () => void;
 };

@@ -1,5 +1,6 @@
 import { MemberFormValues } from "@/app/_types/member"; 
 import { CreateMemberResponse, MemberListResponse } from "@/app/_types/response/memberResponse";
+import { getCurrentSchoolYear } from "@/utils/gradeUtils";
 import { withAuthTeam } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -60,23 +61,26 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         }
 
         // 子供のデータが配列か確認
-        let rawChildren: { name: string }[] = [];
+        let rawChildren: { name: string; grade?: number; }[] = [];
         if (Array.isArray(body.children)) {
           rawChildren = body.children;
         }
 
-        // 子供の名前を取り出す
-        const trimmedNames = rawChildren.map((child) => {
-          if (!child || typeof child.name !== 'string') return null;
-          return child.name.trim();
-        });
-
-        // 空文字 nullを除外
-        const validNames = trimmedNames.filter(
-          (name): name is string => !!name && name.length > 0);
+        // 子供のデータを整形
+        const validChildren = rawChildren
+          .filter((child) => child && typeof child.name === 'string' && child.name.trim().length > 0)
+          .map((child) => ({
+            name: child.name.trim(),
+            grade: child.grade ?? null,
+          }));
 
         // 重複を削除して配列に
-        const uniqueChildrenNames = Array.from(new Set(validNames));
+        const seen = new Set<string>();
+        const uniqueChildren = validChildren.filter((child) => {
+          if (seen.has(child.name)) return false;
+          seen.add(child.name);
+          return true;
+        });
 
         const result = await prisma.$transaction(async (tx) => {
           // 保護者作成
@@ -87,10 +91,13 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
 
           // 子供をまとめて作成（0件ならスキップ）
           let createdChildren = 0;
-          if (uniqueChildrenNames.length > 0) {
+          if (uniqueChildren.length > 0) {
+            const currentSchoolYear = getCurrentSchoolYear();
             const res = await tx.child.createMany({
-              data: uniqueChildrenNames.map((childName) => ({
-                name: childName,
+              data: uniqueChildren.map((child) => ({
+                name: child.name,
+                grade: child.grade,
+                gradeYear: currentSchoolYear,
                 memberId: member.id,
               })),
             });

@@ -26,7 +26,7 @@ export default function Page() {
   } = useForm<MemberFormValues>({
     defaultValues: {
       name: '',
-      children: [{ name: '' }],
+      children: [{ name: '', grade: undefined }],
     },
   });
 
@@ -54,8 +54,9 @@ export default function Page() {
     if (data?.member) {
       reset({
         name: data.member.name,
-        children: (data.member.children ?? []).map((child: { name: string }) => ({
+        children: (data.member.children ?? []).map((child: { name: string; grade: number | null }) => ({
           name: child.name,
+          grade: child.grade ?? undefined,
         })),
       });
     }
@@ -141,15 +142,33 @@ export default function Page() {
                 hasValue={!!childrenNames?.[index]?.name && childrenNames[index].name.length > 0}
                 {...register(`children.${index}.name`, { required: true })}
                 disabled={isSubmitting}
+                className="w-2/3"
                 right={
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
-                    disabled={isSubmitting}
-                  >
-                    <X size={20} />
-                  </button>
+                  <div className="flex gap-1">
+                    <select
+                      className="w-15 rounded-lg px-2 py-2 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-sm"
+                      {...register(`children.${index}.grade` as const, { valueAsNumber: true })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">学年</option>
+                        {teamData?.team.maxGrade === 6 ? 
+                          [1, 2, 3, 4, 5, 6].map((g) => (
+                            <option key={g} value={g}>{g}年</option>
+                          )) :
+                          [1, 2, 3].map((g) => (
+                            <option key={g} value={g}>{g}年</option>
+                          ))
+                        }
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
+                      disabled={isSubmitting}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
                 }
               />
             ))}
@@ -157,7 +176,7 @@ export default function Page() {
             <div className="flex justify-end">
               <button
                 type="button"
-                onClick={() => append({ name: ""})}
+                onClick={() => append({ name: "", grade: undefined })}
                 className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
                 disabled={isSubmitting}
               >

@@ -9,7 +9,7 @@ import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 interface Props {
   index: number;
-  childrenList: { id: number; name: string }[];
+  childrenList: { id: number; name: string; currentGrade: number | null }[];
   availabilityDrivers: {
     id: number;
     member: { id: number; name: string };
@@ -107,7 +107,7 @@ export default function ChildAssignmentList({
                     disabled={isDisabled}
                     className={isDisabled ? "text-gray-400 bg-gray-100" : ""}
                   >
-                    {child.name}
+                    {child.name} {child.currentGrade ? `(${child.currentGrade}年)` : "(学年未設定)"}
                   </option>
                 );
               })}
