@@ -21,6 +21,7 @@ export interface TeamDetailResponse {
     teamCode: string;
     memberCount: number;
     adminId: number;
+    maxGrade: number;
   }
 }
 
@@ -33,5 +34,6 @@ export interface UpdateTeamResponse {
     teamCode: string;
     memberCount: number;
     adminId: number;
+    maxGrade: number;
   }
 }

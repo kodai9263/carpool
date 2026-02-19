@@ -13,7 +13,7 @@ interface Props {
     availability: boolean;
     comment: string | null;
   }[];
-  childrenList: { id: number; name: string }[];
+  childrenList: { id: number; name: string; currentGrade: number | null }[];
 }
 
 export default function RideDriverItem({

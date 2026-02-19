@@ -11,7 +11,7 @@ interface Props {
     };
     rideAssignments: Array<{
       id: number;
-      child: { name: string };
+      child: { name: string; currentGrade: number | null };
     }>;
   };
 }
@@ -44,6 +44,9 @@ export default function RideDriverCard({ driver }: Props) {
                   title={assignment.child.name}
                 >
                   {assignment.child.name}
+                  {assignment.child.currentGrade != null && (
+                    <span className="text-xs text-gray-500 ml-1">（{assignment.child.currentGrade}年）</span>
+                  )}
                 </span>
               </div>
             ))}

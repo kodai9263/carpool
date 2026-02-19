@@ -1,5 +1,6 @@
 import { MemberFormValues } from "@/app/_types/member"; 
 import { MemberDetailResponse, UpdateMemberResponse } from "@/app/_types/response/memberResponse";
+import { getCurrentSchoolYear } from "@/utils/gradeUtils";
 import { withAdminTeamMember } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -18,7 +19,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           id: true,
           name: true,
           children: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, grade: true, gradeYear: true },
           }
         },
       });
@@ -39,13 +40,16 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
       const memberName = body.name.trim();
       if (!memberName) return NextResponse.json({ message: "名前は入力してください"}, { status: 400 });
 
-      let children: string[] | null = null;
-      
       const cleaned = body.children
-        .map((c) => c.name.trim())
-        .filter((name): name is string => !!name);
+        .filter((child) => child.name.trim().length > 0)
+        .map((child) => ({ name: child.name.trim(), grade: child.grade ?? null }));
 
-      children = [...new Set(cleaned)];
+        const seen = new Set<string>();
+        const children = cleaned.filter((child) => {
+          if (seen.has(child.name)) return false;
+          seen.add(child.name);
+          return true;
+        })
 
       try {
         const member = await prisma.$transaction(async (tx) => {
@@ -67,9 +71,15 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
             await tx.child.deleteMany({ where: { memberId } });
 
             // 新しい子供作成(あれば)
-            if (children.length) {
+            if (children.length > 0) {
+              const currentSchoolYear = getCurrentSchoolYear();
               await tx.child.createMany({
-                data: children.map((name) => ({ name, memberId })),
+                data: children.map((child) => ({
+                  name: child.name,
+                  grade: child.grade,
+                  gradeYear: currentSchoolYear,
+                  memberId,
+                })),
               });
             }
 
@@ -81,7 +91,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
                 data: { memberCount: { increment: delta } },
               });
             }
-            childNames = children;
+            childNames = children.map((child) => child.name);
           } else {
             // childrenがnullの場合は現在の子供の情報を返す
             const currentChildren = await tx.child.findMany({

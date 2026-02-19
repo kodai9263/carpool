@@ -46,6 +46,9 @@ export interface RideDetailResponse {
     children: {
       id: number;
       name: string;
+      grade: number | null;
+      gradeYear: number | null;
+      currentGrade: number | null;
     }[];
 
     teamName: string;

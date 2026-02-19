@@ -16,7 +16,7 @@ export interface CreateMemberResponse {
 
 export interface MemberDetailResponse {
   status: 'OK';
-  member: { id: number; name: string; children?: { id: number; name: string }[] };
+  member: { id: number; name: string; children?: { id: number; name: string; grade: number | null; gradeYear: number | null; }[] };
 }
 
 export interface UpdateMemberResponse {

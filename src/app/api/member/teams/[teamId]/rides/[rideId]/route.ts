@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
+import { calcCurrentGrade } from "@/utils/gradeUtils";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               rideAssignments: {
                 select: {
                   id: true,
-                  child: { select: { id: true, name: true } },
+                  child: { select: { id: true, name: true, grade: true, gradeYear: true } },
                 },
               },
             },
@@ -73,13 +74,26 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
 
     if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rideData = ride as any;
+
     return NextResponse.json({
       status: "OK",
       ride: {
-        id: ride.id,
-        date: ride.date.toISOString(),
-        destination: ride.destination,
-        drivers: ride.drivers,
+        id: rideData.id,
+        date: rideData.date.toISOString(),
+        destination: rideData.destination,
+        drivers: rideData.drivers.map((driver: { id: number; availabilityDriverId: number; availabilityDriver: { member: { id: number; name: string }; seats: number }; rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[] }) => ({
+          ...driver,
+          rideAssignments: driver.rideAssignments.map((ra) => ({
+            ...ra,
+            child: {
+              id: ra.child.id,
+              name: ra.child.name,
+              currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
+            },
+          })),
+        })),
         availabilityDrivers: ride.availabilityDrivers,
         children,
         members,

@@ -10,8 +10,9 @@ interface Driver {
   };
   rideAssignments: Array<{
     id: number;
-    child: { name: string };
+    child: { name: string; currentGrade: number | null };
   }>;
+
 }
 
 interface Props {
