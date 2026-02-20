@@ -36,6 +36,16 @@ export default function ChildAssignmentList({
   const currentAssignments = driver.rideAssignments ?? [];
   const selectedDriverId = driver.availabilityDriverId ?? null;
 
+  // 学年降順ソート（高学年が先、未設定は末尾）
+  const sortedChildrenList = useMemo(() => {
+    return [...childrenList].sort((a, b) => {
+      if (a.currentGrade === null && b.currentGrade === null) return 0;
+      if (a.currentGrade === null) return 1;
+      if (b.currentGrade === null) return -1;
+      return b.currentGrade - a.currentGrade;
+    });
+  }, [childrenList]);
+
   const selfSelectedChildIds = useMemo(() => {
     const ids = currentAssignments
       .map((item) => item.childId)
@@ -92,7 +102,7 @@ export default function ChildAssignmentList({
             >
               <option value={0}></option>
 
-              {childrenList.map((child) => {
+              {sortedChildrenList.map((child) => {
                 // 他ドライバーが選んだら無効化、同一ドライバー内で既に選択していたら無効化
                 const isDisabled =
                   (excluded.has(child.id) &&
