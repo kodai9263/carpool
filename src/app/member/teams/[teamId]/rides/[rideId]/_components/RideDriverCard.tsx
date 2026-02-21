@@ -33,7 +33,9 @@ export default function RideDriverCard({ driver }: Props) {
         <h3 className="text-sm font-medium text-gray-700 mb-2">乗車する子供</h3>
         {driver.rideAssignments.length > 0 && (
           <div className="space-y-2">
-            {driver.rideAssignments.map((assignment) => (
+            {[...driver.rideAssignments]
+              .sort((a, b) => (b.child.currentGrade ?? -1) - (a.child.currentGrade ?? -1))
+              .map((assignment) => (
               <div
                 key={assignment.id}
                 className="flex items-center gap-2 min-w-0 bg-white p-3 rounded-lg border border-gray-200"

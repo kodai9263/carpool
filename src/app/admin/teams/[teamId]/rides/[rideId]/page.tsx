@@ -81,12 +81,20 @@ export default function Page() {
   useEffect(() => {
     if (data?.ride) {
       const formValues = convertRideDetailToFormValues(data.ride);
-      // 各ドライバーの空の行を削除
+      // childId → currentGradeのMap生成
+      const childrenMap = new Map(
+        data.ride.children.map((c) => [c.id, c.currentGrade])
+      );
+      // 各ドライバーの空の行を削除し、学年順にソート
       formValues.drivers = formValues.drivers.map((driver) => ({
         ...driver,
-        rideAssignments: driver.rideAssignments.filter(
-          (child) => child.childId !== 0,
-        ),
+        rideAssignments: driver.rideAssignments
+          .filter((ra) => ra.childId !== 0)
+          .sort((a, b) => {
+            const gradeA = childrenMap.get(a.childId) ?? -1;
+            const gradeB = childrenMap.get(b.childId) ?? -1;
+            return gradeB - gradeA;
+          }),
       }));
       reset(formValues);
 
