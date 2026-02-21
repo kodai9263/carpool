@@ -113,11 +113,17 @@ export default function Page() {
     if (!validateDate()) return;
     if (!token) return;
 
+    // availabilityDriverIdが未選択でも除外して送信
+    const payload: UpdateRideValues = {
+      ...data,
+      drivers: data.drivers.filter((d) => d.availabilityDriverId !== 0), 
+    };
+
     // 配車情報更新
     try {
       await api.put<UpdateRideValues>(
         `/api/admin/teams/${teamId}/rides/${rideId}`,
-        data,
+        payload,
         token,
       );
       toast.success("配車詳細を更新しました。");
