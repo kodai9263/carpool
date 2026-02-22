@@ -80,7 +80,7 @@ export default function Page() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-[#5d9b94] via-[#7fb5ae] to-[#a8cec8] p-4">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-[#5d9b94] via-[#7fb5ae] to-[#a8cec8] p-4">
       <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
@@ -154,6 +154,15 @@ export default function Page() {
           </div>
         </div>
       </div>
+      <footer className="mt-6 py-2 text-center text-sm text-white/80">
+        お問い合わせ:{" "}
+        <a
+          href="mailto:carpool.app.2026@gmail.com"
+          className="hover:text-white underline"
+        >
+          carpool.app.2026@gmail.com
+        </a>
+      </footer>
     </div>
   );
 }

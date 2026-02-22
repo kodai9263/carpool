@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Car, Users, Calendar, Check, X, ChevronDown, ChevronRight, UserCog, ArrowDown } from "lucide-react";
+import { Footer } from "./_components/Footer";
 
 export default function Home() {
   return (
@@ -245,6 +246,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }
