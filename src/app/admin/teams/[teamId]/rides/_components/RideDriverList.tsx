@@ -15,6 +15,7 @@ interface Props {
     comment: string | null;
   }[];
   childrenList: { id: number; name: string; currentGrade: number | null }[];
+  childAvailabilities: { childId: number; availability: boolean }[];
   removeDriver: (index: number) => void;
   appendDriver: () => void;
 };
@@ -23,6 +24,7 @@ export default function RideDriverList({
   drivers,
   availabilityDrivers,
   childrenList,
+  childAvailabilities,
   removeDriver,
   appendDriver,
 }: Props) {
@@ -42,6 +44,7 @@ export default function RideDriverList({
     register,
     availabilityDrivers,
     childrenList,
+    childAvailabilities,
   };
 
   return (

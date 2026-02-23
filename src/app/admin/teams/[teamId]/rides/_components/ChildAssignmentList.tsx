@@ -17,12 +17,14 @@ interface Props {
     availability: boolean;
     comment: string | null;
   }[];
+  childAvailabilities: { childId: number; availability: boolean }[];
 }
 
 export default function ChildAssignmentList({
   index,
   childrenList,
   availabilityDrivers,
+  childAvailabilities,
 }: Props) {
   const { control, register } = useFormContext<UpdateRideValues>();
   const { fields, append, remove, replace } = useFieldArray({
@@ -45,6 +47,16 @@ export default function ChildAssignmentList({
       return b.currentGrade - a.currentGrade;
     });
   }, [childrenList]);
+
+  // 参加不可（availability: false）の子どもをプルダウンから除外
+  const participatingChildren = useMemo(() => {
+    const notParticipatingIds = new Set(
+      childAvailabilities
+        .filter((ca) => !ca.availability)
+        .map((ca) => ca.childId)
+    );
+    return sortedChildrenList.filter((child) => !notParticipatingIds.has(child.id));
+  }, [sortedChildrenList, childAvailabilities]);
 
   const selfSelectedChildIds = useMemo(() => {
     const ids = currentAssignments
@@ -102,7 +114,7 @@ export default function ChildAssignmentList({
             >
               <option value={0}></option>
 
-              {sortedChildrenList.map((child) => {
+              {participatingChildren.map((child) => {
                 // 他ドライバーが選んだら無効化、同一ドライバー内で既に選択していたら無効化
                 const isDisabled =
                   (excluded.has(child.id) &&

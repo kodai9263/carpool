@@ -36,7 +36,14 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
             id: true, 
             date: true, 
             destination: true,
-            _count: { select: { rideAssignments: true } }
+            _count: { 
+              select: { 
+                rideAssignments: true,
+                childAvailabilities: {
+                  where: { availability: false }
+                },
+              },
+            },
           },
           orderBy: { date : 'asc' },
         }),
@@ -50,7 +57,14 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
             id: true,
             date: true,
             destination: true,
-            _count: { select: { rideAssignments: true } } 
+            _count: { 
+              select: {
+                rideAssignments: true,
+                childAvailabilities: {
+                  where: { availability: false }
+                },
+              },
+            }, 
           },
           orderBy: { date: 'desc' },
         }),
@@ -63,12 +77,16 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       const totalPages = Math.max(1, Math.ceil(total / perPage));
 
       // 各配車に割り当て完了フラグを付与
-      const rides = paginatedRides.map((ride) => ({
-        id: ride.id,
-        date: ride.date,
-        destination: ride.destination,
-        isAssignmentComplete: totalChildren > 0 && ride._count.rideAssignments >= totalChildren,
-      }))
+      const rides = paginatedRides.map((ride) => {
+        const notParticipatingCount = ride._count.childAvailabilities;
+        const participatingCount = totalChildren - notParticipatingCount;
+        return {
+          id: ride.id,
+          date: ride.date,
+          destination: ride.destination,
+          isAssignmentComplete: participatingCount > 0 && ride._count.rideAssignments >= participatingCount,
+        };
+      });
 
       return NextResponse.json(
         { status: "OK", rides, page, perPage, total, totalPages } satisfies RideListResponse,

@@ -62,6 +62,7 @@ model Child {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   rideAssignments RideAssignment[]
+  childAvailabilities ChildAvailability[]
 }
 
 // 配車テーブル
@@ -77,6 +78,7 @@ model Ride {
   rideAssignments     RideAssignment[]
   drivers             Driver[]
   availabilityDrivers AvailabilityDriver[]
+  childAvailabilities ChildAvailability[]
 }
 
 // 配車可能保護者テーブル
@@ -125,4 +127,18 @@ model RideAssignment {
   updatedAt DateTime @updatedAt
 
   @@unique([driverId, childId])
+}
+
+// 参加不可子供テーブル
+model ChildAvailability {
+  id           Int      @id @default(autoincrement())
+  availability Boolean  @default(false)  // false = 参加不可
+  childId      Int
+  child        Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  rideId       Int
+  ride         Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([rideId, childId], name: "rideId_childId")
 }

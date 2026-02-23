@@ -279,6 +279,7 @@ ${rideUrl}
               drivers={fields}
               availabilityDrivers={data?.ride?.availabilityDrivers ?? []}
               childrenList={data?.ride?.children ?? []}
+              childAvailabilities={data?.ride?.childAvailabilities ?? []}
               appendDriver={() =>
                 append({
                   availabilityDriverId: 0,
