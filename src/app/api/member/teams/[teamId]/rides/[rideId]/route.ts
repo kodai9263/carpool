@@ -58,11 +58,17 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               comment: true,
             },
           },
+          childAvailabilities: {
+            select: {
+              childId: true,
+              availability: true,
+            },
+          },
         },
       }),
       prisma.child.findMany({
         where: { member: { teamId: teamIdNum } },
-        select: { id: true, name: true, memberId: true },
+        select: { id: true, name: true, memberId: true, grade: true, gradeYear: true },
         distinct: ["id"],
       }),
       prisma.member.findMany({
@@ -95,8 +101,12 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           })),
         })),
         availabilityDrivers: ride.availabilityDrivers,
-        children,
+        children: children.map((child) => ({
+          ...child,
+          currentGrade: calcCurrentGrade(child.grade, child.gradeYear),
+        })),
         members,
+        childAvailabilities: ride.childAvailabilities,
       }
     } satisfies RideDetailResponse, { status: 200 });
   } catch {

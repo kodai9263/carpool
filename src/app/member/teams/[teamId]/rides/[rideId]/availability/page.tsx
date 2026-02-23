@@ -5,14 +5,16 @@ import { FormButton } from "@/app/_components/FormButton";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, useWatch } from "react-hook-form";
 import RideBasicInfo from "../_components/RideBasicInfo";
 import AvailabilityFormList from "./_components/AvailabilityFormList";
+import ChildAvailabilitySection from "./_components/ChildAvailabilitySection";
 import { AvailabilityListFormValues } from "@/app/_types/availability";
 import { useMemberRideAuth } from "@/app/member/_hooks/useMemberRideAuth";
 import { useAvailabilityMembers } from "@/app/member/_hooks/useAvailabilityMembers";
 import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 import toast from "react-hot-toast";
+import { useState, useEffect, useMemo } from "react";
 
 export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
@@ -46,6 +48,45 @@ export default function Page() {
   const { members, registeredMemberIds, existingAvailabilities } =
     useAvailabilityMembers(data?.ride);
 
+  // 参加不可の子どもIDセット
+  const [notParticipatingIds, setNotParticipatingIds] = useState<Set<number>>(new Set());
+
+  // 既存の childAvailabilities から初期化
+  useEffect(() => {
+    if (data?.ride?.childAvailabilities) {
+      const ids = new Set(
+        data.ride.childAvailabilities
+          .filter((ca) => !ca.availability)
+          .map((ca) => ca.childId)
+      );
+      setNotParticipatingIds(ids);
+    }
+  }, [data]);
+
+  const toggleNotParticipating = (childId: number) => {
+    setNotParticipatingIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(childId)) next.delete(childId);
+      else next.add(childId);
+      return next;
+    });
+  };
+
+  // フォームで選択済みの保護者（memberId !== 0）を監視
+  const watchedAvailabilities = useWatch({ control, name: "availabilities" });
+
+  // 選択済み保護者の子供のみ表示対象にする
+  const visibleChildren = useMemo(() => {
+    const selectedMemberIds = new Set(
+      watchedAvailabilities
+        .filter((a) => Number(a.memberId) !== 0)
+        .map((a) => Number(a.memberId))
+    );
+    return (data?.ride?.children ?? []).filter(
+      (c) => c.memberId !== undefined && selectedMemberIds.has(c.memberId)
+    );
+  }, [data?.ride?.children, watchedAvailabilities]);
+
   const onSubmit = async (formData: AvailabilityListFormValues) => {
     if (!pin) return;
 
@@ -58,22 +99,6 @@ export default function Page() {
         setError(`availabilities.${index}.memberId`, {
           type: "manual",
           message: "保護者を選択してください",
-        });
-        hasError = true;
-      }
-
-      // 配車可チェックのバリデーション
-      // - 新規登録の場合: 配車可チェック必須
-      // - 既存が不可の場合: 配車可チェック必須（不可→不可の無意味な送信を防ぐ）
-      // - 既存が可の場合: 不可への変更を許可（確認ダイアログで対応）
-      const memberIdNum = Number(driver.memberId);
-      const existingData = existingAvailabilities.get(memberIdNum);
-      const isNewOrWasUnavailable = !existingData || !existingData.availability;
-
-      if (isNewOrWasUnavailable && memberIdNum !== 0 && !driver.availability) {
-        setError(`availabilities.${index}.availability`, {
-          type: "manual",
-          message: "配車可にチェックしてください",
         });
         hasError = true;
       }
@@ -99,8 +124,17 @@ export default function Page() {
     }
 
     try {
-      // 各保護者のデータを個別に送信
+      // 各保護者のデータを個別に送信（子どもの参加可否を含める）
       for (const driver of formData.availabilities) {
+        // 保護者の子ども一覧を取得し、参加可否を付与
+        const memberChildren = (data?.ride?.children ?? []).filter(
+          (c) => c.memberId === driver.memberId
+        );
+        const childAvailabilities = memberChildren.map((child) => ({
+          childId: child.id,
+          availability: !notParticipatingIds.has(child.id),
+        }));
+
         await fetch(
           `/api/member/teams/${teamId}/rides/${rideId}/availability`,
           {
@@ -109,7 +143,7 @@ export default function Page() {
               "Content-Type": "application/json",
               "x-pin": pin,
             },
-            body: JSON.stringify(driver),
+            body: JSON.stringify({ ...driver, childAvailabilities }),
           }
         );
       }
@@ -147,6 +181,13 @@ export default function Page() {
                 existingAvailabilities={existingAvailabilities}
                 register={register}
                 control={control}
+              />
+
+              <ChildAvailabilitySection
+                children={visibleChildren}
+                members={members}
+                notParticipatingIds={notParticipatingIds}
+                onToggle={toggleNotParticipating}
               />
 
               <FormButton

@@ -19,7 +19,7 @@ export interface RideDetailResponse {
     id: number;
     date: string;
     destination: string;
-    deadline: string | null;
+    deadline?: string | null;
     team?: {
       viewPinHash: string;
     };
@@ -49,14 +49,20 @@ export interface RideDetailResponse {
       grade: number | null;
       gradeYear: number | null;
       currentGrade: number | null;
+      memberId?: number;
     }[];
 
-    teamName: string;
-    pin: string | null;
+    teamName?: string;
+    pin?: string | null;
 
     members?: {
       id: number;
       name: string;
+    }[];
+
+    childAvailabilities: {
+      childId: number;
+      availability: boolean;
     }[];
   };
 }

@@ -3,6 +3,7 @@ export interface AvailabilityFormValues {
   availability: boolean;
   seats: number;
   comment: string;
+  childAvailabilities?: { childId: number; availability: boolean }[];
 }
 
 export interface AvailabilityListFormValues {

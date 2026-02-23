@@ -58,6 +58,13 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                 },
               },
             },
+            childAvailabilities: {
+              where: { rideId },
+              select: {
+                childId: true,
+                availability: true,
+              },
+            },
           },
         }),
         prisma.child.findMany({
@@ -102,6 +109,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           children,
           teamName: ride.team.teamName,
           pin: ride.team.pin,
+          childAvailabilities: ride.childAvailabilities,
         }
       } satisfies RideDetailResponse, { status: 200 });
     } catch {

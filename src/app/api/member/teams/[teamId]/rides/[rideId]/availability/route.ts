@@ -12,7 +12,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const rideIdNum = Number(params.rideId);
 
   const body = await request.json().catch(() => null) as AvailabilityFormValues | null;
-  const { memberId, availability, seats, comment } = body ?? {};
+  const { memberId, availability, seats, comment, childAvailabilities } = body ?? {};
 
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {
     return NextResponse.json({ message: "権限がありません" }, { status: 401 });
@@ -48,6 +48,16 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
         },
         select: { id: true, availability: true, seats: true, comment: true, memberId: true, rideId: true },
       });
+
+      if (childAvailabilities && childAvailabilities.length > 0) {
+        for (const ca of childAvailabilities) {
+          await tx.childAvailability.upsert({
+            where: { rideId_childId: { rideId: rideIdNum, childId: ca.childId } },
+            update: { availability: ca.availability },
+            create: { rideId: rideIdNum, childId: ca.childId, availability: ca.availability },
+          });
+        }
+      }
 
       // 2. availability: false の場合、既存の配車割当を削除
       if (!availability) {
