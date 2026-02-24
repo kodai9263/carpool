@@ -37,7 +37,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
+      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
         <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8 break-words">
           🚗 配車詳細
         </h1>

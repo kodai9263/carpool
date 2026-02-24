@@ -202,7 +202,7 @@ export default function Page() {
 
     const destination = data.ride.destination ? ` ${data.ride.destination}` : "";
 
-    const text = `${dateLabel}${destination}への車出し可否の入力をお願いします。
+    const text = `${dateLabel}${destination}への車出し可否・お子さんの参加可否の入力をお願いします。
 ${rideUrl}
 
 📌 PINコード: ${pin}
@@ -380,7 +380,7 @@ ${rideUrl}
                   <Share2 size={18} />
                   {copied === "入力依頼テキスト"
                     ? "コピーしました！"
-                    : "①配車可否の入力依頼をコピー"}
+                    : "①配車可否・参加可否の入力依頼をコピー"}
                 </button>
                 <button
                   type="button"
