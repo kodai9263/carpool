@@ -3,7 +3,7 @@
 import { FormButton } from "@/app/_components/FormButton";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { MemberFormValues } from "@/app/_types/member";
+import { MemberFormValues } from "@/app/_types/member"; 
 import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { api } from "@/utils/api";
 import { Baby, Plus, User, X } from "lucide-react";
