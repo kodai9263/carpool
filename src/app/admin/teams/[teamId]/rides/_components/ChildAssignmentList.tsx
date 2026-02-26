@@ -12,7 +12,7 @@ interface Props {
   childrenList: { id: number; name: string; currentGrade: number | null }[];
   availabilityDrivers: {
     id: number;
-    member: { id: number; name: string };
+    guardian: { id: number; name: string };
     seats: number;
     availability: boolean;
     comment: string | null;

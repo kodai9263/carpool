@@ -17,7 +17,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
         where: { id: memberId, teamId },
         select: { 
           id: true,
-          name: true,
+          guardians: { select: { id: true, name: true} },
           children: {
             select: { id: true, name: true, grade: true, gradeYear: true },
           }
@@ -37,8 +37,13 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
       if (!body) {
         return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
       }
-      const memberName = body.name.trim();
-      if (!memberName) return NextResponse.json({ message: "名前は入力してください"}, { status: 400 });
+      const rawGuardians = Array.isArray(body.guardians) ? body.guardians : [];
+      const validGuardians = rawGuardians
+        .filter((guardians) => guardians && typeof guardians.name === 'string' && guardians.name.trim().length > 0)
+        .map((guardians) => ({ name: guardians.name.trim() }));
+        if (validGuardians.length === 0) {
+          return NextResponse.json({ message: "保護者名を入力してください" }, { status: 400 });
+        } 
 
       const cleaned = body.children
         .filter((child) => child.name.trim().length > 0)
@@ -54,9 +59,22 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
       try {
         const member = await prisma.$transaction(async (tx) => {
           // メンバー名の更新
-          const updateMember = await tx.member.update({
-            where: { id: memberId, teamId },
-            data: { name: memberName },
+          const updateMember = await tx.member.findFirst({
+            where: { id: memberId },
+            select: { id: true },
+          });
+
+          // 保護者を全削除して再作成
+          await tx.guardian.deleteMany({ where: { memberId } });
+          await tx.guardian.createMany({
+            data: validGuardians.map((guardian) => ({
+              name: guardian.name,
+              memberId,
+            })),
+          });
+
+          const updateGuardians = await tx.guardian.findMany({
+            where: { memberId },
             select: { id: true, name: true },
           });
 
@@ -102,8 +120,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
             childNames = currentChildren.map(c => c.name);
           }
           return { 
-            id: updateMember.id,
-            name: updateMember.name, 
+            id: updateMember!.id,
+            guardians: updateGuardians, 
             children: childNames 
           };
         });

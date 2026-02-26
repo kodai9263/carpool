@@ -4,22 +4,15 @@ import { useMemo } from "react";
 
 interface Props {
   children: { id: number; name: string; memberId?: number }[];
-  members: { id: number; name: string }[];
   notParticipatingIds: Set<number>;
   onToggle: (childId: number) => void;
 }
 
 export default function ChildAvailabilitySection({
   children,
-  members,
   notParticipatingIds,
   onToggle,
 }: Props) {
-  const memberMap = useMemo(
-    () => new Map(members.map((m) => [m.id, m.name])),
-    [members]
-  );
-
   // 保護者IDでグループ化
   const grouped = useMemo(() => {
     const map = new Map<number, { id: number; name: string }[]>();

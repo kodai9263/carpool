@@ -27,12 +27,12 @@ export interface RideDetailResponse {
       id: number;
       availabilityDriverId: number;
       availabilityDriver: {
-        member: { id: number; name: string };
+        guardian: { id: number; name: string };
         seats: number;
       };
       rideAssignments: {
         id: number;
-        child: { id: number; name: string };
+        child: { id: number; name: string; currentGrade: number | null };
       }[];
     }[];
     availabilityDrivers: {
@@ -40,7 +40,7 @@ export interface RideDetailResponse {
       seats: number;
       availability: boolean;
       comment: string | null;
-      member: { id: number; name: string };
+      guardian: { id: number; name: string };
     }[];
 
     children: {
@@ -55,9 +55,10 @@ export interface RideDetailResponse {
     teamName?: string;
     pin?: string | null;
 
-    members?: {
+    guardians?: {
       id: number;
       name: string;
+      memberId: number;
     }[];
 
     childAvailabilities: {
@@ -77,7 +78,7 @@ export interface UpdateRideResponse {
     drivers: {
       id: number;
       availabilityDriver: {
-        member: { id: number; name: string };
+        guardian: { id: number; name: string };
         seats: number;
       };
       rideAssignments: {

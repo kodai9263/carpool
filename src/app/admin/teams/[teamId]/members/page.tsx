@@ -58,8 +58,8 @@ export default function Page() {
               >
                 <div className="grid grid-cols-[24px_1fr] gap-3 items-center">
                   <User size={24} className="text-[#5d9b94]" />
-                  <span className="text-lg font-medium truncate" title={member.name}>
-                    {member.name}
+                  <span className="text-lg font-medium truncate" title={member.guardians.map(g => g.name).join('・')}>
+                    {member.guardians.map(g => g.name).join('・')}
                   </span>
                 </div>
               </div>

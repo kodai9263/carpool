@@ -9,7 +9,7 @@ interface Props {
   drivers: FieldArrayWithId<UpdateRideValues, 'drivers', 'id'>[];
   availabilityDrivers: {
     id: number;
-    member: { id: number; name: string };
+    guardian: { id: number; name: string };
     seats: number;
     availability: boolean;
     comment: string | null;

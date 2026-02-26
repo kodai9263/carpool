@@ -1,7 +1,6 @@
 'use client';
 
 import { FormButton } from "@/app/_components/FormButton";
-import { FormInput } from "@/app/_components/FormInput";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member";
@@ -13,19 +12,26 @@ import { useFieldArray, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
 export default function MemberForm() {
-  const { 
-    register, 
-    handleSubmit, 
+  const {
+    register,
+    handleSubmit,
     formState: { isSubmitting, errors },
-    control 
+    control
   } = useForm<MemberFormValues>({
     defaultValues: {
-      name: '',
+      guardians: [{ name: '' }],
       children: [{ name: '', grade: undefined }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  // 保護者フィールド
+  const { fields: guardianFields, append: appendGuardian, remove: removeGuardian } = useFieldArray({
+    control,
+    name: "guardians",
+  });
+
+  // 子供フィールド
+  const { fields: childFields, append: appendChild, remove: removeChild } = useFieldArray({
     control,
     name: "children",
   });
@@ -55,16 +61,52 @@ export default function MemberForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
-      <FormInput
-        icon={<User size={18} />}
-        label="保護者/指導者"
-        disabled={isSubmitting}
-        error={errors.name?.message}
-        {...register("name", { required: "メンバー名を入力してください。"})}
-      />
-
+      {/* 保護者フィールド */}
       <div className="space-y-3">
-        {fields.map((child, index) => (
+        {guardianFields.map((guardian, index) => (
+          <div key={guardian.id}>
+            <label className="block text-sm font-medium flex items-center gap-2 mb-2">
+              <User size={18} className="text-gray-500" />
+              保護者 {index + 1}
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className="flex-1 min-w-0 rounded-lg px-4 py-2 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
+                {...register(`guardians.${index}.name` as const, { required: "保護者名を入力してください" })}
+                disabled={isSubmitting}
+              />
+              {guardianFields.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeGuardian(index)}
+                  className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
+                  disabled={isSubmitting}
+                >
+                  <X size={20} />
+                </button>
+              )}
+            </div>
+            {errors.guardians?.[index]?.name && (
+              <p className="mt-1 text-sm text-red-500">{errors.guardians[index]?.name?.message}</p>
+            )}
+          </div>
+        ))}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => appendGuardian({ name: '' })}
+            className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
+            disabled={isSubmitting}
+          >
+            <Plus size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* 子供フィールド */}
+      <div className="space-y-3">
+        {childFields.map((child, index) => (
           <div key={child.id}>
             <label className="block text-sm font-medium flex items-center gap-2 mb-2">
               <Baby size={18} className="text-gray-500" />
@@ -83,7 +125,7 @@ export default function MemberForm() {
                 disabled={isSubmitting}
               >
                 <option value="">学年</option>
-                {teamData?.team.maxGrade === 6 ? 
+                {teamData?.team.maxGrade === 6 ?
                   [1, 2, 3, 4, 5, 6].map((g) => (
                     <option key={g} value={g}>{g}年</option>
                   )) :
@@ -91,12 +133,11 @@ export default function MemberForm() {
                     <option key={g} value={g}>{g}年</option>
                   ))
                 }
-                
               </select>
-              {fields.length > 1 && (
+              {childFields.length > 1 && (
                 <button
                   type="button"
-                  onClick={() => remove(index)}
+                  onClick={() => removeChild(index)}
                   className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
                 >
                   <X size={20} />
@@ -109,7 +150,7 @@ export default function MemberForm() {
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => append({ name: '', grade: undefined })}
+            onClick={() => appendChild({ name: '', grade: undefined })}
             className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
             disabled={isSubmitting}
           >

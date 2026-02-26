@@ -31,7 +31,7 @@ export default function Page() {
 
   const methods = useForm<AvailabilityListFormValues>({
     defaultValues: {
-      availabilities: [{ memberId: 0, availability: false, seats: 1, comment: "" }],
+      availabilities: [{ guardianId: 0, availability: false, seats: 1, comment: "" }],
     },
   });
 
@@ -44,8 +44,8 @@ export default function Page() {
     clearErrors,
   } = methods;
 
-  // チームメンバーリストと、既に配車可否を登録済みのメンバーIDを取得
-  const { members, registeredMemberIds, existingAvailabilities } =
+  // 保護者リストと、既に配車可否を登録済みの保護者IDを取得
+  const { guardians, registeredGuardianIds, existingAvailabilities } =
     useAvailabilityMembers(data?.ride);
 
   // 参加不可の子どもIDセット
@@ -72,20 +72,28 @@ export default function Page() {
     });
   };
 
-  // フォームで選択済みの保護者（memberId !== 0）を監視
+  // フォームで選択済みの保護者（guardianId !== 0）を監視
   const watchedAvailabilities = useWatch({ control, name: "availabilities" });
 
-  // 選択済み保護者の子供のみ表示対象にする
+  // 選択済み保護者のmemberIdを逆引きして子供のみ表示対象にする
   const visibleChildren = useMemo(() => {
-    const selectedMemberIds = new Set(
+    const guardianIdToMemberId = new Map(
+      (data?.ride?.guardians ?? []).map((g) => [g.id, g.memberId])
+    );
+    const selectedGuardianIds = new Set(
       watchedAvailabilities
-        .filter((a) => Number(a.memberId) !== 0)
-        .map((a) => Number(a.memberId))
+        .filter((a) => Number(a.guardianId) !== 0)
+        .map((a) => Number(a.guardianId))
+    );
+    const relevantMemberIds = new Set(
+      [...selectedGuardianIds]
+        .map((gId) => guardianIdToMemberId.get(gId))
+        .filter((id): id is number => id !== undefined)
     );
     return (data?.ride?.children ?? []).filter(
-      (c) => c.memberId !== undefined && selectedMemberIds.has(c.memberId)
+      (c) => c.memberId !== undefined && relevantMemberIds.has(c.memberId)
     );
-  }, [data?.ride?.children, watchedAvailabilities]);
+  }, [data?.ride?.guardians, data?.ride?.children, watchedAvailabilities]);
 
   const onSubmit = async (formData: AvailabilityListFormValues) => {
     if (!pin) return;
@@ -95,8 +103,8 @@ export default function Page() {
     clearErrors();
 
     formData.availabilities.forEach((driver, index) => {
-      if (driver.memberId === 0) {
-        setError(`availabilities.${index}.memberId`, {
+      if (driver.guardianId === 0) {
+        setError(`availabilities.${index}.guardianId`, {
           type: "manual",
           message: "保護者を選択してください",
         });
@@ -107,14 +115,14 @@ export default function Page() {
     if (hasError) return;
 
     const changingToUnavailable = formData.availabilities.filter((driver) => {
-      if (driver.memberId === 0) return false;
-      const existingData = existingAvailabilities.get(driver.memberId);
+      if (driver.guardianId === 0) return false;
+      const existingData = existingAvailabilities.get(driver.guardianId);
       return existingData && existingData.availability && !driver.availability;
     });
 
     if (changingToUnavailable.length > 0) {
       const names = changingToUnavailable
-        .map((d) => members.find((m) => m.id === d.memberId)?.name)
+        .map((d) => guardians.find((g) => g.id === d.guardianId)?.name)
         .filter(Boolean)
         .join("、");
 
@@ -123,12 +131,18 @@ export default function Page() {
       }
     }
 
+    // guardianId → memberId の逆引きマップ
+    const guardianIdToMemberId = new Map(
+      (data?.ride?.guardians ?? []).map((g) => [g.id, g.memberId])
+    );
+
     try {
       // 各保護者のデータを個別に送信（子どもの参加可否を含める）
       for (const driver of formData.availabilities) {
-        // 保護者の子ども一覧を取得し、参加可否を付与
+        // 保護者のmemberIdを取得し、その家族の子ども一覧を絞り込む
+        const memberIdForDriver = guardianIdToMemberId.get(driver.guardianId);
         const memberChildren = (data?.ride?.children ?? []).filter(
-          (c) => c.memberId === driver.memberId
+          (c) => c.memberId === memberIdForDriver
         );
         const childAvailabilities = memberChildren.map((child) => ({
           childId: child.id,
@@ -176,8 +190,8 @@ export default function Page() {
           <FormProvider {...methods}>
             <form onSubmit={(e) => { console.log("Form submit triggered"); handleSubmit(onSubmit, (errors) => console.log("Form validation errors:", errors))(e); }} className="space-y-6">
               <AvailabilityFormList
-                members={members}
-                registeredMemberIds={registeredMemberIds}
+                guardians={guardians}
+                registeredGuardianIds={registeredGuardianIds}
                 existingAvailabilities={existingAvailabilities}
                 register={register}
                 control={control}
@@ -185,7 +199,6 @@ export default function Page() {
 
               <ChildAvailabilitySection
                 children={visibleChildren}
-                members={members}
                 notParticipatingIds={notParticipatingIds}
                 onToggle={toggleNotParticipating}
               />
