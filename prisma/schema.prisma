@@ -39,16 +39,26 @@ model Team {
   maxGrade            Int                   @default(6)
 }
 
-// 保護者テーブル
+// 家族テーブル
 model Member {
   id                  Int                  @id @default(autoincrement())
-  name                String
   teamId              Int
   team                Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   children            Child[]
-  availabilityDrivers AvailabilityDriver[]
+  guardians           Guardian[]
+}
+
+// 保護者テーブル
+model Guardian {
+  id                  Int                  @id @default(autoincrement())
+  name                String               
+  memberId            Int                  
+  member              Member               @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  availabilityDrivers AvailabilityDriver[] 
 }
 
 // 子供テーブル
@@ -87,8 +97,8 @@ model AvailabilityDriver {
   availability Boolean  @default(false)
   seats        Int      @default(0)
   comment      String?
-  memberId     Int
-  member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  guardianId   Int
+  guardian     Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
   teamId       Int
   team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   rideId       Int
@@ -97,7 +107,7 @@ model AvailabilityDriver {
   updatedAt    DateTime @updatedAt
   driver       Driver[]
 
-  @@unique([rideId, memberId], name: "rideId_memberId")
+  @@unique([rideId, guardianId], name: "rideId_guardianId")
 }
 
 // 配車実施保護者テーブル

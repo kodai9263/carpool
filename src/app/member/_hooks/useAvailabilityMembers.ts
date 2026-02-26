@@ -2,24 +2,24 @@ import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { useMemo } from "react";
 
 export function useAvailabilityMembers(ride: RideDetailResponse['ride'] | undefined) {
-  const members = useMemo(() => {
-    if (!ride?.members) return [];
-    return ride.members;
+  const guardians = useMemo(() => {
+    if (!ride?.guardians) return [];
+    return ride.guardians;
   }, [ride]);
 
-  const registeredMemberIds = useMemo(() => {
+  const registeredGuardianIds = useMemo(() => {
     if (!ride?.availabilityDrivers) return new Set<number>();
     return new Set(
       ride.availabilityDrivers
         .filter(ad => ad.availability === true)
-        .map(ad => ad.member.id)
+        .map(ad => ad.guardian.id)
     );
   }, [ride]);
 
   const existingAvailabilities = useMemo(() => {
     const map = new Map<number, { seats: number; availability: boolean; comment: string | null }>();
     ride?.availabilityDrivers.forEach(driver => {
-      map.set(driver.member.id, {
+      map.set(driver.guardian.id, {
         seats: driver.seats,
         availability: driver.availability,
         comment: driver.comment,
@@ -28,5 +28,5 @@ export function useAvailabilityMembers(ride: RideDetailResponse['ride'] | undefi
     return map;
   }, [ride]);
 
-  return { members, registeredMemberIds, existingAvailabilities };
+  return { guardians, registeredGuardianIds, existingAvailabilities };
 }

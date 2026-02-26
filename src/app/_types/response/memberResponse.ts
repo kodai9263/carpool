@@ -1,6 +1,6 @@
 export interface MemberListResponse {
   status: 'OK';
-  members: { id: number; name: string }[];
+  members: { id: number; guardians: { id: number; name: string }[] }[];
   page: number;
   perPage: number;
   total: number;
@@ -16,11 +16,11 @@ export interface CreateMemberResponse {
 
 export interface MemberDetailResponse {
   status: 'OK';
-  member: { id: number; name: string; children?: { id: number; name: string; grade: number | null; gradeYear: number | null; }[] };
+  member: { id: number; guardians: { id: number; name: string }[]; children?: { id: number; name: string; grade: number | null; gradeYear: number | null; }[] };
 }
 
 export interface UpdateMemberResponse {
   status: 'OK';
   message: string;
-  member: { id: number; name: string; children: string[] };
+  member: { id: number; guardians: { id: number; name: string }[]; children: string[] };
 }

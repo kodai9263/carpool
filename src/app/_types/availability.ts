@@ -1,5 +1,5 @@
 export interface AvailabilityFormValues {
-  memberId: number;
+  guardianId: number;
   availability: boolean;
   seats: number;
   comment: string;

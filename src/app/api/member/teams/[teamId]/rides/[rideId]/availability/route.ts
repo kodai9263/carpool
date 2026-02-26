@@ -12,12 +12,12 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const rideIdNum = Number(params.rideId);
 
   const body = await request.json().catch(() => null) as AvailabilityFormValues | null;
-  const { memberId, availability, seats, comment, childAvailabilities } = body ?? {};
+  const { guardianId, availability, seats, comment, childAvailabilities } = body ?? {};
 
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {
     return NextResponse.json({ message: "権限がありません" }, { status: 401 });
   }
-  if (!body || !Number.isInteger(memberId) || typeof availability !== "boolean" || !Number.isInteger(seats)) {
+  if (!body || !Number.isInteger(guardianId) || typeof availability !== "boolean" || !Number.isInteger(seats)) {
     return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400});
   }
 
@@ -31,7 +31,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
     const data = await prisma.$transaction(async (tx) => {
       // 1. availabilityDriverを更新
       const availabilityDriver = await tx.availabilityDriver.upsert({
-        where: { rideId_memberId: { rideId: rideIdNum, memberId: memberId! } },
+        where: { rideId_guardianId: { rideId: rideIdNum, guardianId: guardianId! } },
         update: {
           availability,
           seats,
@@ -40,13 +40,13 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
         },
         create: {
           rideId: rideIdNum,
-          memberId: memberId!,
+          guardianId: guardianId!,
           teamId: teamIdNum,
           availability,
           seats,
           comment: comment || null,
         },
-        select: { id: true, availability: true, seats: true, comment: true, memberId: true, rideId: true },
+        select: { id: true, availability: true, seats: true, comment: true, guardianId: true, rideId: true },
       });
 
       if (childAvailabilities && childAvailabilities.length > 0) {

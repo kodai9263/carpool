@@ -5,14 +5,13 @@ import RideDriverCard from "./RideDriverCard";
 interface Driver {
   id: number;
   availabilityDriver: {
-    member: { name: string };
+    guardian: { name: string };
     seats: number;
   };
   rideAssignments: Array<{
     id: number;
     child: { name: string; currentGrade: number | null };
   }>;
-
 }
 
 interface Props {

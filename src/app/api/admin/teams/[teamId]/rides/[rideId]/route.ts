@@ -28,14 +28,14 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                 availabilityDriverId: true,
                 availabilityDriver: {
                   select: {
-                    member: { select: { id: true, name: true } }, 
+                    guardian: { select: { id: true, name: true } }, 
                     seats:true,
                   }
                 },
                 rideAssignments: {
                   select: {
                     id: true,
-                    child: { select: { id: true, name: true } },
+                    child: { select: { id: true, name: true, grade: true, gradeYear: true } },
                   },
                 },
               },
@@ -50,7 +50,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                   },
                   select: {
                     id: true,
-                    member: { select: { id: true, name: true } },
+                    guardian: { select: { id: true, name: true } },
                     seats: true,
                     availability: true,
                     comment: true,
@@ -104,7 +104,17 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           date: ride.date.toISOString(),
           destination: ride.destination,
           deadline: ride.deadline ? ride.deadline.toISOString() : null,
-          drivers: ride.drivers,
+          drivers: ride.drivers.map((driver) => ({
+            ...driver,
+            rideAssignments: driver.rideAssignments.map((ra) => ({
+              ...ra,
+              child: {
+                id: ra.child.id,
+                name: ra.child.name,
+                currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
+              },
+            })),
+          })),
           availabilityDrivers: ride.team.availabilityDrivers,
           children,
           teamName: ride.team.teamName,

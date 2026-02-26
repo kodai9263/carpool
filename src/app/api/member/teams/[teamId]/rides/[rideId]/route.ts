@@ -37,7 +37,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               availabilityDriverId: true,
               availabilityDriver: {
                 select: {
-                  member: { select: { id: true, name: true } },
+                  guardian: { select: { id: true, name: true } },
                   seats:true,
                 }
               },
@@ -52,7 +52,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           availabilityDrivers: {
             select: {
               id: true,
-              member: { select: { id: true, name: true } },
+              guardian: { select: { id: true, name: true } },
               seats: true,
               availability: true,
               comment: true,
@@ -71,9 +71,9 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         select: { id: true, name: true, memberId: true, grade: true, gradeYear: true },
         distinct: ["id"],
       }),
-      prisma.member.findMany({
-        where: { teamId: teamIdNum },
-        select: { id: true, name: true },
+      prisma.guardian.findMany({
+        where: { member: { teamId: teamIdNum } },
+        select: { id: true, name: true, memberId: true },
         orderBy: { name: 'asc' },
       }),
     ]);
@@ -89,7 +89,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         id: rideData.id,
         date: rideData.date.toISOString(),
         destination: rideData.destination,
-        drivers: rideData.drivers.map((driver: { id: number; availabilityDriverId: number; availabilityDriver: { member: { id: number; name: string }; seats: number }; rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[] }) => ({
+        drivers: rideData.drivers.map((driver: { id: number; availabilityDriverId: number; availabilityDriver: { guardian: { id: number; name: string }; seats: number }; rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[] }) => ({
           ...driver,
           rideAssignments: driver.rideAssignments.map((ra) => ({
             ...ra,
@@ -105,7 +105,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           ...child,
           currentGrade: calcCurrentGrade(child.grade, child.gradeYear),
         })),
-        members,
+        guardians: members,
         childAvailabilities: ride.childAvailabilities,
       }
     } satisfies RideDetailResponse, { status: 200 });

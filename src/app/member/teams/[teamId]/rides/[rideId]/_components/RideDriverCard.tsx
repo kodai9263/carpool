@@ -6,7 +6,7 @@ interface Props {
   driver: {
     id: number;
     availabilityDriver: {
-      member: { name: string };
+      guardian: { name: string };
       seats: number;
     };
     rideAssignments: Array<{
@@ -23,9 +23,9 @@ export default function RideDriverCard({ driver }: Props) {
         <CarFront size={24} className="text-teal-700 flex-shrink-0" />
         <div
           className="min-w-0 flex-1 font-medium text-base line-clamp-2 break-all overflow-wrap-anywhere"
-          title={`${driver.availabilityDriver.member.name}号`}
+          title={`${driver.availabilityDriver.guardian.name}号`}
         >
-          {driver.availabilityDriver.member.name}号
+          {driver.availabilityDriver.guardian.name}号
         </div>
       </div>
 

@@ -12,7 +12,7 @@ interface Props {
     id: number;
     availability: boolean;
     comment: string | null;
-    member: { id: number; name: string };
+    guardian: { id: number; name: string };
   }[];
   onRemove: () => void;
 }
@@ -88,7 +88,7 @@ export default function DriverHeader({
                   disabled={isDisabled}
                   className={isDisabled ? "text-gray-400 bg-gray-100" : ""}
                 >
-                  {driver.member.name}号
+                  {driver.guardian.name}号
                 </option>
               );
             })}

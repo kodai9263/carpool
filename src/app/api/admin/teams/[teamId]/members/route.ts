@@ -24,8 +24,11 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         prisma.member.count({ where: { teamId } }),
         prisma.member.findMany({
           where: { teamId },
-          select: { id: true, name: true },
-          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            guardians: { select: { id: true, name: true } },
+          },
+          orderBy: { id: 'asc' },
           skip,
           take: perPage,
         }),
@@ -55,9 +58,13 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         if (!body) {
           return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
         }
-        const name = body.name.trim();
-        if (!name) {
-          return NextResponse.json({ message: "メンバー名が必須です" }, { status: 400 });
+        
+        const rawGuardians = Array.isArray(body.guardians) ? body.guardians : [];
+        const validGuardians = rawGuardians
+          .filter((guardian) => guardian && typeof guardian.name === 'string' && guardian.name.trim().length > 0)
+          .map((guardian) => ({ name: guardian.name.trim() }));
+        if (validGuardians.length === 0) {
+          return NextResponse.json({ message: "保護者名を入力してください"}, { status: 400 });
         }
 
         // 子供のデータが配列か確認
@@ -85,8 +92,15 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         const result = await prisma.$transaction(async (tx) => {
           // 保護者作成
           const member = await tx.member.create({
-            data: { name, teamId },
+            data: { teamId },
             select: { id : true },
+          });
+
+          await tx.guardian.createMany({
+            data: validGuardians.map((guardian) => ({
+              name: guardian.name,
+              memberId: member.id,
+            })),
           });
 
           // 子供をまとめて作成（0件ならスキップ）

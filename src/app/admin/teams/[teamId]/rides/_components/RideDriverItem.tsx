@@ -8,7 +8,7 @@ interface Props {
   removeDriver: (index: number) => void;
   availabilityDrivers: {
     id: number;
-    member: { id: number; name: string };
+    guardian: { id: number; name: string };
     seats: number;
     availability: boolean;
     comment: string | null;

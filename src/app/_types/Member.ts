@@ -1,10 +1,13 @@
 export interface Member {
   id: number;
-  name: string;
+  guardians: {
+    id: number;
+    name: string;
+  }[];
 }
 
 export interface MemberFormValues {
-  name: string;
+  guardians: { name: string }[];
   children: {
     name: string;
     grade?: number;

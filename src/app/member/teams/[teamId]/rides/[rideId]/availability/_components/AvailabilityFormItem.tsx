@@ -7,9 +7,9 @@ import { Control, useFormContext, UseFormRegister, useWatch } from "react-hook-f
 
 interface Props {
   index: number;
-  members: Array<{ id: number; name: string }>;
-  registeredMemberIds: Set<number>;
-  selectedMemberIds: Set<number>;
+  guardians: Array<{ id: number; name: string }>;
+  registeredGuardianIds: Set<number>;
+  selectedGuardianIds: Set<number>;
   onRemove: () => void;
   existingAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
   register: UseFormRegister<AvailabilityListFormValues>;
@@ -19,9 +19,9 @@ interface Props {
 
 export default function AvailabilityFormItem({
   index,
-  members,
-  registeredMemberIds,
-  selectedMemberIds,
+  guardians,
+  registeredGuardianIds,
+  selectedGuardianIds,
   existingAvailabilities,
   onRemove,
   register,
@@ -34,7 +34,7 @@ export default function AvailabilityFormItem({
   } = useFormContext<AvailabilityListFormValues>();
 
   // エラー取得
-  const memberIdError = errors.availabilities?.[index]?.memberId;
+  const guardianIdError = errors.availabilities?.[index]?.guardianId;
   const availabilityError = errors.availabilities?.[index]?.availability;
 
   const availability = useWatch({
@@ -42,15 +42,15 @@ export default function AvailabilityFormItem({
     name: `availabilities.${index}.availability`,
   });
 
-  const memberId = useWatch({
+  const guardianId = useWatch({
     control,
-    name: `availabilities.${index}.memberId`,
+    name: `availabilities.${index}.guardianId`,
   });
 
-  // メンバーが選択されたら、既存のデータを反映（子供の乗車可能人数）
+  // 保護者が選択されたら、既存のデータを反映（乗車可能人数など）
   useEffect(() => {
-    if (memberId && memberId !== 0) {
-      const existingData = existingAvailabilities.get(memberId);
+    if (guardianId && guardianId !== 0) {
+      const existingData = existingAvailabilities.get(guardianId);
       if (existingData) {
         // 既存データがあれば設定
         setValue(
@@ -66,20 +66,20 @@ export default function AvailabilityFormItem({
         setValue(`availabilities.${index}.comment`, "");
       }
     } else {
-      // 「選択してください」に戻した場合はリセット。
+      // 「選択してください」に戻した場合はリセット
       setValue(`availabilities.${index}.availability`, false);
       setValue(`availabilities.${index}.seats`, 1);
       setValue(`availabilities.${index}.comment`, "");
     }
-  }, [memberId, existingAvailabilities, index, setValue]);
+  }, [guardianId, existingAvailabilities, index, setValue]);
 
   // 保護者が選ばれているか
-  const isMemberSelected = memberId && memberId !== 0;
+  const isGuardianSelected = guardianId && guardianId !== 0;
 
   // 既存の登録情報を取得
   const existingData =
-    memberId && memberId !== 0
-      ? existingAvailabilities.get(memberId)
+    guardianId && guardianId !== 0
+      ? existingAvailabilities.get(guardianId)
       : undefined;
   const isChangingToUnavailable = existingData?.availability && !availability;
 
@@ -94,33 +94,33 @@ export default function AvailabilityFormItem({
           </span>
         </div>
         <select
-          {...register(`availabilities.${index}.memberId`, {
+          {...register(`availabilities.${index}.guardianId`, {
             required: true,
             valueAsNumber: true,
           })}
           className={`w-full md:flex-1 border-2 rounded px-3 py-2 text-base focus:ring-2 focus:outline-none ${
-            memberIdError
+            guardianIdError
               ? "border-red-500 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 focus:border-teal-700 focus:ring-teal-700"
           }`}
         >
           <option value={0}>選択してください</option>
-          {members.map((member) => {
+          {guardians.map((guardian) => {
             // 既に他のフォームで選択されているか
             const isSelectedElsewhere =
-              selectedMemberIds.has(member.id) && member.id !== memberId;
+              selectedGuardianIds.has(guardian.id) && guardian.id !== guardianId;
 
             return (
               <option
-                key={member.id}
-                value={member.id}
+                key={guardian.id}
+                value={guardian.id}
                 disabled={isSelectedElsewhere}
                 className={
                   isSelectedElsewhere ? "text-gray-400 bg-gray-100" : ""
                 }
               >
-                {member.name}
-                {registeredMemberIds.has(member.id) && " (登録済み)"}
+                {guardian.name}
+                {registeredGuardianIds.has(guardian.id) && " (登録済み)"}
               </option>
             );
           })}
@@ -131,7 +131,7 @@ export default function AvailabilityFormItem({
       <div className="flex items-center justify-between">
         <label
           className={`flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
-            isMemberSelected
+            isGuardianSelected
               ? "cursor-pointer"
               : "cursor-not-allowed opacity-50"
           }`}
@@ -139,7 +139,7 @@ export default function AvailabilityFormItem({
           <input
             type="checkbox"
             {...register(`availabilities.${index}.availability`)}
-            disabled={!isMemberSelected}
+            disabled={!isGuardianSelected}
             className="w-6 h-6 text-teal-700 rounded focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed"
           />
           <span className="text-base">配車可</span>
@@ -158,9 +158,9 @@ export default function AvailabilityFormItem({
       </div>
 
       {/* エラーメッセージ */}
-      {memberIdError ? (
+      {guardianIdError ? (
         <div className="text-sm text-red-500 text-center">
-          <p>{memberIdError.message}</p>
+          <p>{guardianIdError.message}</p>
         </div>
       ) : (
         availabilityError && (

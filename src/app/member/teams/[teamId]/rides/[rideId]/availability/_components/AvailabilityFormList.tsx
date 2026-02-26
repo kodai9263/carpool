@@ -7,16 +7,16 @@ import { AvailabilityListFormValues } from "@/app/_types/availability";
 import { useMemo } from "react";
 
 interface Props {
-  members: Array<{ id: number; name: string }>;
-  registeredMemberIds: Set<number>;
+  guardians: Array<{ id: number; name: string }>;
+  registeredGuardianIds: Set<number>;
   existingAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
   register: UseFormRegister<AvailabilityListFormValues>;
   control: Control<AvailabilityListFormValues>;
 }
 
 export default function AvailabilityFormList({
-  members,
-  registeredMemberIds,
+  guardians,
+  registeredGuardianIds,
   existingAvailabilities,
   register,
   control,
@@ -32,12 +32,12 @@ export default function AvailabilityFormList({
     name: "availabilities",
   });
 
-  // すでに選択されているメンバーIDのSetを作成
-  const selectedMemberIds = useMemo(() => {
+  // すでに選択されている保護者IDのSetを作成
+  const selectedGuardianIds = useMemo(() => {
     const ids = new Set<number>();
     availabilities.forEach((availability) => {
-      if (availability.memberId && availability.memberId !== 0) {
-        ids.add(availability.memberId);
+      if (availability.guardianId && availability.guardianId !== 0) {
+        ids.add(availability.guardianId);
       }
     });
     return ids;
@@ -49,10 +49,10 @@ export default function AvailabilityFormList({
         <AvailabilityFormItem
           key={field.id}
           index={index}
-          members={members}
-          registeredMemberIds={registeredMemberIds}
+          guardians={guardians}
+          registeredGuardianIds={registeredGuardianIds}
           existingAvailabilities={existingAvailabilities}
-          selectedMemberIds={selectedMemberIds}
+          selectedGuardianIds={selectedGuardianIds}
           onRemove={() => remove(index)}
           register={register}
           control={control}
@@ -62,7 +62,7 @@ export default function AvailabilityFormList({
 
       <button
         type="button"
-        onClick={() => append({ memberId: 0, availability: false, seats: 1, comment: "" })}
+        onClick={() => append({ guardianId: 0, availability: false, seats: 1, comment: "" })}
         className="flex items-center gap-2 px-4 py-2 text-teal-700 hover:text-teal-800 transition"
       >
         <Plus size={18} />
