@@ -45,19 +45,16 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               select: {
                 teamName: true,
                 pin: true,
-                availabilityDrivers: {
-                  where: {
-                    rideId: rideId,
-                  },
-                  select: {
-                    id: true,
-                    type: true,
-                    guardian: { select: { id: true, name: true } },
-                    seats: true,
-                    availability: true,
-                    comment: true,
-                  },
-                },
+              },
+            },
+            availabilityDrivers: {
+              select: {
+                id: true,
+                type: true,
+                guardian: { select: { id: true, name: true } },
+                seats: true,
+                availability: true,
+                comment: true,
               },
             },
             childAvailabilities: {
@@ -117,7 +114,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               },
             })),
           })),
-          availabilityDrivers: ride.team.availabilityDrivers,
+          availabilityDrivers: ride.availabilityDrivers,
           children,
           teamName: ride.team.teamName,
           pin: ride.team.pin,
