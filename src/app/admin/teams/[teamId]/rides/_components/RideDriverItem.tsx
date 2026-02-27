@@ -5,9 +5,11 @@ import ChildAssignmentList from "./ChildAssignmentList";
 
 interface Props {
   index: number;
+  type: string;
   removeDriver: (index: number) => void;
   availabilityDrivers: {
     id: number;
+    type: string;
     guardian: { id: number; name: string };
     seats: number;
     availability: boolean;
@@ -19,6 +21,7 @@ interface Props {
 
 export default function RideDriverItem({
   index,
+  type,
   removeDriver,
   availabilityDrivers,
   childrenList,
@@ -28,12 +31,14 @@ export default function RideDriverItem({
     <div className="border-2 border-gray-200 rounded-xl p-4 md:p-5 shadow-sm space-y-4 bg-gray-50 hover:shadow-md transition-shadow">
       <DriverHeader
         index={index}
+        type={type}
         availabilityDrivers={availabilityDrivers}
         onRemove={() => removeDriver(index)}
       />
 
       <ChildAssignmentList
         index={index}
+        type={type}
         childrenList={childrenList}
         availabilityDrivers={availabilityDrivers}
         childAvailabilities={childAvailabilities}

@@ -9,7 +9,8 @@ import { useMemo } from "react";
 interface Props {
   guardians: Array<{ id: number; name: string }>;
   registeredGuardianIds: Set<number>;
-  existingAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
+  existingDriverAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
+  existingEscortAvailabilities: Map<number, { availability: boolean; comment: string | null }>;
   register: UseFormRegister<AvailabilityListFormValues>;
   control: Control<AvailabilityListFormValues>;
 }
@@ -17,7 +18,8 @@ interface Props {
 export default function AvailabilityFormList({
   guardians,
   registeredGuardianIds,
-  existingAvailabilities,
+  existingDriverAvailabilities,
+  existingEscortAvailabilities,
   register,
   control,
 }: Props) {
@@ -51,7 +53,8 @@ export default function AvailabilityFormList({
           index={index}
           guardians={guardians}
           registeredGuardianIds={registeredGuardianIds}
-          existingAvailabilities={existingAvailabilities}
+          existingDriverAvailabilities={existingDriverAvailabilities}
+          existingEscortAvailabilities={existingEscortAvailabilities}
           selectedGuardianIds={selectedGuardianIds}
           onRemove={() => remove(index)}
           register={register}
@@ -62,7 +65,7 @@ export default function AvailabilityFormList({
 
       <button
         type="button"
-        onClick={() => append({ guardianId: 0, availability: false, seats: 1, comment: "" })}
+        onClick={() => append({ guardianId: 0, driverAvailability: false, seats: 1, driverComment: "", escortAvailability: false, escortComment: "" })}
         className="flex items-center gap-2 px-4 py-2 text-teal-700 hover:text-teal-800 transition"
       >
         <Plus size={18} />

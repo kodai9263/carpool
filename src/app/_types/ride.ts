@@ -15,6 +15,7 @@ export interface UpdateRideValues {
   destination: string;
   drivers: {
     availabilityDriverId: number;
+    type: string;
     seats: number;
     rideAssignments: {childId: number }[];
   }[];

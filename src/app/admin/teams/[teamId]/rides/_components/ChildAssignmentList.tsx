@@ -9,6 +9,7 @@ import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 interface Props {
   index: number;
+  type: string;
   childrenList: { id: number; name: string; currentGrade: number | null }[];
   availabilityDrivers: {
     id: number;
@@ -22,6 +23,7 @@ interface Props {
 
 export default function ChildAssignmentList({
   index,
+  type,
   childrenList,
   availabilityDrivers,
   childAvailabilities,
@@ -89,7 +91,9 @@ export default function ChildAssignmentList({
   const excluded = useExcludeIds(drivers, index, ["rideAssignments"]);
 
   // フックの呼び出しの後に条件チェック
-  if (!selectedDriverSeats || !excluded) return null;
+  // 引率者（escort）は seats=0 なので selectedDriverSeats が存在しないが、表示は続ける
+  if (!excluded) return null;
+  if (type !== 'escort' && !selectedDriverSeats) return null;
 
   return (
     <div className="space-y-2">
@@ -146,7 +150,20 @@ export default function ChildAssignmentList({
         );
       })}
 
-      {selectedDriverId && seatCount > 0 ? (
+      {type === 'escort' ? (
+        // 引率者: 座席数制限なし、手動追加のみ
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => append({ childId: 0 })}
+            className="w-full flex items-center justify-center gap-2 text-[#5d9b94] hover:text-[#4a7d77] transition bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm font-medium"
+          >
+            <Plus size={18} />
+            <span>子供を追加</span>
+          </button>
+        </div>
+      ) : selectedDriverId && seatCount > 0 ? (
+        // 配車: 座席数ベース
         <div className="mt-3">
           {canAddAssignment ? (
             <button

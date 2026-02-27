@@ -34,6 +34,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           drivers: {
             select: {
               id: true,
+              type: true,
               availabilityDriverId: true,
               availabilityDriver: {
                 select: {
@@ -52,6 +53,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           availabilityDrivers: {
             select: {
               id: true,
+              type: true,
               guardian: { select: { id: true, name: true } },
               seats: true,
               availability: true,

@@ -25,6 +25,7 @@ export interface RideDetailResponse {
     };
     drivers: {
       id: number;
+      type: string;
       availabilityDriverId: number;
       availabilityDriver: {
         guardian: { id: number; name: string };
@@ -37,6 +38,7 @@ export interface RideDetailResponse {
     }[];
     availabilityDrivers: {
       id: number;
+      type: string;
       seats: number;
       availability: boolean;
       comment: string | null;

@@ -94,8 +94,9 @@ model Ride {
 // 配車可能保護者テーブル
 model AvailabilityDriver {
   id           Int      @id @default(autoincrement())
+  type         String   @default("driver")  // "driver"（配車）| "escort"（引率）
   availability Boolean  @default(false)
-  seats        Int      @default(0)
+  seats        Int      @default(0)         // escort の場合は 0
   comment      String?
   guardianId   Int
   guardian     Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
@@ -107,15 +108,16 @@ model AvailabilityDriver {
   updatedAt    DateTime @updatedAt
   driver       Driver[]
 
-  @@unique([rideId, guardianId], name: "rideId_guardianId")
+  @@unique([rideId, guardianId, type], name: "rideId_guardianId_type")
 }
 
 // 配車実施保護者テーブル
 model Driver {
   id                   Int                @id @default(autoincrement())
+  type                 String             @default("driver")  // "driver"（配車）| "escort"（引率）
   rideId               Int
   ride                 Ride               @relation(fields: [rideId], references: [id], onDelete: Cascade)
-  availabilityDriverId Int                
+  availabilityDriverId Int
   availabilityDriver   AvailabilityDriver @relation(fields: [availabilityDriverId], references: [id], onDelete: Cascade)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt

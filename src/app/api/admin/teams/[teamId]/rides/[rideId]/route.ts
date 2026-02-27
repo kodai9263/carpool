@@ -25,10 +25,11 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             drivers: {
               select: {
                 id: true,
+                type: true,
                 availabilityDriverId: true,
                 availabilityDriver: {
                   select: {
-                    guardian: { select: { id: true, name: true } }, 
+                    guardian: { select: { id: true, name: true } },
                     seats:true,
                   }
                 },
@@ -50,6 +51,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                   },
                   select: {
                     id: true,
+                    type: true,
                     guardian: { select: { id: true, name: true } },
                     seats: true,
                     availability: true,
@@ -162,6 +164,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               data: {
                 rideId: rideIdNum,
                 availabilityDriverId: driver.availabilityDriverId,
+                type: driver.type ?? "driver",
               },
             });
 

@@ -16,17 +16,32 @@ export function useAvailabilityMembers(ride: RideDetailResponse['ride'] | undefi
     );
   }, [ride]);
 
-  const existingAvailabilities = useMemo(() => {
+  const existingDriverAvailabilities = useMemo(() => {
     const map = new Map<number, { seats: number; availability: boolean; comment: string | null }>();
-    ride?.availabilityDrivers.forEach(driver => {
-      map.set(driver.guardian.id, {
-        seats: driver.seats,
-        availability: driver.availability,
-        comment: driver.comment,
+    ride?.availabilityDrivers
+      .filter(d => d.type === 'driver')
+      .forEach(d => {
+        map.set(d.guardian.id, {
+          seats: d.seats,
+          availability: d.availability,
+          comment: d.comment,
+        });
       });
-    });
     return map;
   }, [ride]);
 
-  return { guardians, registeredGuardianIds, existingAvailabilities };
+  const existingEscortAvailabilities = useMemo(() => {
+    const map = new Map<number, { availability: boolean; comment: string | null }>();
+    ride?.availabilityDrivers
+      .filter(d => d.type === 'escort')
+      .forEach(d => {
+        map.set(d.guardian.id, {
+          availability: d.availability,
+          comment: d.comment,
+        });
+      });
+    return map;
+  }, [ride]);
+
+  return { guardians, registeredGuardianIds, existingDriverAvailabilities, existingEscortAvailabilities };
 }
