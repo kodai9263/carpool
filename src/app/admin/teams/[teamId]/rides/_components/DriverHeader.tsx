@@ -10,16 +10,19 @@ interface Props {
   index: number;
   availabilityDrivers: {
     id: number;
+    type: string;
     availability: boolean;
     comment: string | null;
     guardian: { id: number; name: string };
   }[];
+  type: string;
   onRemove: () => void;
 }
 
 export default function DriverHeader({
   index,
   availabilityDrivers,
+  type,
   onRemove,
 }: Props) {
   const { control, register } = useFormContext<UpdateRideValues>();
@@ -52,7 +55,7 @@ export default function DriverHeader({
 
   // 配車可能（availability: true）のドライバーのみを表示
   const availableDrivers = availabilityDrivers.filter(
-    (driver) => driver.availability === true
+    (driver) => driver.availability === true && driver.type === type
   );
 
   const selectedDriverId = useWatch({ control, name: `drivers.${index}.availabilityDriverId` });

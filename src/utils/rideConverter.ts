@@ -9,6 +9,7 @@ export interface DriverFormAPI {
     id: number;
     child: { id: number; name: string };
   }[];
+  type?: string;
 };
 
 interface RideDetailAPI {
@@ -24,6 +25,7 @@ export const convertRideDetailToFormValues = (ride: RideDetailAPI) : UpdateRideV
     destination: ride.destination,
     drivers: (ride.drivers ?? []).map(driver => ({
       availabilityDriverId: driver.availabilityDriverId,
+      type: driver.type ?? 'driver',
       seats: driver.seats ?? 0,
       rideAssignments: driver.rideAssignments.map((rideAssignment: { id: number; child: { id: number; name: string } }) => ({
         childId: rideAssignment.child.id,

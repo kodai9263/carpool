@@ -31,7 +31,7 @@ export default function Page() {
 
   const methods = useForm<AvailabilityListFormValues>({
     defaultValues: {
-      availabilities: [{ guardianId: 0, availability: false, seats: 1, comment: "" }],
+      availabilities: [{ guardianId: 0, driverAvailability: false, seats: 1, driverComment: "", escortAvailability: false, escortComment: "" }],
     },
   });
 
@@ -44,8 +44,8 @@ export default function Page() {
     clearErrors,
   } = methods;
 
-  // 保護者リストと、既に配車可否を登録済みの保護者IDを取得
-  const { guardians, registeredGuardianIds, existingAvailabilities } =
+  // 保護者リストと、既に配車・引率可否を登録済みの保護者IDを取得
+  const { guardians, registeredGuardianIds, existingDriverAvailabilities, existingEscortAvailabilities } =
     useAvailabilityMembers(data?.ride);
 
   // 参加不可の子どもIDセット
@@ -114,19 +114,36 @@ export default function Page() {
 
     if (hasError) return;
 
-    const changingToUnavailable = formData.availabilities.filter((driver) => {
+    // 配車を「不可」に変更する保護者
+    const changingDriverToUnavailable = formData.availabilities.filter((driver) => {
       if (driver.guardianId === 0) return false;
-      const existingData = existingAvailabilities.get(driver.guardianId);
-      return existingData && existingData.availability && !driver.availability;
+      const existingData = existingDriverAvailabilities.get(driver.guardianId);
+      return existingData && existingData.availability && !driver.driverAvailability;
     });
 
-    if (changingToUnavailable.length > 0) {
-      const names = changingToUnavailable
+    // 引率を「不可」に変更する保護者
+    const changingEscortToUnavailable = formData.availabilities.filter((driver) => {
+      if (driver.guardianId === 0) return false;
+      const existingData = existingEscortAvailabilities.get(driver.guardianId);
+      return existingData && existingData.availability && !driver.escortAvailability;
+    });
+
+    if (changingDriverToUnavailable.length > 0) {
+      const names = changingDriverToUnavailable
         .map((d) => guardians.find((g) => g.id === d.guardianId)?.name)
         .filter(Boolean)
         .join("、");
-
       if (!confirm(`${names}さんの配車を「不可」に変更しますか？`)) {
+        return;
+      }
+    }
+
+    if (changingEscortToUnavailable.length > 0) {
+      const names = changingEscortToUnavailable
+        .map((d) => guardians.find((g) => g.id === d.guardianId)?.name)
+        .filter(Boolean)
+        .join("、");
+      if (!confirm(`${names}さんの引率を「不可」に変更しますか？`)) {
         return;
       }
     }
@@ -162,7 +179,7 @@ export default function Page() {
         );
       }
 
-      toast.success("配車可否を送信しました");
+      toast.success("配車・引率可否を送信しました");
       mutate(); // データを再取得
       router.push(`/member/teams/${teamId}/rides/${rideId}`);
     } catch (e: unknown) {
@@ -182,17 +199,18 @@ export default function Page() {
   return (
     <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
       <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-4 md:p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">🚗 配車可否</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">🚗 配車・引率可否</h1>
 
         <div className="space-y-8">
           <RideBasicInfo date={ride.date} destination={ride.destination} />
 
           <FormProvider {...methods}>
-            <form onSubmit={(e) => { console.log("Form submit triggered"); handleSubmit(onSubmit, (errors) => console.log("Form validation errors:", errors))(e); }} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <AvailabilityFormList
                 guardians={guardians}
                 registeredGuardianIds={registeredGuardianIds}
-                existingAvailabilities={existingAvailabilities}
+                existingDriverAvailabilities={existingDriverAvailabilities}
+                existingEscortAvailabilities={existingEscortAvailabilities}
                 register={register}
                 control={control}
               />

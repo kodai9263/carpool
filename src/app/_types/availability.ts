@@ -1,8 +1,10 @@
 export interface AvailabilityFormValues {
   guardianId: number;
-  availability: boolean;
+  driverAvailability: boolean;
   seats: number;
-  comment: string;
+  driverComment: string;
+  escortAvailability: boolean;
+  escortComment: string;
   childAvailabilities?: { childId: number; availability: boolean }[];
 }
 

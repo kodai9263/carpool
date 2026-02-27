@@ -12,12 +12,16 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const rideIdNum = Number(params.rideId);
 
   const body = await request.json().catch(() => null) as AvailabilityFormValues | null;
-  const { guardianId, availability, seats, comment, childAvailabilities } = body ?? {};
+  const { guardianId, driverAvailability, seats, driverComment,
+          escortAvailability, escortComment, childAvailabilities } = body ?? {};
 
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {
     return NextResponse.json({ message: "権限がありません" }, { status: 401 });
   }
-  if (!body || !Number.isInteger(guardianId) || typeof availability !== "boolean" || !Number.isInteger(seats)) {
+  if (!body || !Number.isInteger(guardianId)
+    || typeof driverAvailability !== "boolean"
+    || typeof escortAvailability !== "boolean"
+    || !Number.isInteger(seats)) {
     return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400});
   }
 
@@ -29,24 +33,46 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
 
   try {
     const data = await prisma.$transaction(async (tx) => {
-      // 1. availabilityDriverを更新
-      const availabilityDriver = await tx.availabilityDriver.upsert({
-        where: { rideId_guardianId: { rideId: rideIdNum, guardianId: guardianId! } },
+      // 1. 配車レコードをupsert（type: "driver"）
+      const driverRecord = await tx.availabilityDriver.upsert({
+        where: { rideId_guardianId_type: { rideId: rideIdNum, guardianId: guardianId!, type: "driver" } },
         update: {
-          availability,
+          availability: driverAvailability,
           seats,
-          comment: comment || null,
+          comment: driverComment || null,
           teamId: teamIdNum,
         },
         create: {
           rideId: rideIdNum,
           guardianId: guardianId!,
           teamId: teamIdNum,
-          availability,
+          type: "driver",
+          availability: driverAvailability,
           seats,
-          comment: comment || null,
+          comment: driverComment || null,
         },
         select: { id: true, availability: true, seats: true, comment: true, guardianId: true, rideId: true },
+      });
+
+      // 2. 引率レコードをupsert（type: "escort"）
+      const escortRecord = await tx.availabilityDriver.upsert({
+        where: { rideId_guardianId_type: { rideId: rideIdNum, guardianId: guardianId!, type: "escort" } },
+        update: {
+          availability: escortAvailability,
+          seats: 0,
+          comment: escortComment || null,
+          teamId: teamIdNum,
+        },
+        create: {
+          rideId: rideIdNum,
+          guardianId: guardianId!,
+          teamId: teamIdNum,
+          type: "escort",
+          availability: escortAvailability,
+          seats: 0,
+          comment: escortComment || null,
+        },
+        select: { id: true, availability: true },
       });
 
       if (childAvailabilities && childAvailabilities.length > 0) {
@@ -59,18 +85,15 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
         }
       }
 
-      // 2. availability: false の場合、既存の配車割当を削除
-      if (!availability) {
-        // この availabilityDriver に紐づく Driver レコードを削除
-        await tx.driver.deleteMany({
-          where: {
-            rideId: rideIdNum,
-            availabilityDriverId: availabilityDriver.id,
-          },
-        });
+      // 3. 不可になった場合は既存の割当を削除
+      if (!driverAvailability) {
+        await tx.driver.deleteMany({ where: { rideId: rideIdNum, availabilityDriverId: driverRecord.id } });
+      }
+      if (!escortAvailability) {
+        await tx.driver.deleteMany({ where: { rideId: rideIdNum, availabilityDriverId: escortRecord.id } });
       }
 
-      return availabilityDriver;
+      return driverRecord;
     });
 
     return NextResponse.json(
