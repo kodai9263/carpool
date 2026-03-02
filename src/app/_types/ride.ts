@@ -17,6 +17,10 @@ export interface UpdateRideValues {
     availabilityDriverId: number;
     type: string;
     seats: number;
-    rideAssignments: {childId: number }[];
+    rideAssignments: { childId: number }[];
+    escorts: {
+      availabilityDriverId: number;
+      rideAssignments: { childId: number }[];
+    }[];
   }[];
 }

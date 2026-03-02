@@ -35,6 +35,17 @@ export interface RideDetailResponse {
         id: number;
         child: { id: number; name: string; currentGrade: number | null };
       }[];
+      escorts: {
+        id: number;
+        availabilityDriverId: number;
+        availabilityDriver: {
+          guardian: { id: number; name: string };
+        };
+        rideAssignments: {
+          id: number;
+          child: { id: number; name: string; currentGrade: number | null };
+        }[];
+      }[];
     }[];
     availabilityDrivers: {
       id: number;

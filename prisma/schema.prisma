@@ -119,6 +119,9 @@ model Driver {
   ride                 Ride               @relation(fields: [rideId], references: [id], onDelete: Cascade)
   availabilityDriverId Int
   availabilityDriver   AvailabilityDriver @relation(fields: [availabilityDriverId], references: [id], onDelete: Cascade)
+  linkedDriverId       Int?               // 引率者の場合、紐付く配車ドライバーのID
+  linkedDriver         Driver?            @relation("EscortLink", fields: [linkedDriverId], references: [id])
+  escorts              Driver[]           @relation("EscortLink")
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   rideAssignments      RideAssignment[]

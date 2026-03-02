@@ -280,12 +280,13 @@ ${rideUrl}
               availabilityDrivers={data?.ride?.availabilityDrivers ?? []}
               childrenList={data?.ride?.children ?? []}
               childAvailabilities={data?.ride?.childAvailabilities ?? []}
-              appendDriver={(type: string) =>
+              appendDriver={() =>
                 append({
                   availabilityDriverId: 0,
                   seats: 0,
-                  type,
+                  type: 'driver',
                   rideAssignments: [],
+                  escorts: [],
                 })
               }
               removeDriver={remove}

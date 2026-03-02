@@ -1,5 +1,5 @@
 import { RideDetailResponse, UpdateRideResponse } from "@/app/_types/response/rideResponse";
-import { UpdateRideValues } from "@/app/_types/ride"; 
+import { UpdateRideValues } from "@/app/_types/ride";
 import { calcCurrentGrade, isGraduated } from "@/utils/gradeUtils";
 import { withAdminTeamRide } from "@/utils/withAuth";
 import { PrismaClient } from "@prisma/client";
@@ -23,6 +23,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             destination: true,
             deadline: true,
             drivers: {
+              where: { type: "driver" },
               select: {
                 id: true,
                 type: true,
@@ -37,6 +38,23 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                   select: {
                     id: true,
                     child: { select: { id: true, name: true, grade: true, gradeYear: true } },
+                  },
+                },
+                escorts: {
+                  select: {
+                    id: true,
+                    availabilityDriverId: true,
+                    availabilityDriver: {
+                      select: {
+                        guardian: { select: { id: true, name: true } },
+                      }
+                    },
+                    rideAssignments: {
+                      select: {
+                        id: true,
+                        child: { select: { id: true, name: true, grade: true, gradeYear: true } },
+                      },
+                    },
                   },
                 },
               },
@@ -76,7 +94,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           select: { maxGrade: true },
         }),
       ]);
-      
+
       if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
 
       const maxGrade = team?.maxGrade ?? 6;
@@ -95,7 +113,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           if (b.currentGrade === null) return -1;
           return b.currentGrade - a.currentGrade;
         })
-      
+
       return NextResponse.json({
         status: "OK",
         ride: {
@@ -112,6 +130,19 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                 name: ra.child.name,
                 currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
               },
+            })),
+            escorts: driver.escorts.map((escort) => ({
+              id: escort.id,
+              availabilityDriverId: escort.availabilityDriverId,
+              availabilityDriver: escort.availabilityDriver,
+              rideAssignments: escort.rideAssignments.map((ra) => ({
+                ...ra,
+                child: {
+                  id: ra.child.id,
+                  name: ra.child.name,
+                  currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
+                },
+              })),
             })),
           })),
           availabilityDrivers: ride.availabilityDrivers,
@@ -132,7 +163,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
       const body = await request.json().catch(() => null) as UpdateRideValues | null;
 
       if (!body) return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
-      
+
       if (!body.date) return NextResponse.json({ message: "日付を選択してください" }, { status: 400 });
 
       const rideIdNum = Number(rideId);
@@ -146,7 +177,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             data: { date, destination: body.destination },
           });
 
-          // 既存のDriverとAssignmentを削除
+          // 既存のDriverとAssignmentを削除（引率者も含む）
           await tx.rideAssignment.deleteMany({ where: { rideId: rideIdNum } });
           await tx.driver.deleteMany({ where: { rideId: rideIdNum } });
 
@@ -161,7 +192,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               data: {
                 rideId: rideIdNum,
                 availabilityDriverId: driver.availabilityDriverId,
-                type: driver.type ?? "driver",
+                type: "driver",
               },
             });
 
@@ -175,8 +206,35 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                 driverId: newDriver.id,
                 childId: child.childId,
               }));
-              
+
               await tx.rideAssignment.createMany({ data: assignment });
+            }
+
+            // 引率者を作成（linkedDriverId: newDriver.id で紐付け）
+            for (const escort of driver.escorts ?? []) {
+              if (!escort.availabilityDriverId || escort.availabilityDriverId === 0) continue;
+
+              const newEscort = await tx.driver.create({
+                data: {
+                  rideId: rideIdNum,
+                  availabilityDriverId: escort.availabilityDriverId,
+                  type: "escort",
+                  linkedDriverId: newDriver.id,
+                },
+              });
+
+              // 引率者の子供割当作成
+              const validEscortAssignments = escort.rideAssignments.filter((child) => child.childId && child.childId !== 0);
+
+              if (validEscortAssignments.length > 0) {
+                await tx.rideAssignment.createMany({
+                  data: validEscortAssignments.map((child) => ({
+                    rideId: rideIdNum,
+                    driverId: newEscort.id,
+                    childId: child.childId,
+                  })),
+                });
+              }
             }
           }
         });
