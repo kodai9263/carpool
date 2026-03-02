@@ -48,6 +48,23 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
                   child: { select: { id: true, name: true, grade: true, gradeYear: true } },
                 },
               },
+              escorts: {
+                select: {
+                  id: true,
+                  availabilityDriverId: true,
+                  availabilityDriver: {
+                    select: {
+                      guardian: { select: { id: true, name: true } },
+                    }
+                  },
+                  rideAssignments: {
+                    select: {
+                      id: true,
+                      child: { select: { id: true, name: true, grade: true, gradeYear: true } },
+                    },
+                  },
+                },
+              },
             },
           },
           availabilityDrivers: {
@@ -85,13 +102,23 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rideData = ride as any;
 
+    // type: "driver" のドライバーのみ表示（引率者はdrivers[].escorts に含まれる）
+    const driverList = rideData.drivers.filter((d: { type: string }) => d.type === 'driver');
+
     return NextResponse.json({
       status: "OK",
       ride: {
         id: rideData.id,
         date: rideData.date.toISOString(),
         destination: rideData.destination,
-        drivers: rideData.drivers.map((driver: { id: number; availabilityDriverId: number; availabilityDriver: { guardian: { id: number; name: string }; seats: number }; rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[] }) => ({
+        drivers: driverList.map((driver: {
+          id: number;
+          type: string;
+          availabilityDriverId: number;
+          availabilityDriver: { guardian: { id: number; name: string }; seats: number };
+          rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[];
+          escorts: { id: number; availabilityDriverId: number; availabilityDriver: { guardian: { id: number; name: string } }; rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[] }[];
+        }) => ({
           ...driver,
           rideAssignments: driver.rideAssignments.map((ra) => ({
             ...ra,
@@ -101,14 +128,27 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
             },
           })),
+          escorts: driver.escorts.map((escort) => ({
+            id: escort.id,
+            availabilityDriverId: escort.availabilityDriverId,
+            availabilityDriver: escort.availabilityDriver,
+            rideAssignments: escort.rideAssignments.map((ra) => ({
+              ...ra,
+              child: {
+                id: ra.child.id,
+                name: ra.child.name,
+                currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
+              },
+            })),
+          })),
         })),
-        availabilityDrivers: ride.availabilityDrivers,
+        availabilityDrivers: rideData.availabilityDrivers,
         children: children.map((child) => ({
           ...child,
           currentGrade: calcCurrentGrade(child.grade, child.gradeYear),
         })),
         guardians: members,
-        childAvailabilities: ride.childAvailabilities,
+        childAvailabilities: rideData.childAvailabilities,
       }
     } satisfies RideDetailResponse, { status: 200 });
   } catch {
