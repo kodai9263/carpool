@@ -19,6 +19,7 @@ import { formatDate } from "@/utils/formatDate";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { supabase } from "@/utils/supabase";
 import toast from "react-hot-toast";
+import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
 
 function formatRideDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -273,6 +274,13 @@ ${rideUrl}
                   error={!!errors.date}
                 />
               </div>
+            </div>
+
+            {/* 参加者・欠席者一覧ボタン */}
+            <div className="flex justify-center">
+              <AttendanceListButton
+                href={`/admin/teams/${teamId}/rides/${rideId}/attendance`}
+              />
             </div>
 
             <RideDriverList
