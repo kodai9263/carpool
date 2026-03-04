@@ -30,6 +30,7 @@ export interface RideDetailResponse {
       availabilityDriver: {
         guardian: { id: number; name: string };
         seats: number;
+        comment: string | null;
       };
       rideAssignments: {
         id: number;
@@ -40,6 +41,7 @@ export interface RideDetailResponse {
         availabilityDriverId: number;
         availabilityDriver: {
           guardian: { id: number; name: string };
+          comment: string | null;
         };
         rideAssignments: {
           id: number;

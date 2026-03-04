@@ -1,7 +1,7 @@
 "use client";
 
 import { UpdateRideValues } from "@/app/_types/ride";
-import { PersonStanding, X } from "lucide-react";
+import { MessageSquare, PersonStanding, X } from "lucide-react";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -26,6 +26,11 @@ export default function EscortItem({
   onRemove,
 }: Props) {
   const { register } = useFormContext<UpdateRideValues>();
+
+  // 選択中の引率者IDを監視してコメント取得
+  const selectedEscortId = useWatch({ name: `drivers.${driverIndex}.escorts.${escortIndex}.availabilityDriverId` });
+  const selectedEscort = availabilityDrivers.find((d) => d.id === Number(selectedEscortId));
+  const comment = selectedEscort?.comment;
 
   // 全ドライバーの状態を監視
   const allDrivers = useWatch({ name: "drivers" }) ?? [];
@@ -98,6 +103,13 @@ export default function EscortItem({
           <X size={16} />
         </button>
       </div>
+      {/* 引率者のコメント */}
+      {comment && (
+        <div className="flex items-start gap-1.5 mt-2 ml-7 mr-6 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+          <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
+          <span>{comment}</span>
+        </div>
+      )}
     </div>
   );
 }
