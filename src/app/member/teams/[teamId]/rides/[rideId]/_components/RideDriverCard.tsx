@@ -1,31 +1,26 @@
 "use client";
 
-import { CarFront, PersonStanding, User } from "lucide-react";
+import { CarFront, MessageSquare, PersonStanding, User } from "lucide-react";
 
-interface Escort {
+interface RideAssignment {
+  id: number;
+  child: { name: string; currentGrade: number | null };
+}
+
+interface Participant {
   id: number;
   availabilityDriver: {
     guardian: { name: string };
+    seats?: number;
+    comment: string | null;
   };
-  rideAssignments: Array<{
-    id: number;
-    child: { name: string; currentGrade: number | null };
-  }>;
+  rideAssignments: RideAssignment[];
 }
 
 interface Props {
-  driver: {
-    id: number;
+  driver: Participant & {
     type: string;
-    availabilityDriver: {
-      guardian: { name: string };
-      seats: number;
-    };
-    rideAssignments: Array<{
-      id: number;
-      child: { name: string; currentGrade: number | null };
-    }>;
-    escorts: Escort[];
+    escorts: Participant[];
   };
 }
 
@@ -42,6 +37,14 @@ export default function RideDriverCard({ driver }: Props) {
           {driver.availabilityDriver.guardian.name}号
         </div>
       </div>
+
+      {/* ドライバーのコメント */}
+      {driver.availabilityDriver.comment && (
+        <div className="flex items-start gap-1.5 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+          <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
+          <span>{driver.availabilityDriver.comment}</span>
+        </div>
+      )}
 
       {/* 乗車する子供 */}
       <div className="space-y-2 min-w-0">
@@ -85,6 +88,13 @@ export default function RideDriverCard({ driver }: Props) {
                   {escort.availabilityDriver.guardian.name}
                 </span>
               </div>
+              {/* 引率者のコメント */}
+              {escort.availabilityDriver.comment && (
+                <div className="flex items-start gap-1.5 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+                  <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
+                  <span>{escort.availabilityDriver.comment}</span>
+                </div>
+              )}
               {escort.rideAssignments.length > 0 && (
                 <div className="ml-6 space-y-1">
                   {[...escort.rideAssignments]

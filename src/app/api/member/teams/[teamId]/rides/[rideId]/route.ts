@@ -40,6 +40,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
                 select: {
                   guardian: { select: { id: true, name: true } },
                   seats:true,
+                  comment: true,
                 }
               },
               rideAssignments: {
@@ -55,6 +56,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
                   availabilityDriver: {
                     select: {
                       guardian: { select: { id: true, name: true } },
+                      comment: true,
                     }
                   },
                   rideAssignments: {

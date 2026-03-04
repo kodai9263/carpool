@@ -7,6 +7,7 @@ interface Escort {
   availabilityDriverId: number;
   availabilityDriver: {
     guardian: { name: string };
+    comment: string | null;
   };
   rideAssignments: Array<{
     id: number;
@@ -20,6 +21,7 @@ interface Driver {
   availabilityDriver: {
     guardian: { name: string };
     seats: number;
+    comment: string | null;
   };
   rideAssignments: Array<{
     id: number;
