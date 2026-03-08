@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { supabase } from "@/utils/supabase";
-import { Car, User, Users, LogOut } from "lucide-react";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { Car, User, Users, LogOut, UserCircle } from "lucide-react";
 import { useParams } from "next/navigation";
+
+const GUEST_EMAIL = "guest@carpool.demo";
 
 export const Sidebar: React.FC = () => {
   const params = useParams<{ teamId: string }>();
   const teamId = params.teamId;
+  const { session } = useSupabaseSession();
+  const isGuest = session?.user.email === GUEST_EMAIL;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -33,6 +38,11 @@ export const Sidebar: React.FC = () => {
           <Link href="/admin/teams" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
             <Users size={28} /><span className="mt-1">チーム一覧</span>
           </Link>
+          {!isGuest && (
+            <Link href="/admin/profile" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
+              <UserCircle size={28} /><span className="mt-1">プロフィール</span>
+            </Link>
+          )}
         </nav>
 
         <div className="flex flex-col items-center">
@@ -62,6 +72,11 @@ export const Sidebar: React.FC = () => {
           <Link href="/admin/teams" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]">
             <Users size={24} /><span className="mt-1">チーム</span>
           </Link>
+          {!isGuest && (
+            <Link href="/admin/profile" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]">
+              <UserCircle size={24} /><span className="mt-1">プロフィール</span>
+            </Link>
+          )}
 
           <button
             onClick={handleLogout}
