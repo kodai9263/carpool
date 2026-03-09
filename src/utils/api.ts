@@ -57,7 +57,13 @@ export const api = {
       },
       body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error("更新に失敗しました。");
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({})) as { message?: string };
+      throw {
+        status: res.status,
+        message: json.message ?? "更新に失敗しました",
+      };
+    }
     return res.json();
   },
 
