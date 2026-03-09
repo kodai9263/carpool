@@ -1,4 +1,8 @@
 export interface AdminMeResponse {
   status: 'OK';
-  admin: { id: number; email: string };
+  admin: {
+    id: number;
+    email: string;
+    pendingTransferNewEmail: string | null;
+  };
 }
