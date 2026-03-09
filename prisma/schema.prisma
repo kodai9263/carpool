@@ -13,12 +13,14 @@ datasource db {
 
 // 管理者テーブル
 model Admin {
-  id          Int      @id @default(autoincrement())
-  email       String   @unique
-  supabaseUid String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  teams       Team[]
+  id                      Int      @id @default(autoincrement())
+  email                   String   @unique
+  supabaseUid             String   @unique
+  pendingTransferNewEmail     String?  // 招待中の新担当者メールアドレス
+  pendingTransferNewSupabaseUid String? // 招待中の新担当者 Supabase UID
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  teams                   Team[]
 }
 
 // チームテーブル

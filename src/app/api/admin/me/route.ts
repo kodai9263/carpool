@@ -16,7 +16,7 @@ export const GET = (request: NextRequest) =>
     try {
       const admin = await prisma.admin.findUnique({
         where: { id: adminId },
-        select: { id: true, email: true },
+        select: { id: true, email: true, pendingTransferNewEmail: true },
       });
       if (!admin) {
         return NextResponse.json({ message: "管理者が見つかりません"}, { status: 404 });
@@ -79,36 +79,24 @@ export const GET = (request: NextRequest) =>
           return NextResponse.json({ message: "現在のメールアドレスと同じです" }, { status: 400 });
         }
 
-        // メール重複チェック
-        const existing = await prisma.admin.findUnique({ where: { email: body.newEmail } });
-        if (existing) {
-          return NextResponse.json({ message: "このメールアドレスは既に使用されています" }, { status: 409 });
-        }
-
-        // 1. Supabase Auth のメールを変更（admin API で確認メールなしに即時変更）
-        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-          admin.supabaseUid,
-          { email: body.newEmail }
+        // 1. 新担当者を Supabase に招待（新しい Supabase ユーザーを作成）
+        const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+          body.newEmail,
+          { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/admin/complete-transfer` }
         );
-        if (updateError) {
-          return NextResponse.json({ message: "メールアドレスの変更に失敗しました" }, { status: 500 });
+        if (inviteError) {
+          return NextResponse.json({ message: "招待メールの送信に失敗しました" }, { status: 500 });
         }
 
-        // 2. Prisma の email を更新
+        // 2. pending フィールドを Prisma に保存（旧アカウントは変更しない）
         await prisma.admin.update({
           where: { id: adminId },
-          data: { email: body.newEmail },
+          data: {
+            pendingTransferNewEmail: body.newEmail,
+            pendingTransferNewSupabaseUid: inviteData.user.id,
+          },
         });
 
-        // 3. 新しいメールアドレスにパスワード設定メールを送信
-        const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
-          body.newEmail,
-          { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password` }
-        );
-        if (resetError) {
-          return NextResponse.json({ message: "パスワード設定メールの送信に失敗しました" }, { status: 500 });
-        }
-    
-        return NextResponse.json({ status: "OK", message: "引き継ぎメールを送信しました" });
+        return NextResponse.json({ status: "OK", message: "招待メールを送信しました" });
       });
     }
