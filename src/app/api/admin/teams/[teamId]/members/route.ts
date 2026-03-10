@@ -19,11 +19,23 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       const page = Number.isFinite(p) && p > 0 ? Math.floor(p) : 1;
       const perPage = Number.isFinite(pp) && pp > 0 ? Math.min(300, Math.floor(pp)) : 10;
       const skip = (page - 1) * perPage;
+      const search = searchParams.get("search")?.trim() || "";
+
+      // 検索条件：保護者名または子供名の部分一致
+      const where = {
+        teamId,
+        ...(search ? {
+          OR: [
+            { guardians: { some: { name: { contains: search, mode: 'insensitive' as const } } } },
+            { children:  { some: { name: { contains: search, mode: 'insensitive' as const } } } },
+          ],
+        } : {}),
+      };
 
       const [total, members] = await Promise.all([
-        prisma.member.count({ where: { teamId } }),
+        prisma.member.count({ where }),
         prisma.member.findMany({
-          where: { teamId },
+          where,
           select: {
             id: true,
             guardians: { select: { id: true, name: true } },
