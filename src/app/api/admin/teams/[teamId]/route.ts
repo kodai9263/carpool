@@ -1,10 +1,8 @@
 import { TeamDetailResponse, UpdateTeamResponse } from "@/app/_types/response/teamResponse"; 
 import { TeamFormValues } from "@/app/_types/team"; 
+import { prisma } from "@/lib/prisma";
 import { withAuthEntry } from "@/utils/withAuth";
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
 
 export const runtime = "nodejs";
 
