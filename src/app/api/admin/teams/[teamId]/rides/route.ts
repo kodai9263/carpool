@@ -1,10 +1,8 @@
 import { CreateRideResponse, RideListResponse } from "@/app/_types/response/rideResponse";
 import { RideFormValues } from "@/app/_types/ride"; 
+import { prisma } from "@/lib/prisma";
 import { withAuthTeam } from "@/utils/withAuth";
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
 
 export const runtime = "nodejs";
 

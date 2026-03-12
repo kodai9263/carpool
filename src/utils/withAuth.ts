@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkAuth, getAuthAdminId } from "./auth";
+import { getAuthAdminId } from "./auth";
 import { prisma } from "@/lib/prisma";
 
 
@@ -7,11 +7,7 @@ export async function withAuth(
   request: NextRequest,
   handler: (adminId: number) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  // 認証チェック
-  const authError = await checkAuth(request);
-  if (authError) return authError;
-
-  // adminIdの取得
+  // 認証チェック + adminIdの取得
   const adminId = await getAuthAdminId(request);
   if (!adminId) {
     return NextResponse.json({ status: "権限がありません" }, { status: 401 });
@@ -25,9 +21,6 @@ export async function withAuthEntry(
   handler: (ctx: { adminId: number; teamId: number }) => Promise<NextResponse>,
   { params }: { params: { teamId: string } }
 ): Promise<NextResponse> {
-  const authError = await checkAuth(request);
-  if (authError) return authError;
-
   const adminId = await getAuthAdminId(request);
   if (!adminId) {
     return NextResponse.json({ status: "権限がありません" }, { status: 401 });
@@ -47,9 +40,6 @@ export async function withAuthTeam(
   handler: (ctx: { adminId: number; teamId: number }) => Promise<NextResponse>,
   { params } : { params: { teamId: string } }
 ): Promise<NextResponse> {
-  const authError = await checkAuth(request);
-  if (authError) return authError;
-
   const adminId = await getAuthAdminId(request);
   if (!adminId) {
     return NextResponse.json({ status: "権限がありません" }, { status: 401 })
@@ -77,9 +67,6 @@ export async function withAdminTeamMember(
   handler: (ctx: { adminId: number; teamId: number; memberId: number }) => Promise<NextResponse>,
   { params }: { params: { teamId: string; memberId: string } }
 ): Promise<NextResponse> {
-  const authError = await checkAuth(request);
-  if (authError) return authError;
-
   const adminId = await getAuthAdminId(request);
   if (!adminId) {
     return NextResponse.json({ status: "権限がありません" }, { status: 401 })
@@ -107,9 +94,6 @@ export async function withAdminTeamRide(
   handler: (ctx: { adminId: number; teamId: number; rideId: number }) => Promise<NextResponse>,
   { params }: { params: { teamId: string; rideId: string } }
 ): Promise<NextResponse> {
-  const authError = await checkAuth(request);
-  if (authError) return authError;
-
   const adminId = await getAuthAdminId(request);
   if (!adminId) {
     return NextResponse.json({ status: "権限がありません" }, { status: 401 })

@@ -1,11 +1,9 @@
 import { MemberFormValues } from "@/app/_types/member"; 
 import { CreateMemberResponse, MemberListResponse } from "@/app/_types/response/memberResponse";
+import { prisma } from "@/lib/prisma";
 import { getCurrentSchoolYear } from "@/utils/gradeUtils";
 import { withAuthTeam } from "@/utils/withAuth";
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
 
 export const runtime = "nodejs";
 
