@@ -385,7 +385,7 @@ ${rideUrl}
                 <button
                   type="button"
                   onClick={copyShareText}
-                  className="w-full py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                  className="w-full py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
                 >
                   <Share2 size={18} />
                   {copied === "入力依頼テキスト"

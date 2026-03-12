@@ -20,58 +20,58 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
-      const [total, totalChildren, futureRides, pastRides] = await Promise.all([
+      // フェーズ1: カウント取得（ページ境界計算に必要）
+      const [total, futureCount, totalChildren] = await Promise.all([
         prisma.ride.count({ where: { teamId } }),
+        // 未来ライド数（ページ境界計算に使用）
+        prisma.ride.count({ where: { teamId, date: { gte: now } } }),
         // チームに属する全子供数を取得
         prisma.child.count({ where: { member: { teamId } } }),
-        // 未来の配車（今日を含む）→ 日付が近い順（昇順）
-        prisma.ride.findMany({
-          where: { 
-            teamId,
-            date: { gte: now }
-          },
-          select: { 
-            id: true, 
-            date: true, 
-            destination: true,
-            _count: { 
-              select: { 
-                rideAssignments: true,
-                childAvailabilities: {
-                  where: { availability: false }
-                },
-              },
-            },
-          },
-          orderBy: { date : 'asc' },
-        }),
-        // 過去の配車 → 新しい順（降順）
-        prisma.ride.findMany({
-          where: {
-            teamId,
-            date: { lt: now }
-          },
-          select: { 
-            id: true,
-            date: true,
-            destination: true,
-            _count: { 
-              select: {
-                rideAssignments: true,
-                childAvailabilities: {
-                  where: { availability: false }
-                },
-              },
-            }, 
-          },
-          orderBy: { date: 'desc' },
-        }),
       ]);
 
-      // 未来 + 過去の順に結合
-      const allRides = [...futureRides, ...pastRides];
+      // ページ境界計算（未来: 昇順, 過去: 降順 の混合ソートをDBで処理するため）
+      const futureTake = Math.min(perPage, Math.max(0, futureCount - skip));
+      const futureSkip = Math.min(skip, futureCount);
+      const pastSkip = Math.max(0, skip - futureCount);
+      const pastTake = perPage - futureTake;
 
-      const paginatedRides = allRides.slice(skip, skip + perPage);
+      const rideSelect = {
+        id: true,
+        date: true,
+        destination: true,
+        _count: {
+          select: {
+            rideAssignments: true,
+            childAvailabilities: { where: { availability: false } },
+          },
+        },
+      } as const;
+
+      type RideRow = Awaited<ReturnType<typeof prisma.ride.findMany<{ select: typeof rideSelect }>>>[number];
+
+      // フェーズ2: 必要分だけDBから取得
+      const [futureRides, pastRides] = await Promise.all([
+        futureTake > 0
+          ? prisma.ride.findMany({
+              where: { teamId, date: { gte: now } },
+              select: rideSelect,
+              orderBy: { date: 'asc' },
+              skip: futureSkip,
+              take: futureTake,
+            })
+          : Promise.resolve([] as RideRow[]),
+        pastTake > 0
+          ? prisma.ride.findMany({
+              where: { teamId, date: { lt: now } },
+              select: rideSelect,
+              orderBy: { date: 'desc' },
+              skip: pastSkip,
+              take: pastTake,
+            })
+          : Promise.resolve([] as RideRow[]),
+      ]);
+
+      const paginatedRides = [...futureRides, ...pastRides];
       const totalPages = Math.max(1, Math.ceil(total / perPage));
 
       // 各配車に割り当て完了フラグを付与
