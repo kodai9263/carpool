@@ -1,6 +1,6 @@
 import { RideListResponse } from "@/app/_types/response/rideResponse";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { verifyMemberPin } from "@/utils/pinCache";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -12,14 +12,9 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
     return NextResponse.json({ message: "権限がありません" }, { status: 401 });
   }
 
-  const team = await prisma.team.findFirst({
-    where: { id: teamIdNum },
-    select: { viewPinHash: true },
-  });
-  if (!team?.viewPinHash) return NextResponse.json({ message: "チームが見つかりません"}, { status: 404 });
-  
-  const ok = await bcrypt.compare(pin, team.viewPinHash);
-  if (!ok) return NextResponse.json({ message: "配車閲覧コードが正しくありません"}, { status: 401});
+  const verified = await verifyMemberPin(teamIdNum, pin);
+  if (verified === null) return NextResponse.json({ message: "チームが見つかりません" }, { status: 404 });
+  if (!verified) return NextResponse.json({ message: "配車閲覧コードが正しくありません" }, { status: 401 });
 
   try {
     const { searchParams } = new URL(request.url);
