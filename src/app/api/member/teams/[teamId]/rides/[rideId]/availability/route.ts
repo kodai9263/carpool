@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { verifyMemberPin } from "@/utils/pinCache";
 import { NextRequest, NextResponse } from "next/server";
 import { AvailabilityFormValues } from "@/app/_types/availability";
 import { AvailabilityResponse } from "@/app/_types/response/availabilityResponse";
@@ -26,10 +26,9 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   }
 
   // PIN認可
-  const team = await prisma.team.findFirst({ where: { id: teamIdNum }, select: { viewPinHash: true } });
-  if (!team?.viewPinHash) return NextResponse.json({ message: "チームが見つかりません" }, { status: 404 });
-  const ok = await bcrypt.compare(pin, team.viewPinHash);
-  if (!ok) return NextResponse.json({ message: "配車閲覧コードが正しくありません" }, { status: 401 });
+  const verified = await verifyMemberPin(teamIdNum, pin);
+  if (verified === null) return NextResponse.json({ message: "チームが見つかりません" }, { status: 404 });
+  if (!verified) return NextResponse.json({ message: "配車閲覧コードが正しくありません" }, { status: 401 });
 
   try {
     const data = await prisma.$transaction(async (tx) => {
