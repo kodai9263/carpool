@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
   withAdminTeamRide(request, async({ teamId, rideId }) => {
     try {
-      const [ride, rawChildren, team] = await prisma.$transaction([
+      const [ride, rawChildren] = await prisma.$transaction([
         prisma.ride.findFirst({
           where: { id: rideId, teamId },
           select: {
@@ -61,6 +61,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               select: {
                 teamName: true,
                 pin: true,
+                maxGrade: true,
               },
             },
             availabilityDrivers: {
@@ -87,15 +88,11 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           select: { id: true, name: true, memberId: true, grade: true, gradeYear: true },
           distinct: ["id"],
         }),
-        prisma.team.findFirst({
-          where: { id: teamId },
-          select: { maxGrade: true },
-        }),
       ]);
 
       if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
 
-      const maxGrade = team?.maxGrade ?? 6;
+      const maxGrade = ride?.team.maxGrade ?? 6;
 
       // 現在の学年を計算し、卒業した子供を除外
       const children = rawChildren
