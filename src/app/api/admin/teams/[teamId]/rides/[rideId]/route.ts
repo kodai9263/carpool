@@ -12,7 +12,27 @@ export const runtime = "nodejs";
 export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
   withAdminTeamRide(request, async({ teamId, rideId }) => {
     try {
-      const [ride, rawChildren] = await prisma.$transaction([
+      const driverSelect = {
+        id: true,
+        type: true,
+        availabilityDriverId: true,
+        linkedDriverId: true,
+        availabilityDriver: {
+          select: {
+            guardian: { select: { id: true, name: true } },
+            seats: true,
+            comment: true,
+          },
+        },
+        rideAssignments: {
+          select: {
+            id: true,
+            child: { select: { id: true, name: true, grade: true, gradeYear: true } },
+          },
+        },
+      } as const;
+
+      const [ride, rawChildren, allDrivers] = await prisma.$transaction([
         prisma.ride.findFirst({
           where: { id: rideId, teamId },
           select: {
@@ -20,43 +40,6 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             date: true,
             destination: true,
             deadline: true,
-            drivers: {
-              where: { type: "driver" },
-              select: {
-                id: true,
-                type: true,
-                availabilityDriverId: true,
-                availabilityDriver: {
-                  select: {
-                    guardian: { select: { id: true, name: true } },
-                    seats:true,
-                  }
-                },
-                rideAssignments: {
-                  select: {
-                    id: true,
-                    child: { select: { id: true, name: true, grade: true, gradeYear: true } },
-                  },
-                },
-                escorts: {
-                  select: {
-                    id: true,
-                    availabilityDriverId: true,
-                    availabilityDriver: {
-                      select: {
-                        guardian: { select: { id: true, name: true } },
-                      }
-                    },
-                    rideAssignments: {
-                      select: {
-                        id: true,
-                        child: { select: { id: true, name: true, grade: true, gradeYear: true } },
-                      },
-                    },
-                  },
-                },
-              },
-            },
             team: {
               select: {
                 teamName: true,
@@ -88,7 +71,24 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           select: { id: true, name: true, memberId: true, grade: true, gradeYear: true },
           distinct: ["id"],
         }),
+        // ドライバー・引率者をフラットに取得し、アプリ層で結合（深いネスト解消）
+        prisma.driver.findMany({
+          where: { rideId },
+          select: driverSelect,
+        }),
       ]);
+
+      // linkedDriverId を使ってドライバーに引率者を紐付け
+      type DriverRow = typeof allDrivers[number];
+      const driverMap = new Map<number, DriverRow & { escorts: DriverRow[] }>(
+        allDrivers
+          .filter((d) => d.type === "driver")
+          .map((d) => [d.id, { ...d, escorts: [] }])
+      );
+      for (const escort of allDrivers.filter((d) => d.type === "escort")) {
+        if (escort.linkedDriverId) driverMap.get(escort.linkedDriverId)?.escorts.push(escort);
+      }
+      const drivers = [...driverMap.values()];
 
       if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
 
@@ -116,7 +116,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           date: ride.date.toISOString(),
           destination: ride.destination,
           deadline: ride.deadline ? ride.deadline.toISOString() : null,
-          drivers: ride.drivers.map((driver) => ({
+          drivers: drivers.map((driver) => ({
             ...driver,
             rideAssignments: driver.rideAssignments.map((ra) => ({
               ...ra,
