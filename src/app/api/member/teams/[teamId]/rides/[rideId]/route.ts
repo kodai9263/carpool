@@ -19,51 +19,33 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
   if (!verified) return NextResponse.json({ message: "配車閲覧コードが正しくありません" }, { status: 401 });
 
   try {
-    const [ride, children, members] = await prisma.$transaction([
+    const driverSelect = {
+      id: true,
+      type: true,
+      availabilityDriverId: true,
+      linkedDriverId: true,
+      availabilityDriver: {
+        select: {
+          guardian: { select: { id: true, name: true } },
+          seats: true,
+          comment: true,
+        },
+      },
+      rideAssignments: {
+        select: {
+          id: true,
+          child: { select: { id: true, name: true, grade: true, gradeYear: true } },
+        },
+      },
+    } as const;
+
+    const [ride, children, members, allDrivers] = await prisma.$transaction([
       prisma.ride.findFirst({
         where: { id: rideIdNum, teamId: teamIdNum },
         select: {
           id: true,
           date: true,
           destination: true,
-          drivers: {
-            select: {
-              id: true,
-              type: true,
-              availabilityDriverId: true,
-              availabilityDriver: {
-                select: {
-                  guardian: { select: { id: true, name: true } },
-                  seats:true,
-                  comment: true,
-                }
-              },
-              rideAssignments: {
-                select: {
-                  id: true,
-                  child: { select: { id: true, name: true, grade: true, gradeYear: true } },
-                },
-              },
-              escorts: {
-                select: {
-                  id: true,
-                  availabilityDriverId: true,
-                  availabilityDriver: {
-                    select: {
-                      guardian: { select: { id: true, name: true } },
-                      comment: true,
-                    }
-                  },
-                  rideAssignments: {
-                    select: {
-                      id: true,
-                      child: { select: { id: true, name: true, grade: true, gradeYear: true } },
-                    },
-                  },
-                },
-              },
-            },
-          },
           availabilityDrivers: {
             select: {
               id: true,
@@ -92,30 +74,34 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         select: { id: true, name: true, memberId: true },
         orderBy: { name: 'asc' },
       }),
+      // ドライバー・引率者をフラットに取得し、アプリ層で結合（深いネスト解消）
+      prisma.driver.findMany({
+        where: { rideId: rideIdNum },
+        select: driverSelect,
+      }),
     ]);
 
     if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rideData = ride as any;
-
-    // type: "driver" のドライバーのみ表示（引率者はdrivers[].escorts に含まれる）
-    const driverList = rideData.drivers.filter((d: { type: string }) => d.type === 'driver');
+    // linkedDriverId を使ってドライバーに引率者を紐付け
+    type DriverRow = typeof allDrivers[number];
+    const driverMap = new Map<number, DriverRow & { escorts: DriverRow[] }>(
+      allDrivers
+        .filter((d) => d.type === "driver")
+        .map((d) => [d.id, { ...d, escorts: [] }])
+    );
+    for (const escort of allDrivers.filter((d) => d.type === "escort")) {
+      if (escort.linkedDriverId) driverMap.get(escort.linkedDriverId)?.escorts.push(escort);
+    }
+    const drivers = [...driverMap.values()];
 
     return NextResponse.json({
       status: "OK",
       ride: {
-        id: rideData.id,
-        date: rideData.date.toISOString(),
-        destination: rideData.destination,
-        drivers: driverList.map((driver: {
-          id: number;
-          type: string;
-          availabilityDriverId: number;
-          availabilityDriver: { guardian: { id: number; name: string }; seats: number };
-          rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[];
-          escorts: { id: number; availabilityDriverId: number; availabilityDriver: { guardian: { id: number; name: string } }; rideAssignments: { id: number; child: { id: number; name: string; grade: number | null; gradeYear: number | null } }[] }[];
-        }) => ({
+        id: ride.id,
+        date: ride.date.toISOString(),
+        destination: ride.destination,
+        drivers: drivers.map((driver) => ({
           ...driver,
           rideAssignments: driver.rideAssignments.map((ra) => ({
             ...ra,
@@ -139,13 +125,13 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
             })),
           })),
         })),
-        availabilityDrivers: rideData.availabilityDrivers,
+        availabilityDrivers: ride.availabilityDrivers,
         children: children.map((child) => ({
           ...child,
           currentGrade: calcCurrentGrade(child.grade, child.gradeYear),
         })),
         guardians: members,
-        childAvailabilities: rideData.childAvailabilities,
+        childAvailabilities: ride.childAvailabilities,
       }
     } satisfies RideDetailResponse, { status: 200 });
   } catch {
