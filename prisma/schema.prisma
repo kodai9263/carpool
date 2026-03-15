@@ -60,7 +60,9 @@ model Guardian {
   member              Member               @relation(fields: [memberId], references: [id], onDelete: Cascade)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  availabilityDrivers AvailabilityDriver[] 
+  availabilityDrivers AvailabilityDriver[]
+
+  @@index([memberId])  // memberId検索用
 }
 
 // 子供テーブル
@@ -75,6 +77,8 @@ model Child {
   updatedAt       DateTime         @updatedAt
   rideAssignments RideAssignment[]
   childAvailabilities ChildAvailability[]
+
+  @@index([memberId])  // memberId検索用
 }
 
 // 配車テーブル
@@ -91,6 +95,8 @@ model Ride {
   drivers             Driver[]
   availabilityDrivers AvailabilityDriver[]
   childAvailabilities ChildAvailability[]
+
+  @@index([teamId, date])  // 日付範囲検索 + チームフィルタ
 }
 
 // 配車可能保護者テーブル
@@ -111,6 +117,7 @@ model AvailabilityDriver {
   driver       Driver[]
 
   @@unique([rideId, guardianId, type], name: "rideId_guardianId_type")
+  @@index([rideId, type])  // typeフィルタ用
 }
 
 // 配車実施保護者テーブル
