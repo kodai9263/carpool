@@ -32,3 +32,27 @@ export const getAuthAdminId = async (request: NextRequest): Promise<number | nul
   });
   return admin?.id ?? null;
 };
+
+// AdminId取得 + チーム所有確認を1クエリで実行
+export const getAuthAdminIdWithTeam = async (
+  request: NextRequest,
+  teamId: number
+): Promise<number | null> => {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer')) return null;
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return null;
+
+  // AdminテーブルとTeamテーブルを1クエリで取得（チーム所有確認を同時に行う）
+  const admin = await prisma.admin.findFirst({
+    where: {
+      supabaseUid: user.id,
+      teams: { some: { id: teamId } },
+    },
+    select: { id: true },
+  });
+
+  return admin?.id ?? null;
+};

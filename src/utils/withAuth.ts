@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthAdminId } from "./auth";
-import { prisma } from "@/lib/prisma";
+import { getAuthAdminId, getAuthAdminIdWithTeam } from "./auth";
 
 
 export async function withAuth(
@@ -40,23 +39,15 @@ export async function withAuthTeam(
   handler: (ctx: { adminId: number; teamId: number }) => Promise<NextResponse>,
   { params } : { params: { teamId: string } }
 ): Promise<NextResponse> {
-  const adminId = await getAuthAdminId(request);
-  if (!adminId) {
-    return NextResponse.json({ status: "権限がありません" }, { status: 401 })
-  }
-
   const teamId = Number(params.teamId);
   if (!Number.isInteger(teamId)) {
     return NextResponse.json({ status: "IDが正しくありません"}, { status: 400 });
   }
 
-  // チーム所有チェック
-  const owned = await prisma.team.findFirst({
-    where: { id: teamId, adminId },
-    select: { id: true },
-  });
-  if (!owned) {
-    return NextResponse.json({ status: "チームが見つかりません"}, { status: 404 });
+  // AdminId取得 + チーム所有確認を1クエリで実行
+  const adminId = await getAuthAdminIdWithTeam(request, teamId);
+  if (!adminId) {
+    return NextResponse.json({ status: "権限がありません" }, { status: 401 });
   }
 
   return handler({ adminId, teamId });
@@ -67,23 +58,16 @@ export async function withAdminTeamMember(
   handler: (ctx: { adminId: number; teamId: number; memberId: number }) => Promise<NextResponse>,
   { params }: { params: { teamId: string; memberId: string } }
 ): Promise<NextResponse> {
-  const adminId = await getAuthAdminId(request);
-  if (!adminId) {
-    return NextResponse.json({ status: "権限がありません" }, { status: 401 })
-  }
-
   const teamId = Number(params.teamId);
   const memberId = Number(params.memberId);
   if (!Number.isInteger(teamId) || !Number.isInteger(memberId)) {
     return NextResponse.json({ status: "IDが正しくありません" }, { status: 400 });
   }
 
-  const owned = await prisma.team.findFirst({
-    where: { id: teamId, adminId },
-    select: { id: true },
-  });
-  if (!owned) {
-    return NextResponse.json({ status: "チームが見つかりません"}, { status: 404 });
+  // AdminId取得 + チーム所有確認を1クエリで実行
+  const adminId = await getAuthAdminIdWithTeam(request, teamId);
+  if (!adminId) {
+    return NextResponse.json({ status: "権限がありません" }, { status: 401 });
   }
 
   return handler({ adminId, teamId, memberId });
@@ -94,23 +78,16 @@ export async function withAdminTeamRide(
   handler: (ctx: { adminId: number; teamId: number; rideId: number }) => Promise<NextResponse>,
   { params }: { params: { teamId: string; rideId: string } }
 ): Promise<NextResponse> {
-  const adminId = await getAuthAdminId(request);
-  if (!adminId) {
-    return NextResponse.json({ status: "権限がありません" }, { status: 401 })
-  }
-
   const teamId = Number(params.teamId);
   const rideId = Number(params.rideId);
   if (!Number.isInteger(teamId) || !Number.isInteger(rideId)) {
     return NextResponse.json({ status: "IDが正しくありません" }, { status: 400 });
   }
 
-  const owned = await prisma.team.findFirst({
-    where: { id: teamId, adminId },
-    select: { id: true },
-  });
-  if (!owned) {
-    return NextResponse.json({ status: "チームが見つかりません"}, { status: 404 });
+  // AdminId取得 + チーム所有確認を1クエリで実行
+  const adminId = await getAuthAdminIdWithTeam(request, teamId);
+  if (!adminId) {
+    return NextResponse.json({ status: "権限がありません" }, { status: 401 });
   }
 
   return handler({ adminId, teamId, rideId });
