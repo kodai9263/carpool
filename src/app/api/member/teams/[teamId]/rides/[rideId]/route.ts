@@ -22,6 +22,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
     const driverSelect = {
       id: true,
       type: true,
+      direction: true,
       availabilityDriverId: true,
       linkedDriverId: true,
       availabilityDriver: {
@@ -46,10 +47,12 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           id: true,
           date: true,
           destination: true,
+          separateDirections: true,
           availabilityDrivers: {
             select: {
               id: true,
               type: true,
+              direction: true,
               guardian: { select: { id: true, name: true } },
               seats: true,
               availability: true,
@@ -113,6 +116,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           })),
           escorts: driver.escorts.map((escort) => ({
             id: escort.id,
+            direction: escort.direction,
             availabilityDriverId: escort.availabilityDriverId,
             availabilityDriver: escort.availabilityDriver,
             rideAssignments: escort.rideAssignments.map((ra) => ({
@@ -125,6 +129,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
             })),
           })),
         })),
+        separateDirections: ride.separateDirections,
         availabilityDrivers: ride.availabilityDrivers,
         children: children.map((child) => ({
           ...child,

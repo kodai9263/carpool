@@ -6,10 +6,13 @@ import EscortSection from "./EscortSection";
 
 interface Props {
   index: number;
+  direction: "outbound" | "inbound";
+  separateDirections: boolean;
   removeDriver: (index: number) => void;
   availabilityDrivers: {
     id: number;
     type: string;
+    direction: string;
     guardian: { id: number; name: string };
     seats: number;
     availability: boolean;
@@ -21,6 +24,8 @@ interface Props {
 
 export default function RideDriverItem({
   index,
+  direction,
+  separateDirections,
   removeDriver,
   availabilityDrivers,
   childrenList,
@@ -31,6 +36,8 @@ export default function RideDriverItem({
       <DriverHeader
         index={index}
         type="driver"
+        direction={direction}
+        separateDirections={separateDirections}
         availabilityDrivers={availabilityDrivers}
         onRemove={() => removeDriver(index)}
       />
@@ -45,6 +52,7 @@ export default function RideDriverItem({
 
       <EscortSection
         driverIndex={index}
+        direction={direction}
         availabilityDrivers={availabilityDrivers}
       />
     </div>

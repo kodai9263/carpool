@@ -13,13 +13,16 @@ export interface RideFormValues {
 export interface UpdateRideValues {
   date: Date | null;
   destination: string;
+  separateDirections: boolean;
   drivers: {
     availabilityDriverId: number;
     type: string;
+    direction: "outbound" | "inbound";
     seats: number;
     rideAssignments: { childId: number }[];
     escorts: {
       availabilityDriverId: number;
+      direction: "outbound" | "inbound";
       rideAssignments: { childId: number }[];
     }[];
   }[];

@@ -20,12 +20,14 @@ export interface RideDetailResponse {
     date: string;
     destination: string;
     deadline?: string | null;
+    separateDirections?: boolean;
     team?: {
       viewPinHash: string;
     };
     drivers: {
       id: number;
       type: string;
+      direction: string;
       availabilityDriverId: number;
       availabilityDriver: {
         guardian: { id: number; name: string };
@@ -38,6 +40,7 @@ export interface RideDetailResponse {
       }[];
       escorts: {
         id: number;
+        direction: string;
         availabilityDriverId: number;
         availabilityDriver: {
           guardian: { id: number; name: string };
@@ -52,6 +55,7 @@ export interface RideDetailResponse {
     availabilityDrivers: {
       id: number;
       type: string;
+      direction: string;
       seats: number;
       availability: boolean;
       comment: string | null;

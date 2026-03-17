@@ -11,8 +11,8 @@ interface Props {
   registeredGuardianIds: Set<number>;
   selectedGuardianIds: Set<number>;
   onRemove: () => void;
-  existingDriverAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
-  existingEscortAvailabilities: Map<number, { availability: boolean; comment: string | null }>;
+  existingDriverAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null; direction: string }>;
+  existingEscortAvailabilities: Map<number, { availability: boolean; comment: string | null; direction: string }>;
   register: UseFormRegister<AvailabilityListFormValues>;
   control: Control<AvailabilityListFormValues>;
   canRemove: boolean;
@@ -61,27 +61,33 @@ export default function AvailabilityFormItem({
 
       if (existingDriverData) {
         setValue(`availabilities.${index}.driverAvailability`, existingDriverData.availability);
+        setValue(`availabilities.${index}.driverDirection`, (existingDriverData.direction as "outbound" | "inbound" | "both") || "both");
         setValue(`availabilities.${index}.seats`, existingDriverData.seats);
         setValue(`availabilities.${index}.driverComment`, existingDriverData.comment || "");
       } else {
         setValue(`availabilities.${index}.driverAvailability`, false);
+        setValue(`availabilities.${index}.driverDirection`, "both");
         setValue(`availabilities.${index}.seats`, 1);
         setValue(`availabilities.${index}.driverComment`, "");
       }
 
       if (existingEscortData) {
         setValue(`availabilities.${index}.escortAvailability`, existingEscortData.availability);
+        setValue(`availabilities.${index}.escortDirection`, (existingEscortData.direction as "outbound" | "inbound" | "both") || "both");
         setValue(`availabilities.${index}.escortComment`, existingEscortData.comment || "");
       } else {
         setValue(`availabilities.${index}.escortAvailability`, false);
+        setValue(`availabilities.${index}.escortDirection`, "both");
         setValue(`availabilities.${index}.escortComment`, "");
       }
     } else {
       // 「選択してください」に戻した場合はリセット
       setValue(`availabilities.${index}.driverAvailability`, false);
+      setValue(`availabilities.${index}.driverDirection`, "both");
       setValue(`availabilities.${index}.seats`, 1);
       setValue(`availabilities.${index}.driverComment`, "");
       setValue(`availabilities.${index}.escortAvailability`, false);
+      setValue(`availabilities.${index}.escortDirection`, "both");
       setValue(`availabilities.${index}.escortComment`, "");
     }
   }, [guardianId, existingDriverAvailabilities, existingEscortAvailabilities, index, setValue]);
@@ -179,6 +185,27 @@ export default function AvailabilityFormItem({
 
         {driverAvailability && (
           <>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm md:text-base font-bold">対応できる行程</span>
+              <div className="flex gap-4 flex-wrap">
+                {([
+                  { value: "both", label: "行き・帰り両方" },
+                  { value: "outbound", label: "行きのみ" },
+                  { value: "inbound", label: "帰りのみ" },
+                ] as const).map(({ value, label }) => (
+                  <label key={value} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      value={value}
+                      {...register(`availabilities.${index}.driverDirection`)}
+                      className="text-teal-700 focus:ring-teal-500"
+                    />
+                    <span className="text-sm">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
               <span className="text-sm md:text-base font-bold">乗車人数</span>
               <select
@@ -234,15 +261,38 @@ export default function AvailabilityFormItem({
         </label>
 
         {escortAvailability && (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm md:text-base font-bold">コメント</span>
-            <input
-              type="text"
-              {...register(`availabilities.${index}.escortComment`)}
-              placeholder="例: 午前中のみ可など"
-              className="border-2 border-gray-300 rounded px-3 py-2 w-full text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
-            />
-          </div>
+          <>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm md:text-base font-bold">対応できる行程</span>
+              <div className="flex gap-4 flex-wrap">
+                {([
+                  { value: "both", label: "行き・帰り両方" },
+                  { value: "outbound", label: "行きのみ" },
+                  { value: "inbound", label: "帰りのみ" },
+                ] as const).map(({ value, label }) => (
+                  <label key={value} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      value={value}
+                      {...register(`availabilities.${index}.escortDirection`)}
+                      className="text-teal-700 focus:ring-teal-500"
+                    />
+                    <span className="text-sm">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-sm md:text-base font-bold">コメント</span>
+              <input
+                type="text"
+                {...register(`availabilities.${index}.escortComment`)}
+                placeholder="例: 午前中のみ可など"
+                className="border-2 border-gray-300 rounded px-3 py-2 w-full text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+              />
+            </div>
+          </>
         )}
 
         {isChangingEscortToUnavailable && (

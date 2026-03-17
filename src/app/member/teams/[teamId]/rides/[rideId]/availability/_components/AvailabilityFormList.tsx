@@ -9,8 +9,8 @@ import { useMemo } from "react";
 interface Props {
   guardians: Array<{ id: number; name: string }>;
   registeredGuardianIds: Set<number>;
-  existingDriverAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null }>;
-  existingEscortAvailabilities: Map<number, { availability: boolean; comment: string | null }>;
+  existingDriverAvailabilities: Map<number, { seats: number; availability: boolean; comment: string | null; direction: string }>;
+  existingEscortAvailabilities: Map<number, { availability: boolean; comment: string | null; direction: string }>;
   register: UseFormRegister<AvailabilityListFormValues>;
   control: Control<AvailabilityListFormValues>;
 }
@@ -65,7 +65,7 @@ export default function AvailabilityFormList({
 
       <button
         type="button"
-        onClick={() => append({ guardianId: 0, driverAvailability: false, seats: 1, driverComment: "", escortAvailability: false, escortComment: "" })}
+        onClick={() => append({ guardianId: 0, driverAvailability: false, driverDirection: "both", seats: 1, driverComment: "", escortAvailability: false, escortDirection: "both", escortComment: "" })}
         className="flex items-center gap-2 px-4 py-2 text-teal-700 hover:text-teal-800 transition"
       >
         <Plus size={18} />

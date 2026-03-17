@@ -12,8 +12,8 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const rideIdNum = Number(params.rideId);
 
   const body = await request.json().catch(() => null) as AvailabilityFormValues | null;
-  const { guardianId, driverAvailability, seats, driverComment,
-          escortAvailability, escortComment, childAvailabilities } = body ?? {};
+  const { guardianId, driverAvailability, driverDirection, seats, driverComment,
+          escortAvailability, escortDirection, escortComment, childAvailabilities } = body ?? {};
 
   if (!pin || !Number.isInteger(teamIdNum) || !Number.isInteger(rideIdNum)) {
     return NextResponse.json({ message: "権限がありません" }, { status: 401 });
@@ -37,6 +37,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
         where: { rideId_guardianId_type: { rideId: rideIdNum, guardianId: guardianId!, type: "driver" } },
         update: {
           availability: driverAvailability,
+          direction: driverDirection ?? "both",
           seats,
           comment: driverComment || null,
           teamId: teamIdNum,
@@ -47,6 +48,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
           teamId: teamIdNum,
           type: "driver",
           availability: driverAvailability,
+          direction: driverDirection ?? "both",
           seats,
           comment: driverComment || null,
         },
@@ -58,6 +60,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
         where: { rideId_guardianId_type: { rideId: rideIdNum, guardianId: guardianId!, type: "escort" } },
         update: {
           availability: escortAvailability,
+          direction: escortDirection ?? "both",
           seats: 0,
           comment: escortComment || null,
           teamId: teamIdNum,
@@ -68,6 +71,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
           teamId: teamIdNum,
           type: "escort",
           availability: escortAvailability,
+          direction: escortDirection ?? "both",
           seats: 0,
           comment: escortComment || null,
         },

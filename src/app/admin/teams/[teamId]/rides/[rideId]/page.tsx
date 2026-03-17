@@ -32,6 +32,7 @@ export default function Page() {
   const methods = useForm<UpdateRideValues>({
     defaultValues: {
       destination: "",
+      separateDirections: false,
       drivers: [],
     },
   });
@@ -46,11 +47,21 @@ export default function Page() {
   const { validateDate, handleDateChange } = createRideDateValidation(methods);
 
   const date = watch("date");
+  const separateDirections = watch("separateDirections");
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "drivers",
   });
+
+  // トグルをオフにした時、全ドライバーをクリアする
+  const prevSeparateDirections = useRef<boolean | undefined>(undefined);
+  useEffect(() => {
+    if (prevSeparateDirections.current === true && separateDirections === false) {
+      remove();
+    }
+    prevSeparateDirections.current = separateDirections;
+  }, [separateDirections]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const params = useParams<{ teamId: string; rideId: string }>();
   const teamId = params.teamId;
@@ -283,16 +294,36 @@ ${rideUrl}
               />
             </div>
 
+            {/* 行き帰り別配車モード切替 */}
+            <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    {...methods.register("separateDirections")}
+                  />
+                  <div className={`w-11 h-6 rounded-full transition-colors ${separateDirections ? 'bg-teal-600' : 'bg-gray-300'}`} />
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${separateDirections ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  行き帰りを別々に配車する
+                </span>
+              </label>
+            </div>
+
             <RideDriverList
               drivers={fields}
+              separateDirections={separateDirections}
               availabilityDrivers={data?.ride?.availabilityDrivers ?? []}
               childrenList={data?.ride?.children ?? []}
               childAvailabilities={data?.ride?.childAvailabilities ?? []}
-              appendDriver={() =>
+              appendDriver={(direction) =>
                 append({
                   availabilityDriverId: 0,
                   seats: 0,
                   type: 'driver',
+                  direction,
                   rideAssignments: [],
                   escorts: [],
                 })
