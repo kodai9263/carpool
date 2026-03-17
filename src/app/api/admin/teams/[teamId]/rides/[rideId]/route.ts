@@ -15,6 +15,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
       const driverSelect = {
         id: true,
         type: true,
+        direction: true,
         availabilityDriverId: true,
         linkedDriverId: true,
         availabilityDriver: {
@@ -40,6 +41,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             date: true,
             destination: true,
             deadline: true,
+            separateDirections: true,
             team: {
               select: {
                 teamName: true,
@@ -51,6 +53,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               select: {
                 id: true,
                 type: true,
+                direction: true,
                 guardian: { select: { id: true, name: true } },
                 seats: true,
                 availability: true,
@@ -116,6 +119,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           date: ride.date.toISOString(),
           destination: ride.destination,
           deadline: ride.deadline ? ride.deadline.toISOString() : null,
+          separateDirections: ride.separateDirections,
           drivers: drivers.map((driver) => ({
             ...driver,
             rideAssignments: driver.rideAssignments.map((ra) => ({
@@ -128,6 +132,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             })),
             escorts: driver.escorts.map((escort) => ({
               id: escort.id,
+              direction: escort.direction,
               availabilityDriverId: escort.availabilityDriverId,
               availabilityDriver: escort.availabilityDriver,
               rideAssignments: escort.rideAssignments.map((ra) => ({
@@ -169,15 +174,20 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           // Ride自体を更新
           await tx.ride.update({
             where: { id: rideIdNum },
-            data: { date, destination: body.destination },
+            data: { date, destination: body.destination, separateDirections: body.separateDirections ?? false },
           });
 
           // 既存のDriverとAssignmentを削除（引率者も含む）
           await tx.rideAssignment.deleteMany({ where: { rideId: rideIdNum } });
           await tx.driver.deleteMany({ where: { rideId: rideIdNum } });
 
+          // separateDirections=false の場合、inbound ドライバーは保存しない
+          const driversToSave = (body.drivers ?? []).filter(
+            (d) => body.separateDirections || d.direction !== "inbound"
+          );
+
           // 新しいDriverとAssignmentを作成
-          for (const driver of body.drivers ?? []) {
+          for (const driver of driversToSave) {
             await tx.availabilityDriver.update({
               where: { id: driver.availabilityDriverId },
               data: { rideId: rideIdNum},
@@ -188,6 +198,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                 rideId: rideIdNum,
                 availabilityDriverId: driver.availabilityDriverId,
                 type: "driver",
+                direction: driver.direction ?? "outbound",
               },
             });
 
@@ -214,6 +225,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
                   rideId: rideIdNum,
                   availabilityDriverId: escort.availabilityDriverId,
                   type: "escort",
+                  direction: escort.direction ?? "outbound",
                   linkedDriverId: newDriver.id,
                 },
               });

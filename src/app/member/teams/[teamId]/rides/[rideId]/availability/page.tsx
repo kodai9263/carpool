@@ -31,7 +31,7 @@ export default function Page() {
 
   const methods = useForm<AvailabilityListFormValues>({
     defaultValues: {
-      availabilities: [{ guardianId: 0, driverAvailability: false, seats: 1, driverComment: "", escortAvailability: false, escortComment: "" }],
+      availabilities: [{ guardianId: 0, driverAvailability: false, driverDirection: "both", seats: 1, driverComment: "", escortAvailability: false, escortDirection: "both", escortComment: "" }],
     },
   });
 

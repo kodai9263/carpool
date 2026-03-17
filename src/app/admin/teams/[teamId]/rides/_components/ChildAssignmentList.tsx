@@ -87,8 +87,17 @@ export default function ChildAssignmentList({
   // 乗車する子どもの数を増やせるかどうかの判定
   const canAddAssignment = fields.length < seatCount;
 
-  // 他ドライバーが選んだchildIdの重複防止
-  const excluded = useExcludeIds(drivers, index, ["rideAssignments"]);
+  // 同じ方向のドライバー間のみ重複防止（行きと帰りで同じ子供を別々に乗せられるように）
+  const currentDirection = driver?.direction ?? 'outbound';
+  const sameDirectionDrivers = drivers.filter(
+    (d) => (d?.direction ?? 'outbound') === currentDirection
+  );
+  const sameDirectionIndex = sameDirectionDrivers.findIndex((d) => d === driver);
+  const excluded = useExcludeIds(
+    sameDirectionDrivers,
+    sameDirectionIndex >= 0 ? sameDirectionIndex : index,
+    ["rideAssignments"]
+  );
 
   // フックの呼び出しの後に条件チェック
   // 引率者（escort）は seats=0 なので selectedDriverSeats が存在しないが、表示は続ける

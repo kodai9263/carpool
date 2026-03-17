@@ -87,6 +87,7 @@ model Ride {
   date                DateTime
   destination         String
   deadline            DateTime?
+  separateDirections  Boolean              @default(false)  // true: 行き帰り別配車モード
   teamId              Int
   team                Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdAt           DateTime             @default(now())
@@ -105,6 +106,7 @@ model AvailabilityDriver {
   type         String   @default("driver")  // "driver"（配車）| "escort"（引率）
   availability Boolean  @default(false)
   seats        Int      @default(0)         // escort の場合は 0
+  direction    String   @default("both")   // "outbound"（行き）| "inbound"（帰り）| "both"（両方）
   comment      String?
   guardianId   Int
   guardian     Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
@@ -128,6 +130,7 @@ model Driver {
   ride                 Ride               @relation(fields: [rideId], references: [id], onDelete: Cascade)
   availabilityDriverId Int
   availabilityDriver   AvailabilityDriver @relation(fields: [availabilityDriverId], references: [id], onDelete: Cascade)
+  direction            String             @default("outbound")  // "outbound"（行き）| "inbound"（帰り）
   linkedDriverId       Int?               // 引率者の場合、紐付く配車ドライバーのID
   linkedDriver         Driver?            @relation("EscortLink", fields: [linkedDriverId], references: [id])
   escorts              Driver[]           @relation("EscortLink")
@@ -135,7 +138,7 @@ model Driver {
   updatedAt            DateTime           @updatedAt
   rideAssignments      RideAssignment[]
 
-  @@unique([rideId, availabilityDriverId])
+  @@unique([rideId, availabilityDriverId, direction])
 }
 
 // 乗車子供テーブル

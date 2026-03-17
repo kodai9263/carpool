@@ -105,6 +105,62 @@ describe('convertRideDetailToFormValues', () => {
     expect(result.drivers[1].rideAssignments).toHaveLength(2);
   });
 
+  test('direction フィールドを正しく変換する', () => {
+    const apiData = {
+      date: '2024-12-25',
+      destination: 'グラウンド',
+      drivers: [
+        {
+          id: 1,
+          availabilityDriverId: 10,
+          direction: 'outbound',
+          seats: 3,
+          rideAssignments: [],
+          escorts: [
+            {
+              id: 2,
+              availabilityDriverId: 20,
+              direction: 'inbound',
+              rideAssignments: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = convertRideDetailToFormValues(apiData);
+
+    expect(result.drivers[0].direction).toBe('outbound');
+    expect(result.drivers[0].escorts[0].direction).toBe('inbound');
+  });
+
+  test('direction が未定義の場合は outbound にデフォルトされる', () => {
+    const apiData = {
+      date: '2024-12-25',
+      destination: 'グラウンド',
+      drivers: [
+        {
+          id: 1,
+          availabilityDriverId: 10,
+          seats: 3,
+          rideAssignments: [],
+          escorts: [
+            {
+              id: 2,
+              availabilityDriverId: 20,
+              rideAssignments: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = convertRideDetailToFormValues(apiData);
+
+    expect(result.drivers[0].direction).toBe('outbound');
+    expect(result.drivers[0].escorts[0].direction).toBe('outbound');
+  });
+
   test('rideAssignmentsが空の場合も正しく処理する', () => {
     const apiData = {
       date: '2024-12-25',

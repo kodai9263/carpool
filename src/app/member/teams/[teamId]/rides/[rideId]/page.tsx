@@ -67,7 +67,7 @@ export default function Page() {
           </div>
 
           <div className="min-w-0 overflow-hidden">
-            <RideDriverGrid drivers={ride.drivers} />
+            <RideDriverGrid drivers={ride.drivers} separateDirections={ride.separateDirections ?? false} />
           </div>
         </div>
       </div>

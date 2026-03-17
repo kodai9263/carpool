@@ -8,9 +8,11 @@ import { useMemo } from "react";
 
 interface Props {
   driverIndex: number;
+  direction: "outbound" | "inbound";
   availabilityDrivers: {
     id: number;
     type: string;
+    direction: string;
     guardian: { id: number; name: string };
     seats: number;
     availability: boolean;
@@ -20,6 +22,7 @@ interface Props {
 
 export default function EscortSection({
   driverIndex,
+  direction,
   availabilityDrivers,
 }: Props) {
   const { control } = useFormContext<UpdateRideValues>();
@@ -32,19 +35,23 @@ export default function EscortSection({
   // 全ドライバーを監視（追加ボタンの制御のため）
   const allDrivers = useWatch({ control, name: "drivers" }) ?? [];
 
-  // 引率者候補（availability: true かつ type: 'escort'）の総数
+  // 引率者候補（availability: true かつ type: 'escort' かつ対応方向）の総数
   const totalAvailableEscorts = useMemo(() =>
-    availabilityDrivers.filter(d => d.availability === true && d.type === 'escort').length,
-    [availabilityDrivers]
+    availabilityDrivers.filter(
+      d => d.availability === true && d.type === 'escort' && (d.direction === direction || d.direction === 'both')
+    ).length,
+    [availabilityDrivers, direction]
   );
 
-  // 全ドライバーカードで選択済みの引率者数（上限チェック用）
+  // 同じ方向のドライバーカードで選択済みの引率者数（上限チェック用）
   const totalSelectedEscorts = useMemo(() =>
-    allDrivers.reduce((count, d) =>
-      count + (d?.escorts ?? []).filter(e => e?.availabilityDriverId && e.availabilityDriverId !== 0).length,
-      0
-    ),
-    [allDrivers]
+    allDrivers
+      .filter(d => (d?.direction ?? 'outbound') === direction)
+      .reduce((count, d) =>
+        count + (d?.escorts ?? []).filter(e => e?.availabilityDriverId && e.availabilityDriverId !== 0).length,
+        0
+      ),
+    [allDrivers, direction]
   );
 
   const canAddEscort = totalSelectedEscorts < totalAvailableEscorts;
@@ -58,6 +65,7 @@ export default function EscortSection({
           key={field.id}
           driverIndex={driverIndex}
           escortIndex={ei}
+          direction={direction}
           availabilityDrivers={availabilityDrivers}
           onRemove={() => remove(ei)}
         />
@@ -66,7 +74,7 @@ export default function EscortSection({
       {canAddEscort && (
         <button
           type="button"
-          onClick={() => append({ availabilityDriverId: 0, rideAssignments: [] })}
+          onClick={() => append({ availabilityDriverId: 0, direction, rideAssignments: [] })}
           className="w-full flex items-center justify-center gap-1.5 text-[#5d9b94] hover:text-[#4a7d77] transition bg-teal-50 border border-teal-200 rounded-lg px-3 py-2 text-xs font-medium"
         >
           <Plus size={14} />

@@ -17,7 +17,7 @@ export function useAvailabilityMembers(ride: RideDetailResponse['ride'] | undefi
   }, [ride]);
 
   const existingDriverAvailabilities = useMemo(() => {
-    const map = new Map<number, { seats: number; availability: boolean; comment: string | null }>();
+    const map = new Map<number, { seats: number; availability: boolean; comment: string | null; direction: string }>();
     ride?.availabilityDrivers
       .filter(d => d.type === 'driver')
       .forEach(d => {
@@ -25,19 +25,21 @@ export function useAvailabilityMembers(ride: RideDetailResponse['ride'] | undefi
           seats: d.seats,
           availability: d.availability,
           comment: d.comment,
+          direction: d.direction,
         });
       });
     return map;
   }, [ride]);
 
   const existingEscortAvailabilities = useMemo(() => {
-    const map = new Map<number, { availability: boolean; comment: string | null }>();
+    const map = new Map<number, { availability: boolean; comment: string | null; direction: string }>();
     ride?.availabilityDrivers
       .filter(d => d.type === 'escort')
       .forEach(d => {
         map.set(d.guardian.id, {
           availability: d.availability,
           comment: d.comment,
+          direction: d.direction,
         });
       });
     return map;

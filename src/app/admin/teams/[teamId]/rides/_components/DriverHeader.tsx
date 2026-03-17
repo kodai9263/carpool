@@ -11,11 +11,14 @@ interface Props {
   availabilityDrivers: {
     id: number;
     type: string;
+    direction: string;
     availability: boolean;
     comment: string | null;
     guardian: { id: number; name: string };
   }[];
   type: string;
+  direction: "outbound" | "inbound";
+  separateDirections: boolean;
   onRemove: () => void;
 }
 
@@ -23,6 +26,8 @@ export default function DriverHeader({
   index,
   availabilityDrivers,
   type,
+  direction,
+  separateDirections,
   onRemove,
 }: Props) {
   const { control, register } = useFormContext<UpdateRideValues>();
@@ -49,13 +54,27 @@ export default function DriverHeader({
 
   const watchedDrivers = useWatch({ control, name: "drivers" });
 
-  const excluded = useExcludeIds(watchedDrivers, index, [
-    "availabilityDriverId",
-  ]);
+  // 同じ方向のドライバーのみを対象に重複チェック（行きと帰りで同一人物を選べるように）
+  const currentDriver = watchedDrivers?.[index];
+  const sameDirectionDrivers = (watchedDrivers ?? []).filter(
+    (d) => (d?.direction ?? 'outbound') === direction
+  );
+  const sameDirectionIndex = sameDirectionDrivers.findIndex((d) => d === currentDriver);
+  const excluded = useExcludeIds(
+    sameDirectionDrivers,
+    sameDirectionIndex >= 0 ? sameDirectionIndex : 0,
+    ["availabilityDriverId"]
+  );
 
-  // 配車可能（availability: true）のドライバーのみを表示
+  // 配車可能（availability: true）かつ対応方向のドライバーのみを表示
+  // 行き帰り共通モード（separateDirections=false）の場合は both のみ表示
   const availableDrivers = availabilityDrivers.filter(
-    (driver) => driver.availability === true && driver.type === type
+    (driver) =>
+      driver.availability === true &&
+      driver.type === type &&
+      (separateDirections
+        ? driver.direction === direction || driver.direction === 'both'
+        : driver.direction === 'both')
   );
 
   const selectedDriverId = useWatch({ control, name: `drivers.${index}.availabilityDriverId` });
