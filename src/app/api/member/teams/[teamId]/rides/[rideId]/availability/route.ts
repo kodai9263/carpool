@@ -79,13 +79,18 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
       });
 
       if (childAvailabilities && childAvailabilities.length > 0) {
-        for (const ca of childAvailabilities) {
-          await tx.childAvailability.upsert({
-            where: { rideId_childId: { rideId: rideIdNum, childId: ca.childId } },
-            update: { availability: ca.availability },
-            create: { rideId: rideIdNum, childId: ca.childId, availability: ca.availability },
-          });
-        }
+        const childIds = childAvailabilities.map((ca) => ca.childId);
+        // 対象childIdの既存レコードを一括削除してから一括作成（N回upsert → 2クエリに削減）
+        await tx.childAvailability.deleteMany({
+          where: { rideId: rideIdNum, childId: { in: childIds } },
+        });
+        await tx.childAvailability.createMany({
+          data: childAvailabilities.map((ca) => ({
+            rideId: rideIdNum,
+            childId: ca.childId,
+            availability: ca.availability,
+          })),
+        });
       }
 
       // 3. 不可になった場合は既存の割当を削除
