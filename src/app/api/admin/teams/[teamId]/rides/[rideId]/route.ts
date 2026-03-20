@@ -72,7 +72,6 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         prisma.child.findMany({
           where: { member: { teamId } },
           select: { id: true, name: true, memberId: true, grade: true, gradeYear: true },
-          distinct: ["id"],
         }),
         // ドライバー・引率者をフラットに取得し、アプリ層で結合（深いネスト解消）
         prisma.driver.findMany({
