@@ -57,12 +57,6 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
 
       try {
         const member = await prisma.$transaction(async (tx) => {
-          // メンバー名の更新
-          const updateMember = await tx.member.findFirst({
-            where: { id: memberId },
-            select: { id: true },
-          });
-
           // 保護者を全削除して再作成
           await tx.guardian.deleteMany({ where: { memberId } });
           await tx.guardian.createMany({
@@ -81,11 +75,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           let childNames: string[];
 
           if(children) {
-            // 更新前の子供の数
-            const beforeCount = await tx.child.count({ where: { memberId } });
-
-            // 既存の子供を削除
-            await tx.child.deleteMany({ where: { memberId } });
+            // 既存の子供を削除（戻り値のcountで削除前の件数を取得）
+            const { count: beforeCount } = await tx.child.deleteMany({ where: { memberId } });
 
             // 新しい子供作成(あれば)
             if (children.length > 0) {
@@ -118,10 +109,10 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
             });
             childNames = currentChildren.map(c => c.name);
           }
-          return { 
-            id: updateMember!.id,
-            guardians: updateGuardians, 
-            children: childNames 
+          return {
+            id: memberId,
+            guardians: updateGuardians,
+            children: childNames
           };
         });
 
