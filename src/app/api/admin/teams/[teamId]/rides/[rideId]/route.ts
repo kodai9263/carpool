@@ -186,63 +186,73 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             (d) => body.separateDirections || d.direction !== "inbound"
           );
 
-          // 新しいDriverとAssignmentを作成
-          for (const driver of driversToSave) {
-            await tx.availabilityDriver.update({
-              where: { id: driver.availabilityDriverId },
-              data: { rideId: rideIdNum},
-            });
+          // 1. availabilityDriverを一括更新（N回 → 1クエリ）
+          await tx.availabilityDriver.updateMany({
+            where: { id: { in: driversToSave.map((d) => d.availabilityDriverId) } },
+            data: { rideId: rideIdNum },
+          });
 
-            const newDriver = await tx.driver.create({
-              data: {
+          // 2. ドライバーを一括作成しIDを取得（N回 → 1クエリ）
+          const createdDrivers = await tx.driver.createManyAndReturn({
+            data: driversToSave.map((d) => ({
+              rideId: rideIdNum,
+              availabilityDriverId: d.availabilityDriverId,
+              type: "driver",
+              direction: d.direction ?? "outbound",
+            })),
+            select: { id: true, availabilityDriverId: true },
+          });
+
+          // availabilityDriverId → driver.id のマップ
+          const driverIdMap = new Map(createdDrivers.map((d) => [d.availabilityDriverId, d.id]));
+
+          // 3. ドライバーの子供割当を一括作成（N回 → 1クエリ）
+          const allDriverAssignments = driversToSave.flatMap((d) => {
+            const driverId = driverIdMap.get(d.availabilityDriverId)!;
+            return d.rideAssignments
+              .filter((ra) => ra.childId && ra.childId !== 0)
+              .map((ra) => ({ rideId: rideIdNum, driverId, childId: ra.childId }));
+          });
+          if (allDriverAssignments.length > 0) {
+            await tx.rideAssignment.createMany({ data: allDriverAssignments });
+          }
+
+          // 4. 引率者を一括作成しIDを取得（E回 → 1クエリ）
+          const allEscortData = driversToSave.flatMap((d) => {
+            const linkedDriverId = driverIdMap.get(d.availabilityDriverId)!;
+            return (d.escorts ?? [])
+              .filter((e) => e.availabilityDriverId && e.availabilityDriverId !== 0)
+              .map((e) => ({
                 rideId: rideIdNum,
-                availabilityDriverId: driver.availabilityDriverId,
-                type: "driver",
-                direction: driver.direction ?? "outbound",
-              },
-            });
-
-            // 子供割当作成
-            // childIdが0の場合はスキップ
-            const validAssignments = driver.rideAssignments.filter((child) => child.childId && child.childId !== 0);
-
-            if (validAssignments.length > 0) {
-              const assignment = validAssignments.map((child) => ({
-                rideId: rideIdNum,
-                driverId: newDriver.id,
-                childId: child.childId,
+                availabilityDriverId: e.availabilityDriverId,
+                type: "escort",
+                direction: e.direction ?? "outbound",
+                linkedDriverId,
               }));
+          });
 
-              await tx.rideAssignment.createMany({ data: assignment });
-            }
+          const escortIdMap = new Map<number, number>();
+          if (allEscortData.length > 0) {
+            const createdEscorts = await tx.driver.createManyAndReturn({
+              data: allEscortData,
+              select: { id: true, availabilityDriverId: true },
+            });
+            for (const e of createdEscorts) escortIdMap.set(e.availabilityDriverId, e.id);
+          }
 
-            // 引率者を作成（linkedDriverId: newDriver.id で紐付け）
-            for (const escort of driver.escorts ?? []) {
-              if (!escort.availabilityDriverId || escort.availabilityDriverId === 0) continue;
-
-              const newEscort = await tx.driver.create({
-                data: {
-                  rideId: rideIdNum,
-                  availabilityDriverId: escort.availabilityDriverId,
-                  type: "escort",
-                  direction: escort.direction ?? "outbound",
-                  linkedDriverId: newDriver.id,
-                },
-              });
-
-              // 引率者の子供割当作成
-              const validEscortAssignments = escort.rideAssignments.filter((child) => child.childId && child.childId !== 0);
-
-              if (validEscortAssignments.length > 0) {
-                await tx.rideAssignment.createMany({
-                  data: validEscortAssignments.map((child) => ({
-                    rideId: rideIdNum,
-                    driverId: newEscort.id,
-                    childId: child.childId,
-                  })),
-                });
-              }
-            }
+          // 5. 引率者の子供割当を一括作成（E回 → 1クエリ）
+          const allEscortAssignments = driversToSave.flatMap((d) =>
+            (d.escorts ?? [])
+              .filter((e) => e.availabilityDriverId && e.availabilityDriverId !== 0)
+              .flatMap((e) => {
+                const escortId = escortIdMap.get(e.availabilityDriverId)!;
+                return e.rideAssignments
+                  .filter((ra) => ra.childId && ra.childId !== 0)
+                  .map((ra) => ({ rideId: rideIdNum, driverId: escortId, childId: ra.childId }));
+              })
+          );
+          if (allEscortAssignments.length > 0) {
+            await tx.rideAssignment.createMany({ data: allEscortAssignments });
           }
         });
 
