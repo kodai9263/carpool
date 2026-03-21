@@ -48,7 +48,7 @@ export default function EscortSection({
     allDrivers
       .filter(d => (d?.direction ?? 'outbound') === direction)
       .reduce((count, d) =>
-        count + (d?.escorts ?? []).filter(e => e?.availabilityDriverId && e.availabilityDriverId !== 0).length,
+        count + (d?.escorts ?? []).length,  // 未選択スロットも含めてカウント
         0
       ),
     [allDrivers, direction]
