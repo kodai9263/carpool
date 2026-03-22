@@ -75,14 +75,35 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           let childNames: string[];
 
           if(children) {
-            // 既存の子供を削除（戻り値のcountで削除前の件数を取得）
-            const { count: beforeCount } = await tx.child.deleteMany({ where: { memberId } });
+            // DBの現在の子供を取得して差分を計算
+            const existingChildren = await tx.child.findMany({
+              where: { memberId },
+              select: { id: true, name: true },
+            });
 
-            // 新しい子供作成(あれば)
-            if (children.length > 0) {
+            const existingByName = new Map(existingChildren.map((c) => [c.name, c]));
+            const incomingNames = new Set(children.map((c) => c.name));
+
+            // 削除対象: DBにあるがフォームにない子供
+            const toDeleteIds = existingChildren
+              .filter((c) => !incomingNames.has(c.name))
+              .map((c) => c.id);
+
+            // 追加対象: フォームにあるがDBにない子供
+            const toCreate = children.filter((c) => !existingByName.has(c.name));
+
+            let deletedCount = 0;
+            if (toDeleteIds.length > 0) {
+              const { count } = await tx.child.deleteMany({
+                where: { id: { in: toDeleteIds } },
+              });
+              deletedCount = count;
+            }
+
+            if (toCreate.length > 0) {
               const currentSchoolYear = getCurrentSchoolYear();
               await tx.child.createMany({
-                data: children.map((child) => ({
+                data: toCreate.map((child) => ({
                   name: child.name,
                   grade: child.grade,
                   gradeYear: currentSchoolYear,
@@ -92,7 +113,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
             }
 
             // チームのメンバーカウント差分調整
-            const delta = children.length - beforeCount;
+            const delta = toCreate.length - deletedCount;
             if (delta !== 0) {
               await tx.team.update({
                 where: { id: teamId },
@@ -129,8 +150,17 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
     export const DELETE = (request: NextRequest, ctx: { params: { teamId: string; memberId: string } }) =>
       withAdminTeamMember(request, async({ teamId, memberId }) =>{
         try {
-          await prisma.member.deleteMany({
-            where: {id: memberId, teamId },
+          await prisma.$transaction(async (tx) => {
+            // 子供を先に削除してカウントを取得（cascadeより先に実行）
+            const { count: childCount } = await tx.child.deleteMany({ where: { memberId } });
+            await tx.member.deleteMany({ where: {id: memberId, teamId }})
+            // 削除した子供の数だけmemberCountを減算
+            if (childCount > 0) {
+              await tx.team.update({
+                where: { id: teamId },
+                data: { memberCount: { decrement: childCount } },
+              });
+            }
           });
           return NextResponse.json({ status: "OK", message: "削除しました" }, { status: 200 });
         } catch (e) {
