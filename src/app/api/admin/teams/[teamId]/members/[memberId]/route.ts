@@ -36,6 +36,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
       if (!body) {
         return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
       }
+      // 不正な入力を弾いてから createMany 用の形にする
       const rawGuardians = Array.isArray(body.guardians) ? body.guardians : [];
       const validGuardians = rawGuardians
         .filter((guardians) => guardians && typeof guardians.name === 'string' && guardians.name.trim().length > 0)
@@ -44,6 +45,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
           return NextResponse.json({ message: "保護者名を入力してください" }, { status: 400 });
         } 
 
+      // 子供のからの行を除き、名前の重複は先頭のみ採用
       const cleaned = body.children
         .filter((child) => child.name.trim().length > 0)
         .map((child) => ({ name: child.name.trim(), grade: child.grade ?? null }));

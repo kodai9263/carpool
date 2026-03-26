@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthAdminId, getAuthAdminIdWithTeam } from "./auth";
 
-
+// 管理者全般
 export async function withAuth(
   request: NextRequest,
   handler: (adminId: number) => Promise<NextResponse>
@@ -15,6 +15,7 @@ export async function withAuth(
   return handler(adminId);
 }
 
+// 自分のチームか
 export async function withAuthEntry(
   request: NextRequest,
   handler: (ctx: { adminId: number; teamId: number }) => Promise<NextResponse>,
@@ -34,6 +35,7 @@ export async function withAuthEntry(
   return handler({ adminId, teamId });
 }
 
+// 自分のチームか + チーム操作するため
 export async function withAuthTeam(
   request: NextRequest,
   handler: (ctx: { adminId: number; teamId: number }) => Promise<NextResponse>,
@@ -53,6 +55,7 @@ export async function withAuthTeam(
   return handler({ adminId, teamId });
 }
 
+// 自分のチームのメンバーを操作するため
 export async function withAdminTeamMember(
   request: NextRequest,
   handler: (ctx: { adminId: number; teamId: number; memberId: number }) => Promise<NextResponse>,
@@ -73,6 +76,7 @@ export async function withAdminTeamMember(
   return handler({ adminId, teamId, memberId });
 }
 
+// 自分のチームの配車を操作するため
 export async function withAdminTeamRide(
   request: NextRequest,
   handler: (ctx: { adminId: number; teamId: number; rideId: number }) => Promise<NextResponse>,

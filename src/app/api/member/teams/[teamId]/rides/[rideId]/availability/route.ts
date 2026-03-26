@@ -79,16 +79,16 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
       });
 
       if (childAvailabilities && childAvailabilities.length > 0) {
-        const childIds = childAvailabilities.map((ca) => ca.childId);
+        const childIds = childAvailabilities.map((c) => c.childId);
         // 対象childIdの既存レコードを一括削除してから一括作成（N回upsert → 2クエリに削減）
         await tx.childAvailability.deleteMany({
           where: { rideId: rideIdNum, childId: { in: childIds } },
         });
         await tx.childAvailability.createMany({
-          data: childAvailabilities.map((ca) => ({
+          data: childAvailabilities.map((c) => ({
             rideId: rideIdNum,
-            childId: ca.childId,
-            availability: ca.availability,
+            childId: c.childId,
+            availability: c.availability,
           })),
         });
       }
