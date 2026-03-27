@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { FeedbackWidget } from "./_components/FeedbackWidget";
 
 export const metadata: Metadata = {
   title: "Carpool",
@@ -27,6 +28,7 @@ export default function RootLayout({
       <body>
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
         {children}
+        <FeedbackWidget />
       </body>
     </html>
   );
