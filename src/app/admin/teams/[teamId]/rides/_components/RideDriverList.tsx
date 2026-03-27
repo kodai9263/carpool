@@ -1,6 +1,7 @@
 'use client';
 
 import { UpdateRideValues } from "@/app/_types/ride";
+import { useMemo } from "react";
 import { FieldArrayWithId, useFormContext, useWatch } from "react-hook-form";
 import RideDriverItem from "./RideDriverItem";
 import { Plus } from "lucide-react";
@@ -37,24 +38,23 @@ export default function RideDriverList({
   // フォームの現在の drivers 状態を監視
   const formDrivers = useWatch({ control, name: "drivers" }) ?? [];
 
-  // 行き・帰りのドライバー候補数
-  const outboundCandidates = availabilityDrivers.filter(
-    d => d.availability === true && d.type === 'driver' && (d.direction === 'outbound' || d.direction === 'both')
-  );
-  const inboundCandidates = availabilityDrivers.filter(
-    d => d.availability === true && d.type === 'driver' && (d.direction === 'inbound' || d.direction === 'both')
-  );
-
-  // フォーム内ドライバーを行き・帰りで分類
-  const outboundIndices = formDrivers
-    .map((d, i) => ({ d, i }))
-    .filter(({ d }) => (d?.direction ?? 'outbound') === 'outbound')
-    .map(({ i }) => i);
-
-  const inboundIndices = formDrivers
-    .map((d, i) => ({ d, i }))
-    .filter(({ d }) => d?.direction === 'inbound')
-    .map(({ i }) => i);
+  // 行き・帰りのドライバー候補数・インデックスをメモ化（formDriversかavailabilityDriversが変わった時だけ再計算）
+  const { outboundCandidates, inboundCandidates, outboundIndices, inboundIndices } = useMemo(() => ({
+    outboundCandidates: availabilityDrivers.filter(
+      d => d.availability === true && d.type === 'driver' && (d.direction === 'outbound' || d.direction === 'both')
+    ),
+    inboundCandidates: availabilityDrivers.filter(
+      d => d.availability === true && d.type === 'driver' && (d.direction === 'inbound' || d.direction === 'both')
+    ),
+    outboundIndices: formDrivers
+      .map((d, i) => ({ d, i }))
+      .filter(({ d }) => (d?.direction ?? 'outbound') === 'outbound')
+      .map(({ i }) => i),
+    inboundIndices: formDrivers
+      .map((d, i) => ({ d, i }))
+      .filter(({ d }) => d?.direction === 'inbound')
+      .map(({ i }) => i),
+  }), [formDrivers, availabilityDrivers]);
 
   const renderSection = (
     label: string,
@@ -113,14 +113,16 @@ export default function RideDriverList({
     </div>
   );
 
-  // 行き帰り共通モード用：両方対応可能なドライバー候補のみ
-  const allDriverCandidates = availabilityDrivers.filter(
-    d => d.availability === true && d.type === 'driver' && d.direction === 'both'
-  );
-  const allDriverIndices = formDrivers
-    .map((d, i) => ({ d, i }))
-    .filter(({ d }) => d !== undefined)
-    .map(({ i }) => i);
+  // 行き帰り共通モード用：両方対応可能なドライバー候補・インデックスをメモ化
+  const { allDriverCandidates, allDriverIndices } = useMemo(() => ({
+    allDriverCandidates: availabilityDrivers.filter(
+      d => d.availability === true && d.type === 'driver' && d.direction === 'both'
+    ),
+    allDriverIndices: formDrivers
+      .map((d, i) => ({ d, i }))
+      .filter(({ d }) => d !== undefined)
+      .map(({ i }) => i),
+  }), [formDrivers, availabilityDrivers]);
 
   return (
     <div className="space-y-8">
