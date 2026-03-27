@@ -169,3 +169,11 @@ model ChildAvailability {
 
   @@unique([rideId, childId], name: "rideId_childId")
 }
+
+// フィードバックテーブル
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  category  String
+  message   String
+  createdAt DateTime @default(now())
+}
