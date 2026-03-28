@@ -1,6 +1,6 @@
 export interface MemberListResponse {
   status: 'OK';
-  members: { id: number; guardians: { id: number; name: string }[] }[];
+  members: { id: number; guardians: { id: number; name: string }[]; children: { id: number; name: string }[] }[];
   page: number;
   perPage: number;
   total: number;

@@ -37,6 +37,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
           select: {
             id: true,
             guardians: { select: { id: true, name: true } },
+            children: { select: { id: true, name: true } },
           },
           orderBy: { id: 'asc' },
           skip,
