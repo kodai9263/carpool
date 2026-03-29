@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   description: "チームの移動、もう迷わない",
   icons: {
     icon: '/favicon.png',
+    apple: '/favicon.png',  // iPhoneのホーム画面アイコン用
+  },
+  manifest: '/manifest.json',  // Web App Manifestを参照
+  appleWebApp: {               // iPhone Safariでアプリ風動作にする設定
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Carpool',
   },
 };
 
@@ -16,6 +23,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#ffffff',  // ブラウザUIのテーマカラー
 };
 
 export default function RootLayout({
