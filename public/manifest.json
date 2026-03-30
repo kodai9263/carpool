@@ -1,0 +1,18 @@
+{
+  "name": "Carpool",
+  "short_name": "Carpool",
+  "description": "チームの移動、もう迷わない",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

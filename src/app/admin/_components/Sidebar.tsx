@@ -5,6 +5,7 @@ import { supabase } from "@/utils/supabase";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { Car, User, Users, LogOut, UserCircle } from "lucide-react";
 import { useParams } from "next/navigation";
+import { AddToHomeScreenButton } from "@/app/_components/AddToHomeScreenButton";
 
 const GUEST_EMAIL = "guest@carpool.demo";
 
@@ -77,6 +78,8 @@ export const Sidebar: React.FC = () => {
               <UserCircle size={24} /><span className="mt-1">プロフィール</span>
             </Link>
           )}
+
+          <AddToHomeScreenButton className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]" />
 
           <button
             onClick={handleLogout}
