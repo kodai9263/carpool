@@ -1,13 +1,14 @@
-import Link from "next/link";
 import Image from "next/image";
 import { Car, Users, Calendar, Check, X, ChevronDown, ChevronRight, UserCog, ArrowDown } from "lucide-react";
 import { Footer } from "./_components/Footer";
+import { LpTracker, TrackedLink } from "./_components/LpTracker";
 
 export default function Home() {
   return (
     <div className="min-h-screen">
+      <LpTracker />
       {/* ヒーローセクション */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen text-center px-4 pb-16 md:pb-20">
+      <section id="section-hero" className="relative flex flex-col items-center justify-center min-h-screen text-center px-4 pb-16 md:pb-20">
         <p className="text-xl mb-4 text-gray-800 font-medium">ExcelやLINEのやり取りはもう終わり</p>
         <h1 className="text-6xl font-bold my-8">Carpool</h1>
         <p className="text-2xl text-gray-700 mb-12 font-medium">少年野球・サッカーチームの配車を、<br />アプリ1つで管理</p>
@@ -18,26 +19,29 @@ export default function Home() {
       </div>
 
         <div className="flex flex-col sm:flex-row gap-6 mb-8 mt-2">
-          <Link 
+          <TrackedLink
             href="/login"
+            trackLabel="login_hero"
             className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium transition-all shadow-md hover:shadow-lg"
           >
             ログイン
-          </Link>
-          <Link 
+          </TrackedLink>
+          <TrackedLink
             href="/signup"
+            trackLabel="signup_hero"
             className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-[#5d9b94] to-[#0F766E] hover:from-[#4a7d77] hover:to-[#0D6B64] text-white font-medium transition-all shadow-lg hover:shadow-xl"
           >
             会員登録
-          </Link>
+          </TrackedLink>
         </div>
         <div>
-          <Link 
+          <TrackedLink
             href="/login?guest=true"
+            trackLabel="demo_hero"
             className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium transition-all shadow-lg hover:shadow-xl"
           >
             🎭 デモを試す
-          </Link>
+          </TrackedLink>
         </div>
         
         {/* スクロール促進矢印 */}
@@ -47,7 +51,7 @@ export default function Home() {
       </section>
 
       {/* こんなお悩みありませんか？ */}
-      <section className="py-20 bg-gradient-to-b from-red-50 to-white">
+      <section id="section-problems" className="py-20 bg-gradient-to-b from-red-50 to-white">
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">こんなお悩みありませんか？</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -99,7 +103,7 @@ export default function Home() {
       </section>
 
       {/* アプリの特徴 */}
-      <section className="py-20 bg-white">
+      <section id="section-features" className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">Carpoolの特徴</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -137,7 +141,7 @@ export default function Home() {
       </section>
 
       {/* 使い方セクション */}
-      <section className="py-20">
+      <section id="section-how-to-use" className="py-20">
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">使い方</h2>
           
@@ -218,31 +222,34 @@ export default function Home() {
       </section>
 
       {/* CTAセクション */}
-      <section className="py-20 bg-white">
+      <section id="section-cta" className="py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-3xl font-bold mb-6">さあ、始めましょう！</h2>
           <p className="text-gray-600 mb-10">チームの送迎を、もっとスムーズに</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link 
+            <TrackedLink
               href="/login"
+              trackLabel="login_cta"
               className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 font-medium transition-all shadow-md hover:shadow-lg text-sm w-full sm:w-auto max-w-[140px]"
             >
               ログイン
-            </Link>
-            <Link 
+            </TrackedLink>
+            <TrackedLink
               href="/signup"
+              trackLabel="signup_cta"
               className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-gradient-to-r from-[#5d9b94] to-[#0F766E] hover:from-[#4a7d77] hover:to-[#0D6B64] text-white font-medium transition-all shadow-lg hover:shadow-xl text-sm w-full sm:w-auto max-w-[140px]"
             >
               会員登録
-            </Link>
+            </TrackedLink>
           </div>
           <div className="flex justify-center mt-4">
-            <Link 
+            <TrackedLink
               href="/login?guest=true"
+              trackLabel="demo_cta"
               className="inline-flex items-center justify-center h-10 px-5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium transition-all shadow-lg hover:shadow-xl text-sm w-full sm:w-auto max-w-[200px]"
             >
               🎭 デモを試す
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </section>
