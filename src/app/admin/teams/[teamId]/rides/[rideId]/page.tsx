@@ -12,7 +12,6 @@ import RideBasicForm from "../_components/RideBasicForm";
 import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
-import { Breadcrumb } from "../../../../_components/Breadcrumb";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 import { Copy, Share2 } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
@@ -305,14 +304,6 @@ ${rideUrl}
   return (
     <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
       <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
-        <Breadcrumb
-          items={[
-            { label: 'チーム一覧', href: '/admin/teams' },
-            { label: data?.ride.teamName || '', href: `/admin/teams/${teamId}` },
-            { label: '配車一覧', href: `/admin/teams/${teamId}/rides` },
-            { label: data?.ride.date ? formatDate(data.ride.date) : '' },
-          ]}
-        />
         <h1 className="text-3xl font-bold text-center mb-6 md:mb-8 break-words">
           🚗 配車詳細
         </h1>

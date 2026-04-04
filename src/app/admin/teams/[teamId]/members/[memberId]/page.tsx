@@ -13,7 +13,6 @@ import { useEffect, useRef } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { EditInput } from "../../../_components/EditInput";
-import { Breadcrumb } from "../../../../_components/Breadcrumb";
 import toast from "react-hot-toast";
 
 export default function Page() {
@@ -117,20 +116,9 @@ export default function Page() {
     }
   }
 
-  // パンくずリスト用の保護者名（複数の場合は「・」で結合）
-  const breadcrumbName = data?.member.guardians?.map(g => g.name).join('・') || '';
-
   return (
     <div className="flex justify-center items-start py-4 md:py-10 px-4">
       <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <Breadcrumb
-          items={[
-            { label: 'チーム一覧', href: '/admin/teams' },
-            { label: teamData?.team.teamName || '', href: `/admin/teams/${teamId}` },
-            { label: 'メンバー一覧', href: `/admin/teams/${teamId}/members` },
-            { label: breadcrumbName },
-          ]}
-        />
         <h1 className="text-3xl font-bold mb-8 text-center">👤 メンバー詳細</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

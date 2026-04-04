@@ -10,7 +10,6 @@ import { Search, User } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
-import { Breadcrumb } from "../../../_components/Breadcrumb";
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -42,13 +41,6 @@ export default function Page() {
   return (
     <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
       <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <Breadcrumb
-          items={[
-            { label: 'チーム一覧', href: '/admin/teams' },
-            { label: teamData?.team.teamName || '', href: `/admin/teams/${teamId}` },
-            { label: 'メンバー一覧' },
-          ]}
-        />
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-center flex-1 -ml-6">👤 メンバー一覧</h1>
           <NewButton
