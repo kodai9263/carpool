@@ -20,6 +20,7 @@ import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { supabase } from "@/utils/supabase";
 import toast from "react-hot-toast";
 import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
+import AutoAssignPanel, { AutoAssignOptions } from "../_components/AutoAssignPanel";
 
 function formatRideDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -77,6 +78,8 @@ export default function Page() {
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [deadline, setDeadline] = useState("");
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  const [autoAssignError, setAutoAssignError] = useState<{ message: string; minimumCars?: number } | null>(null);
 
   useEffect(() => {
     const checkGuestUser = async () => {
@@ -101,7 +104,7 @@ export default function Page() {
       formValues.drivers = formValues.drivers.map((driver) => ({
         ...driver,
         rideAssignments: driver.rideAssignments
-          .filter((ra) => ra.childId !== 0)
+          .filter((ra) => ra.childId !== 0 && childrenMap.has(ra.childId))
           .sort((a, b) => {
             const gradeA = childrenMap.get(a.childId) ?? -1;
             const gradeB = childrenMap.get(b.childId) ?? -1;
@@ -142,6 +145,47 @@ export default function Page() {
     } catch (e: unknown) {
       console.error(e);
       alert("更新中にエラーが発生しました。");
+    }
+  };
+
+  // 自動割り当て実行
+  const handleAutoAssign = async (options: AutoAssignOptions) => {
+    if (!token) return;
+    setIsAutoAssigning(true);
+    setAutoAssignError(null);
+    try {
+      const result = await api.post<{ numberOfCars?: number }>(
+        `/api/admin/teams/${teamId}/rides/${rideId}/auto-assign`,
+        {
+          numberOfCars: options.numberOfCars,
+          separateParentChild: options.separateParentChild,
+        },
+        token,
+      ) as { drivers: UpdateRideValues["drivers"] };
+      // 初期ロード時と同じ前処理（空行除去 + 学年降順ソート）を適用
+      const childrenMap = new Map(
+        (data?.ride?.children ?? []).map((c) => [c.id, c.currentGrade])
+      );
+      const processedDrivers = result.drivers.map((driver) => ({
+        ...driver,
+        rideAssignments: driver.rideAssignments
+          .filter((ra) => ra.childId !== 0 && childrenMap.has(ra.childId))
+          .sort((a, b) => {
+            const gradeA = childrenMap.get(a.childId) ?? -1;
+            const gradeB = childrenMap.get(b.childId) ?? -1;
+            return gradeB - gradeA;
+          }),
+      }));
+      reset({ ...methods.getValues(), drivers: processedDrivers });
+      toast.success("自動割り当て完了。保存ボタンで確定してください。");
+    } catch (e: unknown) {
+      const err = e as { message?: string; minimumCars?: number };
+      setAutoAssignError({
+        message: err.message ?? "自動割り当てに失敗しました。",
+        minimumCars: err.minimumCars,
+      });
+    } finally {
+      setIsAutoAssigning(false);
     }
   };
 
@@ -311,6 +355,13 @@ ${rideUrl}
                 </span>
               </label>
             </div>
+
+            {/* 自動割り当てパネル */}
+            <AutoAssignPanel
+              onAssign={handleAutoAssign}
+              isAssigning={isAutoAssigning}
+              error={autoAssignError}
+            />
 
             <RideDriverList
               drivers={fields}

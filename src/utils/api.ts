@@ -28,6 +28,7 @@ export const api = {
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       throw {
+        ...json,
         status: res.status,
         message: json.message || "登録に失敗しました。",
       };

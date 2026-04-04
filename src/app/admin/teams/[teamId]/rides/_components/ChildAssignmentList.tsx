@@ -78,7 +78,6 @@ export default function ChildAssignmentList({
     selectedDriverId,
     seatCount,
     fields.length,
-    append,
     remove,
     replace,
     currentAssignments
