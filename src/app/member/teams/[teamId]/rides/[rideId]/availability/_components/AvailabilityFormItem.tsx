@@ -207,7 +207,10 @@ export default function AvailabilityFormItem({
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-              <span className="text-sm md:text-base font-bold">乗車人数</span>
+              <div className="flex flex-col">
+                <span className="text-sm md:text-base font-bold">乗車人数</span>
+                <span className="text-xs text-gray-500">ドライバーを除く人数</span>
+              </div>
               <select
                 {...register(`availabilities.${index}.seats`, {
                   valueAsNumber: true,
