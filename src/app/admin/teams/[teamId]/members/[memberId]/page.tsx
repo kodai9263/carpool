@@ -8,6 +8,7 @@ import { MemberDetailResponse } from "@/app/_types/response/memberResponse";
 import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { api } from "@/utils/api";
 import { Baby, Plus, Users, X } from "lucide-react";
+import { calcCurrentGrade } from "@/utils/gradeUtils";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -62,9 +63,10 @@ export default function Page() {
         guardians: (data.member.guardians ?? []).map((g: { id: number; name: string }) => ({
           name: g.name,
         })),
-        children: (data.member.children ?? []).map((child: { name: string; grade: number | null }) => ({
+        children: (data.member.children ?? []).map((child: { name: string; grade: number | null; gradeYear: number | null }) => ({
           name: child.name,
-          grade: child.grade ?? undefined,
+          // 配車割と同様に現在の学年（登録時学年＋経過年数）を表示する
+          grade: calcCurrentGrade(child.grade, child.gradeYear) ?? undefined,
         })),
       });
     }

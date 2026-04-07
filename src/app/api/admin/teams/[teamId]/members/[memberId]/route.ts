@@ -48,7 +48,11 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
       // 子供のからの行を除き、名前の重複は先頭のみ採用
       const cleaned = body.children
         .filter((child) => child.name.trim().length > 0)
-        .map((child) => ({ name: child.name.trim(), grade: child.grade ?? null }));
+        .map((child) => ({
+          name: child.name.trim(),
+          // valueAsNumber で空欄がNaNになるケースを考慮してnullに変換
+          grade: Number.isFinite(child.grade) ? (child.grade as number) : null,
+        }));
 
         const seen = new Set<string>();
         const children = cleaned.filter((child) => {
@@ -102,15 +106,28 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; membe
               deletedCount = count;
             }
 
+            const currentSchoolYear = getCurrentSchoolYear();
+
             if (toCreate.length > 0) {
-              const currentSchoolYear = getCurrentSchoolYear();
               await tx.child.createMany({
                 data: toCreate.map((child) => ({
                   name: child.name,
                   grade: child.grade,
-                  gradeYear: currentSchoolYear,
+                  gradeYear: child.grade !== null ? currentSchoolYear : null,
                   memberId,
                 })),
+              });
+            }
+
+            // 既存の子供（名前が同じ）の学年を更新
+            const toUpdate = children.filter((c) => existingByName.has(c.name));
+            for (const child of toUpdate) {
+              await tx.child.updateMany({
+                where: { memberId, name: child.name },
+                data: {
+                  grade: child.grade,
+                  gradeYear: child.grade !== null ? currentSchoolYear : null,
+                },
               });
             }
 
