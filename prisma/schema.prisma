@@ -160,6 +160,7 @@ model RideAssignment {
 model ChildAvailability {
   id           Int      @id @default(autoincrement())
   availability Boolean  @default(false)  // false = 参加不可
+  selfDriving  Boolean  @default(false)  // true = 自走で参加
   childId      Int
   child        Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
   rideId       Int

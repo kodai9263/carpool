@@ -63,6 +63,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
             select: {
               childId: true,
               availability: true,
+              selfDriving: true,
             },
           },
         },

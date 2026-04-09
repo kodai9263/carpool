@@ -83,6 +83,7 @@ export interface RideDetailResponse {
     childAvailabilities: {
       childId: number;
       availability: boolean;
+      selfDriving: boolean;
     }[];
   };
 }

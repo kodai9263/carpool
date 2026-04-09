@@ -50,21 +50,38 @@ export default function Page() {
 
   // 参加不可の子どもIDセット
   const [notParticipatingIds, setNotParticipatingIds] = useState<Set<number>>(new Set());
+  // 自走の子どもIDセット
+  const [selfDrivingIds, setSelfDrivingIds] = useState<Set<number>>(new Set());
 
   // 既存の childAvailabilities から初期化
   useEffect(() => {
     if (data?.ride?.childAvailabilities) {
-      const ids = new Set(
+      const notParticipating = new Set(
         data.ride.childAvailabilities
           .filter((ca) => !ca.availability)
           .map((ca) => ca.childId)
       );
-      setNotParticipatingIds(ids);
+      const selfDriving = new Set(
+        data.ride.childAvailabilities
+          .filter((ca) => ca.selfDriving)
+          .map((ca) => ca.childId)
+      );
+      setNotParticipatingIds(notParticipating);
+      setSelfDrivingIds(selfDriving);
     }
   }, [data]);
 
   const toggleNotParticipating = (childId: number) => {
     setNotParticipatingIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(childId)) next.delete(childId);
+      else next.add(childId);
+      return next;
+    });
+  };
+
+  const toggleSelfDriving = (childId: number) => {
+    setSelfDrivingIds((prev) => {
       const next = new Set(prev);
       if (next.has(childId)) next.delete(childId);
       else next.add(childId);
@@ -164,6 +181,7 @@ export default function Page() {
         const childAvailabilities = memberChildren.map((child) => ({
           childId: child.id,
           availability: !notParticipatingIds.has(child.id),
+          selfDriving: selfDrivingIds.has(child.id),
         }));
 
         await fetch(
@@ -218,7 +236,9 @@ export default function Page() {
               <ChildAvailabilitySection
                 children={visibleChildren}
                 notParticipatingIds={notParticipatingIds}
-                onToggle={toggleNotParticipating}
+                selfDrivingIds={selfDrivingIds}
+                onToggleNotParticipating={toggleNotParticipating}
+                onToggleSelfDriving={toggleSelfDriving}
               />
 
               <FormButton

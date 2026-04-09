@@ -42,7 +42,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         _count: {
           select: {
             rideAssignments: true,
-            childAvailabilities: { where: { availability: false } },
+            // 配車不要な子供（不参加 or 自走）をカウント
+            childAvailabilities: { where: { OR: [{ availability: false }, { selfDriving: true }] } },
           },
         },
       } as const;
