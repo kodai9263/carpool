@@ -89,6 +89,7 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
             rideId: rideIdNum,
             childId: c.childId,
             availability: c.availability,
+            selfDriving: c.selfDriving ?? false,
           })),
         });
       }

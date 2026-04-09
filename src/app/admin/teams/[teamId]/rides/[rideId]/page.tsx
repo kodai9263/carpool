@@ -373,6 +373,30 @@ ${rideUrl}
               removeDriver={remove}
             />
 
+            {/* 自走参加者セクション */}
+            {(() => {
+              const selfDrivingChildren = (data?.ride?.childAvailabilities ?? [])
+                .filter((ca) => ca.selfDriving)
+                .map((ca) => (data?.ride?.children ?? []).find((c) => c.id === ca.childId))
+                .filter((c): c is NonNullable<typeof c> => c !== undefined);
+              if (selfDrivingChildren.length === 0) return null;
+              return (
+                <div className="p-4 border-2 border-blue-200 rounded-xl bg-blue-50">
+                  <h3 className="text-base font-bold mb-3">🚗 自走参加者</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selfDrivingChildren.map((child) => (
+                      <span
+                        key={child.id}
+                        className="px-3 py-1.5 bg-white border border-blue-200 rounded-full text-sm"
+                      >
+                        {child.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* メンバー共有セクション */}
             <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
               <h3 className="text-lg font-bold mb-4 flex items-center gap-2">

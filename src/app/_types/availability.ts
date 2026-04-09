@@ -7,7 +7,7 @@ export interface AvailabilityFormValues {
   escortAvailability: boolean;
   escortDirection: "outbound" | "inbound" | "both";
   escortComment: string;
-  childAvailabilities?: { childId: number; availability: boolean }[];
+  childAvailabilities?: { childId: number; availability: boolean; selfDriving?: boolean }[];
 }
 
 export interface AvailabilityListFormValues {

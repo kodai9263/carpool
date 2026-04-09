@@ -65,6 +65,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               select: {
                 childId: true,
                 availability: true,
+                selfDriving: true,
               },
             },
           },

@@ -19,7 +19,7 @@ interface Props {
     comment: string | null;
   }[];
   childrenList: { id: number; name: string; currentGrade: number | null }[];
-  childAvailabilities: { childId: number; availability: boolean }[];
+  childAvailabilities: { childId: number; availability: boolean; selfDriving: boolean }[];
   removeDriver: (index: number) => void;
   appendDriver: (direction: "outbound" | "inbound") => void;
 };

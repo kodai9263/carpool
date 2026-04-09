@@ -18,7 +18,7 @@ interface Props {
     availability: boolean;
     comment: string | null;
   }[];
-  childAvailabilities: { childId: number; availability: boolean }[];
+  childAvailabilities: { childId: number; availability: boolean; selfDriving: boolean }[];
 }
 
 export default function ChildAssignmentList({
@@ -50,14 +50,14 @@ export default function ChildAssignmentList({
     });
   }, [childrenList]);
 
-  // 参加不可（availability: false）の子どもをプルダウンから除外
+  // 不参加・自走の子どもをプルダウンから除外
   const participatingChildren = useMemo(() => {
-    const notParticipatingIds = new Set(
+    const notAssignableIds = new Set(
       childAvailabilities
-        .filter((ca) => !ca.availability)
+        .filter((ca) => !ca.availability || ca.selfDriving)
         .map((ca) => ca.childId)
     );
-    return sortedChildrenList.filter((child) => !notParticipatingIds.has(child.id));
+    return sortedChildrenList.filter((child) => !notAssignableIds.has(child.id));
   }, [sortedChildrenList, childAvailabilities]);
 
   const selfSelectedChildIds = useMemo(() => {

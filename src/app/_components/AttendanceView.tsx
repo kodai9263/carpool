@@ -51,11 +51,27 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
     return list;
   }, [ride]);
 
-  // 欠席者リスト（childAvailabilities.availability === false の子供）
+  // 自走参加者リスト
+  const selfDrivingChildren = useMemo(() => {
+    const selfDrivingIds = new Set(
+      ride.childAvailabilities
+        .filter((ca) => ca.selfDriving)
+        .map((ca) => ca.childId)
+    );
+    return ride.children
+      .filter((c) => selfDrivingIds.has(c.id))
+      .sort((a, b) => {
+        const gradeA = a.currentGrade ?? -1;
+        const gradeB = b.currentGrade ?? -1;
+        return gradeB - gradeA;
+      });
+  }, [ride]);
+
+  // 欠席者リスト（childAvailabilities.availability === false かつ自走でない子供）
   const absentees = useMemo(() => {
     const absentChildIds = new Set(
       ride.childAvailabilities
-        .filter((ca) => !ca.availability)
+        .filter((ca) => !ca.availability && !ca.selfDriving)
         .map((ca) => ca.childId)
     );
     return ride.children
@@ -74,10 +90,10 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
         <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
           ✅ 参加者一覧
           <span className="text-sm font-normal text-gray-500">
-            （{participants.length}名）
+            （{participants.length + selfDrivingChildren.length}名）
           </span>
         </h2>
-        {participants.length === 0 ? (
+        {participants.length === 0 && selfDrivingChildren.length === 0 ? (
           <p className="text-gray-500 text-sm py-4 text-center bg-gray-50 rounded-lg">
             配車に割り当てられた子供がいません
           </p>
@@ -96,6 +112,24 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
                     </span>
                   )}
                 </div>
+              </div>
+            ))}
+            {selfDrivingChildren.map((child) => (
+              <div
+                key={`self-driving-${child.id}`}
+                className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{child.name}</span>
+                  {child.currentGrade != null && (
+                    <span className="text-sm text-gray-500">
+                      {child.currentGrade}年生
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                  自走
+                </span>
               </div>
             ))}
           </div>

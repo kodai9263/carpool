@@ -47,13 +47,16 @@ export const POST = (
             },
           }),
 
-          // 参加可能な子ども（childAvailabilities で availability=false のものを除外）
+          // 参加可能な子ども（不参加・自走を除外）
           prisma.child.findMany({
             where: {
               member: { teamId },
               NOT: {
                 childAvailabilities: {
-                  some: { rideId, availability: false },
+                  some: {
+                    rideId,
+                    OR: [{ availability: false }, { selfDriving: true }],
+                  },
                 },
               },
             },
