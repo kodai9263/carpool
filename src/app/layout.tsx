@@ -4,18 +4,42 @@ import { Toaster } from "react-hot-toast";
 import { FeedbackWidget } from "./_components/FeedbackWidget";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://carpool-kappa.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Carpool",
-  description: "チームの移動、もう迷わない",
+  title: "Carpool｜少年野球・サッカーの配車管理アプリ",
+  description: "LINEやExcelでの配車調整をアプリ1つで解決。配車可否の収集から自動アサインまで、チームの送迎をスムーズに。無料で始められます。",
   icons: {
     icon: '/favicon.png',
-    apple: '/favicon.png',  // iPhoneのホーム画面アイコン用
+    apple: '/favicon.png',
   },
-  manifest: '/manifest.json',  // Web App Manifestを参照
-  appleWebApp: {               // iPhone Safariでアプリ風動作にする設定
+  manifest: '/manifest.json',
+  appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Carpool',
+  },
+  openGraph: {
+    title: "Carpool｜少年野球・サッカーの配車管理アプリ",
+    description: "LINEやExcelでの配車調整をアプリ1つで解決。無料で始められます。",
+    url: siteUrl,
+    siteName: "Carpool",
+    images: [
+      {
+        url: `${siteUrl}/ogp.png`,
+        width: 1200,
+        height: 630,
+        alt: "Carpool - 少年野球・サッカーの配車管理アプリ",
+      },
+    ],
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Carpool｜少年野球・サッカーの配車管理アプリ",
+    description: "LINEやExcelでの配車調整をアプリ1つで解決。無料で始められます。",
+    images: [`${siteUrl}/ogp.png`],
   },
 };
 
