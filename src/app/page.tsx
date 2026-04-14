@@ -2,8 +2,11 @@ import Image from "next/image";
 import { Car, Users, Calendar, Check, X, ChevronDown, ChevronRight, UserCog, ArrowDown } from "lucide-react";
 import { Footer } from "./_components/Footer";
 import { LpTracker, TrackedLink } from "./_components/LpTracker";
+import { prisma } from "@/lib/prisma";
 
-export default function Home() {
+export default async function Home() {
+  const teamCount = await prisma.team.count();
+
   return (
     <div className="min-h-screen">
       <LpTracker />
@@ -18,6 +21,13 @@ export default function Home() {
         <Image src="/car.png" alt="car" width={160} height={120}/>
       </div>
 
+        <div className="flex items-center justify-center gap-2 mb-6 text-sm text-gray-500">
+          <span className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 px-3 py-1 rounded-full font-medium">
+            <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+            すでに {teamCount} チームが利用中
+          </span>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-6 mb-8 mt-2">
           <TrackedLink
             href="/login"
@@ -31,7 +41,7 @@ export default function Home() {
             trackLabel="signup_hero"
             className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-gradient-to-r from-[#5d9b94] to-[#0F766E] hover:from-[#4a7d77] hover:to-[#0D6B64] text-white font-medium transition-all shadow-lg hover:shadow-xl"
           >
-            会員登録
+            無料で始める
           </TrackedLink>
         </div>
         <div>
@@ -113,8 +123,8 @@ export default function Home() {
                   <Car size={32} className="text-white" />
                 </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">簡単な配車管理</h3>
-              <p className="text-gray-600">配車可否の入力から子供の割り当てまで、直感的な操作で管理できます</p>
+              <h3 className="text-xl font-bold mb-3">配車ドライバー管理</h3>
+              <p className="text-gray-600">誰が何人乗せられるか一覧で確認。子供の割り当てまで直感的に操作できます</p>
             </div>
 
             <div className="text-center p-6">
@@ -123,8 +133,8 @@ export default function Home() {
                   <Users size={32} className="text-white" />
                 </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">チーム全体で共有</h3>
-              <p className="text-gray-600">メンバー全員がリアルタイムで配車状況を確認・更新できます</p>
+              <h3 className="text-xl font-bold mb-3">引率者・自走にも対応</h3>
+              <p className="text-gray-600">配車だけでなく引率者の管理や、自走で参加する子供の把握もアプリ1つで完結</p>
             </div>
 
             <div className="text-center p-6">
@@ -134,7 +144,37 @@ export default function Home() {
                 </div>
               </div>
               <h3 className="text-xl font-bold mb-3">日程ごとに管理</h3>
-              <p className="text-gray-600">試合や練習の日程ごとに、配車を個別に管理できます</p>
+              <p className="text-gray-600">試合・練習ごとに配車を個別管理。行き帰りで別々の配車にも対応しています</p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-[#5d9b94] rounded-full flex items-center justify-center">
+                  <Check size={32} className="text-white" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mb-3">自動アサイン</h3>
+              <p className="text-gray-600">ボタン1つで子供を各ドライバーへ自動割り当て。手作業の調整時間をゼロに</p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-[#5d9b94] rounded-full flex items-center justify-center">
+                  <ChevronRight size={32} className="text-white" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mb-3">PINコードで簡単共有</h3>
+              <p className="text-gray-600">アカウント登録不要。管理者がPINを共有するだけでメンバー全員がすぐ使えます</p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-[#5d9b94] rounded-full flex items-center justify-center">
+                  <UserCog size={32} className="text-white" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mb-3">出欠も一括管理</h3>
+              <p className="text-gray-600">子供ごとの参加・欠席もアプリ内で管理。当日の出席確認もスムーズに行えます</p>
             </div>
           </div>
         </div>
@@ -144,7 +184,7 @@ export default function Home() {
       <section id="section-how-to-use" className="py-20">
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">使い方</h2>
-          
+
           {/* 管理者向け */}
           <div className="mb-16">
             <div className="flex items-center gap-3 mb-8">
@@ -158,7 +198,7 @@ export default function Home() {
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">1</div>
                 <div>
                   <h4 className="font-bold text-lg mb-2">チームを作成</h4>
-                  <p className="text-gray-600">会員登録後、チーム名とメンバーを登録します</p>
+                  <p className="text-gray-600">会員登録後、チーム名・メンバー・子供の名前を登録します</p>
                 </div>
               </div>
 
@@ -169,8 +209,8 @@ export default function Home() {
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">2</div>
                 <div>
-                  <h4 className="font-bold text-lg mb-2">配車日程を作成</h4>
-                  <p className="text-gray-600">試合や練習の日付と行き先を登録し、メンバーにPINコードを共有します</p>
+                  <h4 className="font-bold text-lg mb-2">配車日程を作成・PINを共有</h4>
+                  <p className="text-gray-600">試合や練習の日付と行き先を登録し、PINコードをLINEでメンバーに共有します</p>
                 </div>
               </div>
 
@@ -181,8 +221,20 @@ export default function Home() {
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">3</div>
                 <div>
-                  <h4 className="font-bold text-lg mb-2">配車を編集・確認</h4>
-                  <p className="text-gray-600">メンバーの配車可否を確認し、ドライバーと子供の割り当てを調整します</p>
+                  <h4 className="font-bold text-lg mb-2">配車・引率を確定する</h4>
+                  <p className="text-gray-600">メンバーの回答を確認し、ドライバー・引率者を選択。自動アサインで子供を各車に割り当てます</p>
+                </div>
+              </div>
+
+              <div className="flex justify-center py-2">
+                <ArrowDown size={24} className="text-[#5d9b94]" />
+              </div>
+
+              <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">4</div>
+                <div>
+                  <h4 className="font-bold text-lg mb-2">当日の出欠確認</h4>
+                  <p className="text-gray-600">出席確認ページで当日の参加状況をリアルタイムに把握できます</p>
                 </div>
               </div>
             </div>
@@ -201,7 +253,7 @@ export default function Home() {
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">1</div>
                 <div>
                   <h4 className="font-bold text-lg mb-2">PINコードで参加</h4>
-                  <p className="text-gray-600">管理者から共有されたPINコードを入力して、配車ページにアクセスします</p>
+                  <p className="text-gray-600">アカウント登録不要。管理者から共有されたPINコードを入力するだけでアクセスできます</p>
                 </div>
               </div>
 
@@ -212,8 +264,20 @@ export default function Home() {
               <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">2</div>
                 <div>
-                  <h4 className="font-bold text-lg mb-2">配車可否を入力</h4>
-                  <p className="text-gray-600">自分が送迎可能かどうかと、車の座席数を入力します</p>
+                  <h4 className="font-bold text-lg mb-2">配車・引率・自走を回答</h4>
+                  <p className="text-gray-600">送迎できるか・引率できるか・子供が自走参加するかを選択して送信します</p>
+                </div>
+              </div>
+
+              <div className="flex justify-center py-2">
+                <ArrowDown size={24} className="text-[#5d9b94]" />
+              </div>
+
+              <div className="flex gap-4 items-start bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#5d9b94] text-white rounded-full flex items-center justify-center font-bold">3</div>
+                <div>
+                  <h4 className="font-bold text-lg mb-2">配車結果を確認</h4>
+                  <p className="text-gray-600">配車が確定したら、誰の車に乗るかをアプリで確認できます</p>
                 </div>
               </div>
             </div>
@@ -239,7 +303,7 @@ export default function Home() {
               trackLabel="signup_cta"
               className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-gradient-to-r from-[#5d9b94] to-[#0F766E] hover:from-[#4a7d77] hover:to-[#0D6B64] text-white font-medium transition-all shadow-lg hover:shadow-xl text-sm w-full sm:w-auto max-w-[140px]"
             >
-              会員登録
+              無料で始める
             </TrackedLink>
           </div>
           <div className="flex justify-center mt-4">
