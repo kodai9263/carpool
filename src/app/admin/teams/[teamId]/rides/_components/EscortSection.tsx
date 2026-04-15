@@ -54,7 +54,18 @@ export default function EscortSection({
     [allDrivers, direction]
   );
 
-  const canAddEscort = totalSelectedEscorts < totalAvailableEscorts;
+  // このドライバーカードの座席数と現在の子供数を取得して空き座席をチェック
+  const currentDriver = allDrivers[driverIndex];
+  const selectedDriverId = currentDriver?.availabilityDriverId ?? null;
+  const childCount = (currentDriver?.rideAssignments ?? []).length;
+  const selectedDriverSeats = availabilityDrivers.find((d) => d.id === selectedDriverId);
+  const seatCount = selectedDriverSeats?.seats ?? 0;
+
+  // 引率者候補に空きがあり、かつこの車の座席にも空きがある場合のみ追加可能
+  const canAddEscort =
+    totalSelectedEscorts < totalAvailableEscorts &&
+    seatCount > 0 &&
+    (childCount + fields.length) < seatCount;
 
   return (
     <div className="pt-3 border-t border-gray-200 space-y-2">

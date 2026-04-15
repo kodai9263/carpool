@@ -83,8 +83,9 @@ export default function ChildAssignmentList({
     currentAssignments
   );
 
-  // 乗車する子どもの数を増やせるかどうかの判定
-  const canAddAssignment = fields.length < seatCount;
+  // 引率者の人数も合算して空き座席を判定
+  const escortCount = (driver.escorts ?? []).length;
+  const canAddAssignment = (fields.length + escortCount) < seatCount;
 
   // 同じ方向のドライバー間のみ重複防止（行きと帰りで同じ子供を別々に乗せられるように）
   const currentDirection = driver?.direction ?? 'outbound';
@@ -171,21 +172,17 @@ export default function ChildAssignmentList({
           </button>
         </div>
       ) : selectedDriverId && seatCount > 0 ? (
-        // 配車: 座席数ベース
+        // 配車: 座席数ベース（追加可能な場合のみボタン表示、満席バナーは引率者セクション下に表示）
         <div className="mt-3">
-          {canAddAssignment ? (
+          {canAddAssignment && (
             <button
               type="button"
               onClick={() => append({ childId: 0 })}
               className="w-full flex items-center justify-center gap-2 text-[#5d9b94] hover:text-[#4a7d77] transition bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm font-medium"
             >
               <Plus size={18} />
-              <span>あと{seatCount - fields.length}人乗車できます</span>
+              <span>あと{seatCount - fields.length - escortCount}人乗車できます</span>
             </button>
-          ) : (
-            <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-700 font-medium">
-              {seatCount}人まで乗車可能です
-            </div>
           )}
         </div>
       ) : null}
