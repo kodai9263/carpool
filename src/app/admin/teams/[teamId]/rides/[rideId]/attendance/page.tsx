@@ -40,7 +40,7 @@ export default function Page() {
             label="配車詳細に戻る"
             type="button"
             onClick={() =>
-              router.push(`/member/teams/${teamId}/rides/${rideId}`)
+              router.push(`/admin/teams/${teamId}/rides/${rideId}`)
             }
             className="!w-full !max-w-[300px] py-3 text-base"
           />

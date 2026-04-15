@@ -10,7 +10,16 @@ interface AttendanceViewProps {
 }
 
 export function AttendanceView({ ride }: AttendanceViewProps) {
-  // 参加者リスト（配車・引率への割り当てベース）
+  // 欠席の子供IDセット（参加者リストからの除外に使用）
+  const absentChildIds = useMemo(() => {
+    return new Set(
+      ride.childAvailabilities
+        .filter((ca) => !ca.availability && !ca.selfDriving)
+        .map((ca) => ca.childId)
+    );
+  }, [ride]);
+
+  // 参加者リスト（配車・引率への割り当てベース、欠席者は除外）
   const participants = useMemo(() => {
     const list: {
       child: { id: number; name: string; currentGrade: number | null };
@@ -22,6 +31,8 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
       // 配車ドライバーの乗車する子供
       if (driver.type === "driver") {
         for (const assignment of driver.rideAssignments) {
+          // 欠席の子供はスキップ
+          if (absentChildIds.has(assignment.child.id)) continue;
           list.push({
             child: assignment.child,
             assignedTo: driver.availabilityDriver.guardian.name,
@@ -31,6 +42,8 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
         // 引率者が担当する子供
         for (const escort of driver.escorts) {
           for (const assignment of escort.rideAssignments) {
+            // 欠席の子供はスキップ
+            if (absentChildIds.has(assignment.child.id)) continue;
             list.push({
               child: assignment.child,
               assignedTo: escort.availabilityDriver.guardian.name,
@@ -49,7 +62,7 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
     });
 
     return list;
-  }, [ride]);
+  }, [ride, absentChildIds]);
 
   // 自走参加者リスト
   const selfDrivingChildren = useMemo(() => {
@@ -67,13 +80,8 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
       });
   }, [ride]);
 
-  // 欠席者リスト（childAvailabilities.availability === false かつ自走でない子供）
+  // 欠席者リスト（absentChildIds を再利用）
   const absentees = useMemo(() => {
-    const absentChildIds = new Set(
-      ride.childAvailabilities
-        .filter((ca) => !ca.availability && !ca.selfDriving)
-        .map((ca) => ca.childId)
-    );
     return ride.children
       .filter((c) => absentChildIds.has(c.id))
       .sort((a, b) => {
@@ -81,7 +89,7 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
         const gradeB = b.currentGrade ?? -1;
         return gradeB - gradeA;
       });
-  }, [ride]);
+  }, [ride, absentChildIds]);
 
   return (
     <div className="space-y-8">

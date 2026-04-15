@@ -87,6 +87,13 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
 
     if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
 
+    // 欠席の子供IDセット（rideAssignmentsから除外するため）
+    const absentChildIds = new Set(
+      (ride.childAvailabilities ?? [])
+        .filter((ca) => !ca.availability && !ca.selfDriving)
+        .map((ca) => ca.childId)
+    );
+
     // linkedDriverId を使ってドライバーに引率者を紐付け
     type DriverRow = typeof allDrivers[number];
     const driverMap = new Map<number, DriverRow & { escorts: DriverRow[] }>(
@@ -107,20 +114,10 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         destination: ride.destination,
         drivers: drivers.map((driver) => ({
           ...driver,
-          rideAssignments: driver.rideAssignments.map((ra) => ({
-            ...ra,
-            child: {
-              id: ra.child.id,
-              name: ra.child.name,
-              currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
-            },
-          })),
-          escorts: driver.escorts.map((escort) => ({
-            id: escort.id,
-            direction: escort.direction,
-            availabilityDriverId: escort.availabilityDriverId,
-            availabilityDriver: escort.availabilityDriver,
-            rideAssignments: escort.rideAssignments.map((ra) => ({
+          // 欠席の子供をrideAssignmentsから除外
+          rideAssignments: driver.rideAssignments
+            .filter((ra) => !absentChildIds.has(ra.child.id))
+            .map((ra) => ({
               ...ra,
               child: {
                 id: ra.child.id,
@@ -128,6 +125,22 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
                 currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
               },
             })),
+          escorts: driver.escorts.map((escort) => ({
+            id: escort.id,
+            direction: escort.direction,
+            availabilityDriverId: escort.availabilityDriverId,
+            availabilityDriver: escort.availabilityDriver,
+            // 引率者の担当からも欠席の子供を除外
+            rideAssignments: escort.rideAssignments
+              .filter((ra) => !absentChildIds.has(ra.child.id))
+              .map((ra) => ({
+                ...ra,
+                child: {
+                  id: ra.child.id,
+                  name: ra.child.name,
+                  currentGrade: calcCurrentGrade(ra.child.grade, ra.child.gradeYear),
+                },
+              })),
           })),
         })),
         separateDirections: ride.separateDirections,
