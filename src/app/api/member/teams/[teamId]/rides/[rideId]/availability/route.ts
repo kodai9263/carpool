@@ -94,6 +94,19 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
         });
       }
 
+      // 欠席になった子供の配車割り当てを削除
+      if (childAvailabilities && childAvailabilities.length > 0) {
+        const absentChildIds = childAvailabilities
+          .filter((c) => !c.availability && !c.selfDriving)
+          .map((c) => c.childId);
+
+        if (absentChildIds.length > 0) {
+          await tx.rideAssignment.deleteMany({
+            where: { rideId: rideIdNum, childId: { in: absentChildIds } },
+          });
+        }
+      }
+
       // 3. 不可になった場合は既存の割当を削除
       if (!driverAvailability) {
         await tx.driver.deleteMany({ where: { rideId: rideIdNum, availabilityDriverId: driverRecord.id } });
