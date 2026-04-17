@@ -140,6 +140,18 @@ export const FeedbackWidget: React.FC = () => {
                 )}
               </div>
 
+              {/* 返信希望の場合の誘導 */}
+              <p className="mt-3 mb-4 text-xs text-gray-500">
+                返信が必要な場合は、{" "}
+                <a
+                  href="mailto:carpool.app.2026@gmail.com"
+                  className="underline hover:text-gray-700"
+                >
+                  お問い合わせ
+                </a>
+                {" "}までご連絡ください。
+              </p>
+
               <FormButton label="送信する" loadingLabel="送信中..." isSubmitting={isSubmitting} />
             </form>
           </div>
