@@ -37,7 +37,7 @@ export default async function Home() {
           <div className="flex items-center justify-center mb-8">
             <span className="inline-flex items-center gap-2 bg-white border border-green-200 text-green-700 px-4 py-2 rounded-full font-medium shadow-sm text-sm">
               <span className="w-2 h-2 bg-green-500 rounded-full inline-block animate-pulse" />
-              すでに <strong className="text-green-800 mx-0.5">{teamCount}</strong> チームが利用中
+              <strong className="text-green-800 mx-0.5">{teamCount}</strong> チームが利用中
             </span>
           </div>
 
