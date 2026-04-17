@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { Car, Users, Calendar, Check, ChevronRight, UserCog, ArrowDown, Key, Zap } from "lucide-react";
+import { Check, ChevronRight, Users, UserCog, ArrowDown } from "lucide-react";
 import { Footer } from "./_components/Footer";
 import { LpTracker, TrackedLink } from "./_components/LpTracker";
+import { FeaturesSection } from "./_components/FeaturesSection";
 import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
@@ -113,27 +114,7 @@ export default async function Home() {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-3 text-gray-900">Carpoolの特徴</h2>
           <p className="text-gray-400 text-center mb-16 text-base">チームの送迎を、ひとつのアプリで完結</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              { icon: <Car size={22} className="text-[#5d9b94]" />, title: "配車ドライバー管理", desc: "誰が何人乗せられるか一覧で確認。子供の割り当てまで直感的に操作できます" },
-              { icon: <Users size={22} className="text-[#5d9b94]" />, title: "引率者・自走にも対応", desc: "配車だけでなく引率者の管理や、自走で参加する子供の把握もアプリ1つで完結" },
-              { icon: <Calendar size={22} className="text-[#5d9b94]" />, title: "日程ごとに管理", desc: "試合・練習ごとに配車を個別管理。行き帰りで別々の配車にも対応しています" },
-              { icon: <Zap size={22} className="text-[#5d9b94]" />, title: "自動アサイン", desc: "ボタン1つで子供を各ドライバーへ自動割り当て。手作業の調整時間をゼロに" },
-              { icon: <Key size={22} className="text-[#5d9b94]" />, title: "PINコードで簡単共有", desc: "アカウント登録不要。管理者がPINを共有するだけでメンバー全員がすぐ使えます" },
-              { icon: <UserCog size={22} className="text-[#5d9b94]" />, title: "出欠も一括管理", desc: "子供ごとの参加・欠席もアプリ内で管理。当日の出席確認もスムーズに行えます" },
-            ].map((feature, i) => (
-              <div
-                key={i}
-                className="group p-6 rounded-2xl border border-gray-100 hover:border-[#5d9b94]/30 hover:shadow-md transition-all duration-200 cursor-default"
-              >
-                <div className="w-11 h-11 bg-[#5d9b94]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#5d9b94]/15 transition-colors">
-                  {feature.icon}
-                </div>
-                <h3 className="text-base font-bold mb-2 text-gray-900">{feature.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
+          <FeaturesSection />
         </div>
       </section>
 
