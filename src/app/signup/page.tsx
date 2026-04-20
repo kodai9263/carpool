@@ -45,8 +45,7 @@ export default function Page() {
         password: data.password,
       });
 
-      toast.success("確認メールを送信しました。");
-      router.push("/login");
+      router.push(`/signup/verify?email=${encodeURIComponent(data.email)}`);
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "通信エラーが発生しました。";
