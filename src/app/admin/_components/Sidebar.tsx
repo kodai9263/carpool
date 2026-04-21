@@ -4,21 +4,30 @@ import Link from "next/link";
 import { supabase } from "@/utils/supabase";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { Car, User, Users, LogOut, UserCircle } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { AddToHomeScreenButton } from "@/app/_components/AddToHomeScreenButton";
 
 const GUEST_EMAIL = "guest@carpool.demo";
 
+const navItemClass = "flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-[#5d9b94]/10 hover:text-[#5d9b94] transition-all duration-200 w-16";
+const activeNavItemClass = "flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl text-xs text-[#5d9b94] bg-[#5d9b94]/10 w-16";
+
+const mobileNavItemClass = "flex flex-col items-center gap-0.5 text-xs text-gray-500 hover:text-[#5d9b94] transition-colors duration-200 min-w-[56px] py-1";
+const activeMobileNavItemClass = "flex flex-col items-center gap-0.5 text-xs text-[#5d9b94] min-w-[56px] py-1";
+
 export const Sidebar: React.FC = () => {
   const params = useParams<{ teamId: string }>();
   const teamId = params.teamId;
+  const pathname = usePathname();
   const { session } = useSupabaseSession();
   const isGuest = session?.user.email === GUEST_EMAIL;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/'
-  }
+    window.location.href = '/';
+  };
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   return (
     <>
@@ -27,82 +36,94 @@ export const Sidebar: React.FC = () => {
         <div className="fixed top-0 left-0 right-0 z-50 bg-amber-400 text-amber-900 text-sm font-medium flex items-center justify-center gap-3 py-2 px-4">
           <span>🎭 デモ利用中</span>
           <span className="hidden sm:inline">—</span>
-          <Link
-            href="/signup"
-            className="underline underline-offset-2 hover:text-amber-950 transition-colors"
-          >
+          <Link href="/signup" className="underline underline-offset-2 hover:text-amber-950 transition-colors">
             自分のチームを無料で作る →
           </Link>
         </div>
       )}
 
       {/* デスクトップ用サイドバー */}
-      <aside className="hidden md:flex flex-col justify-between items-center bg-white w-20 min-h-screen py-6 shadow-lg">
-        <nav className="flex flex-col items-center space-y-8">
+      <aside className="hidden md:flex flex-col justify-between items-center fixed left-0 top-0 w-20 h-screen py-6 bg-white/50 backdrop-blur-xl border-r border-white/40 shadow-sm z-40">
+        <nav className="flex flex-col items-center gap-2">
           {teamId && (
             <>
-              <Link href={`/admin/teams/${teamId}/rides`} className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
-                <Car size={28} /><span className="mt-1">配車一覧</span>
+              <Link
+                href={`/admin/teams/${teamId}/rides`}
+                className={isActive(`/admin/teams/${teamId}/rides`) ? activeNavItemClass : navItemClass}
+              >
+                <Car size={24} /><span>配車一覧</span>
               </Link>
-
-              <Link href={`/admin/teams/${teamId}/members`} className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
-                <User size={28} /><span className="mt-1">メンバー一覧</span>
+              <Link
+                href={`/admin/teams/${teamId}/members`}
+                className={isActive(`/admin/teams/${teamId}/members`) ? activeNavItemClass : navItemClass}
+              >
+                <User size={24} /><span>メンバー一覧</span>
               </Link>
             </>
           )}
-          <Link href="/admin/teams" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
-            <Users size={28} /><span className="mt-1">チーム一覧</span>
+          <Link
+            href="/admin/teams"
+            className={isActive('/admin/teams') && !teamId ? activeNavItemClass : navItemClass}
+          >
+            <Users size={24} /><span>チーム一覧</span>
           </Link>
           {!isGuest && (
-            <Link href="/admin/profile" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80">
-              <UserCircle size={28} /><span className="mt-1">プロフィール</span>
+            <Link
+              href="/admin/profile"
+              className={isActive('/admin/profile') ? activeNavItemClass : navItemClass}
+            >
+              <UserCircle size={24} /><span>プロフィール</span>
             </Link>
           )}
         </nav>
 
-        <div className="flex flex-col items-center">
-          <button
-            onClick={handleLogout}
-            className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80"
-          >
-            <LogOut size={28} /><span className="mt-1">ログアウト</span>
-          </button>
-        </div>
+        <button
+          onClick={handleLogout}
+          className={navItemClass}
+        >
+          <LogOut size={24} /><span>ログアウト</span>
+        </button>
       </aside>
 
       {/* モバイル用下部ナビゲーション */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-t border-gray-100 shadow-lg">
         <div className="flex justify-around items-center h-16 px-2">
           {teamId && (
             <>
-              <Link href={`/admin/teams/${teamId}/rides`} className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]">
-                <Car size={24} /><span className="mt-1">配車</span>
+              <Link
+                href={`/admin/teams/${teamId}/rides`}
+                className={isActive(`/admin/teams/${teamId}/rides`) ? activeMobileNavItemClass : mobileNavItemClass}
+              >
+                <Car size={22} /><span>配車</span>
               </Link>
-
-              <Link href={`/admin/teams/${teamId}/members`} className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]">
-                <User size={24} /><span className="mt-1">メンバー</span>
+              <Link
+                href={`/admin/teams/${teamId}/members`}
+                className={isActive(`/admin/teams/${teamId}/members`) ? activeMobileNavItemClass : mobileNavItemClass}
+              >
+                <User size={22} /><span>メンバー</span>
               </Link>
             </>
           )}
-          <Link href="/admin/teams" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]">
-            <Users size={24} /><span className="mt-1">チーム</span>
+          <Link
+            href="/admin/teams"
+            className={isActive('/admin/teams') && !teamId ? activeMobileNavItemClass : mobileNavItemClass}
+          >
+            <Users size={22} /><span>チーム</span>
           </Link>
           {!isGuest && (
-            <Link href="/admin/profile" className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]">
-              <UserCircle size={24} /><span className="mt-1">プロフィール</span>
+            <Link
+              href="/admin/profile"
+              className={isActive('/admin/profile') ? activeMobileNavItemClass : mobileNavItemClass}
+            >
+              <UserCircle size={22} /><span>プロフィール</span>
             </Link>
           )}
-
-          <AddToHomeScreenButton className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]" />
-
-          <button
-            onClick={handleLogout}
-            className="flex flex-col items-center text-xs text-gray-800 hover:opacity-80 min-w-[60px]"
-          >
-            <LogOut size={24} /><span className="mt-1">ログアウト</span>
+          <AddToHomeScreenButton className={mobileNavItemClass} />
+          <button onClick={handleLogout} className={mobileNavItemClass}>
+            <LogOut size={22} /><span>ログアウト</span>
           </button>
         </div>
       </nav>
     </>
   );
-}
+};
