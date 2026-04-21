@@ -25,12 +25,59 @@ export default function Page() {
   if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
 
+  // チームが0件の場合はオンボーディング画面を表示
+  if (teams.length === 0) {
+    const steps = [
+      { step: 1, label: "チームを作成する", description: "チーム名を登録してスタート" },
+      { step: 2, label: "メンバーを登録する", description: "保護者の名前と子どもを登録" },
+      { step: 3, label: "PINをLINEで共有する", description: "メンバーがPINでログインできます" },
+      { step: 4, label: "配車日程を作成する", description: "日程を作成して可否を募集" },
+    ];
+
+    return (
+      <div className="min-h-screen flex justify-center items-center px-4 bg-gradient-to-br from-[#eaf4f3] to-[#f5fafa]">
+        <div className="w-full max-w-[460px]">
+          {/* タイトル */}
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2 tracking-tight">
+            はじめましょう
+          </h1>
+          <p className="text-sm text-gray-400 text-center mb-10">
+            まずはチームを作成してください
+          </p>
+
+          {/* ステップ */}
+          <div className="bg-white rounded-2xl shadow-md p-6 mb-6 space-y-5">
+            {steps.map(({ step, label, description }, index) => (
+              <div key={step} className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-[#5d9b94] to-[#3d7970] text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                  {step}
+                </div>
+                <div className="flex-1 pt-0.5">
+                  <p className="font-semibold text-gray-800 text-sm">{label}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+                </div>
+                {index < steps.length - 1 && (
+                  <div className="absolute left-[2.125rem] mt-9 w-px h-5 bg-gray-200" />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* ボタン */}
+          <div className="flex justify-center">
+            <NewButton href="/admin/teams/new" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
       <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-center flex-1 -ml-6">👥 チーム一覧</h1>
-          <NewButton 
+          <NewButton
             href="/admin/teams/new"
           />
         </div>
