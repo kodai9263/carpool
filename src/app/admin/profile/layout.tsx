@@ -16,7 +16,7 @@ export default function ProfileLayout({
   return (
     <div className={`flex ${isGuest ? "pt-10" : ""}`}>
       <Sidebar />
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      <main className="flex-1 pb-20 md:pb-0 md:ml-20">{children}</main>
     </div>
   );
 }
