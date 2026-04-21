@@ -22,6 +22,20 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
+      {/* デモ利用中バナー */}
+      {isGuest && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-400 text-amber-900 text-sm font-medium flex items-center justify-center gap-3 py-2 px-4">
+          <span>🎭 デモ利用中</span>
+          <span className="hidden sm:inline">—</span>
+          <Link
+            href="/signup"
+            className="underline underline-offset-2 hover:text-amber-950 transition-colors"
+          >
+            自分のチームを無料で作る →
+          </Link>
+        </div>
+      )}
+
       {/* デスクトップ用サイドバー */}
       <aside className="hidden md:flex flex-col justify-between items-center bg-white w-20 min-h-screen py-6 shadow-lg">
         <nav className="flex flex-col items-center space-y-8">
