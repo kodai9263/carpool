@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { MessageSquarePlus, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { FormButton } from "./FormButton";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 const CATEGORIES = ["改善要望", "バグ報告", "使ってみたい機能", "その他"] as const;
 type Category = typeof CATEGORIES[number];
@@ -12,10 +13,12 @@ type Category = typeof CATEGORIES[number];
 interface FeedbackFormValues {
   category: Category;
   message: string;
+  replyEmail: string;
 }
 
 export const FeedbackWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { token } = useSupabaseSession();
 
   const {
     register,
@@ -23,14 +26,17 @@ export const FeedbackWidget: React.FC = () => {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<FeedbackFormValues>({
-    defaultValues: { category: "改善要望", message: "" },
+    defaultValues: { category: "改善要望", message: "", replyEmail: "" },
   });
 
   const onSubmit = async (data: FeedbackFormValues) => {
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(data),
       });
 
@@ -140,17 +146,26 @@ export const FeedbackWidget: React.FC = () => {
                 )}
               </div>
 
-              {/* 返信希望の場合の誘導 */}
-              <p className="mt-3 mb-4 text-xs text-gray-500">
-                返信が必要な場合は、{" "}
-                <a
-                  href="mailto:carpool.app.2026@gmail.com"
-                  className="underline hover:text-gray-700"
-                >
-                  お問い合わせ
-                </a>
-                {" "}までご連絡ください。
-              </p>
+              {/* 返信先メール */}
+              <div className="mt-3 mb-4">
+                <label htmlFor="feedback-reply-email" className="block text-sm font-medium text-gray-700 mb-2">
+                  返信先メール <span className="text-gray-400 text-xs font-normal">（任意）</span>
+                </label>
+                <input
+                  id="feedback-reply-email"
+                  type="email"
+                  placeholder="reply@example.com"
+                  {...register("replyEmail", {
+                    pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "メールアドレスの形式が正しくありません" },
+                  })}
+                  className={`w-full rounded-lg px-4 py-2 border-2
+                    ${errors.replyEmail ? "border-red-500" : "border-gray-300"}
+                    focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none`}
+                />
+                {errors.replyEmail && (
+                  <p className="mt-1 text-sm text-red-500">{errors.replyEmail.message}</p>
+                )}
+              </div>
 
               <FormButton label="送信する" loadingLabel="送信中..." isSubmitting={isSubmitting} />
             </form>

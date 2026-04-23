@@ -21,6 +21,7 @@ model Admin {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   teams                   Team[]
+  feedbacks               Feedback[]
 }
 
 // チームテーブル
@@ -173,8 +174,11 @@ model ChildAvailability {
 
 // フィードバックテーブル
 model Feedback {
-  id        Int      @id @default(autoincrement())
-  category  String
-  message   String
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  category   String
+  message    String
+  replyEmail String?
+  adminId    Int?
+  admin      Admin?   @relation(fields: [adminId], references: [id])
+  createdAt  DateTime @default(now())
 }
