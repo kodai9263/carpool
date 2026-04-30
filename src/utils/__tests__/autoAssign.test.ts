@@ -208,6 +208,56 @@ describe("autoAssign - 親子ルール", () => {
       expect(driver1?.rideAssignments.map((r) => r.childId)).toContain(1);
     }
   });
+
+  test("separateParentChild=false (mix): 子どもは自分の親の車に優先配置される", () => {
+    const result = autoAssign({
+      drivers: [
+        makeDriver(1, 2, 0, 10), // memberId=10 の保護者が運転（2席）
+        makeDriver(2, 2, 1, 20), // memberId=20 の保護者が運転（2席）
+      ],
+      children: [
+        makeChild(1, 10), // memberId=10 の子ども → ドライバー1（親）に優先配置
+        makeChild(2, 20), // memberId=20 の子ども → ドライバー2（親）に優先配置
+        makeChild(3, 30), // 親がドライバーでない → 通常の割り当て
+      ],
+      numberOfCars: 2, // 2台確定（3人なので1台2席では乗れない）
+      gradeGrouping: "mix",
+      separateDirections: false,
+      separateParentChild: false,
+    });
+    expect(isAutoAssignError(result)).toBe(false);
+    if (!isAutoAssignError(result)) {
+      const driver1 = result.find((d) => d.availabilityDriverId === 1);
+      const driver2 = result.find((d) => d.availabilityDriverId === 2);
+      // 各子どもが自分の親の車に入っているか確認
+      expect(driver1?.rideAssignments.map((r) => r.childId)).toContain(1);
+      expect(driver2?.rideAssignments.map((r) => r.childId)).toContain(2);
+    }
+  });
+
+  test("separateParentChild=false (group): 同学年でも子どもは自分の親の車に優先配置される", () => {
+    const result = autoAssign({
+      drivers: [
+        makeDriver(1, 2, 0, 10), // memberId=10 の保護者（2席）
+        makeDriver(2, 2, 1, 20), // memberId=20 の保護者（2席）
+      ],
+      children: [
+        makeChild(1, 10, 6), // memberId=10 の子ども → 親の車優先（同学年でも分かれる）
+        makeChild(2, 20, 6), // memberId=20 の子ども → 親の車優先
+      ],
+      numberOfCars: 2,
+      gradeGrouping: "group",
+      separateDirections: false,
+      separateParentChild: false,
+    });
+    expect(isAutoAssignError(result)).toBe(false);
+    if (!isAutoAssignError(result)) {
+      const driver1 = result.find((d) => d.availabilityDriverId === 1);
+      const driver2 = result.find((d) => d.availabilityDriverId === 2);
+      expect(driver1?.rideAssignments.map((r) => r.childId)).toContain(1);
+      expect(driver2?.rideAssignments.map((r) => r.childId)).toContain(2);
+    }
+  });
 });
 
 describe("autoAssign - 学年配分", () => {

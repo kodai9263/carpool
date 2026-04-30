@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Wand2 } from "lucide-react";
 
 export interface AutoAssignOptions {
@@ -12,11 +12,32 @@ interface Props {
   onAssign: (options: AutoAssignOptions) => Promise<void>;
   isAssigning: boolean;
   error: { message: string; minimumCars?: number } | null;
+  defaultNumberOfCars?: number; // 配車可能な台数（初期値・上限として使用）
 }
 
-export default function AutoAssignPanel({ onAssign, isAssigning, error }: Props) {
+export default function AutoAssignPanel({ onAssign, isAssigning, error, defaultNumberOfCars }: Props) {
   const [numberOfCarsInput, setNumberOfCarsInput] = useState<string>("");
   const [separateParentChild, setSeparateParentChild] = useState<boolean>(false);
+
+  // データ取得後に配車可能台数を初期値としてセット
+  useEffect(() => {
+    if (defaultNumberOfCars !== undefined && numberOfCarsInput === "") {
+      setNumberOfCarsInput(String(defaultNumberOfCars));
+    }
+  }, [defaultNumberOfCars]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleNumberOfCarsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (
+      defaultNumberOfCars !== undefined &&
+      val !== "" &&
+      Number(val) > defaultNumberOfCars
+    ) {
+      setNumberOfCarsInput(String(defaultNumberOfCars));
+    } else {
+      setNumberOfCarsInput(val);
+    }
+  };
 
   const handleSubmit = async () => {
     const numberOfCars =
@@ -45,12 +66,15 @@ export default function AutoAssignPanel({ onAssign, isAssigning, error }: Props)
           <input
             type="number"
             min={1}
+            max={defaultNumberOfCars}
             value={numberOfCarsInput}
-            onChange={(e) => setNumberOfCarsInput(e.target.value)}
+            onChange={handleNumberOfCarsChange}
             placeholder="自動計算"
             className="w-28 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
           />
-          <span className="text-xs text-gray-500">空欄で自動計算</span>
+          <span className="text-xs text-gray-500">
+            空欄で自動計算（最大{defaultNumberOfCars ?? "-"}台）
+          </span>
         </div>
 
         {/* 親子分乗 */}

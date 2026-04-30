@@ -352,6 +352,9 @@ ${rideUrl}
               onAssign={handleAutoAssign}
               isAssigning={isAutoAssigning}
               error={autoAssignError}
+              defaultNumberOfCars={data?.ride?.availabilityDrivers.filter(
+                (d) => d.type === "driver" && d.availability === true
+              ).length}
             />
 
             <RideDriverList
