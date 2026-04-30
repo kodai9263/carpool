@@ -149,6 +149,11 @@ function assignMix(
         return assigned.length < d.seats;
       })
       .sort((a, b) => {
+        // 親の車を最優先（separateParentChild=false の場合）
+        if (!separateParentChild) {
+          if (a.guardianMemberId === child.memberId) return -1;
+          if (b.guardianMemberId === child.memberId) return 1;
+        }
         // 乗車人数が少ない順に優先
         const countA = result.get(a.availabilityDriverId)?.length ?? 0;
         const countB = result.get(b.availabilityDriverId)?.length ?? 0;
@@ -202,19 +207,28 @@ function assignGroup(
     const gradeChildren = gradeGroups.get(grade) ?? [];
 
     for (const child of gradeChildren) {
-      // まず同学年の子どもが既に乗っているドライバーを優先
-      const driverWithSameGrade = selectedDrivers.find((d) => {
-        // 親子ルール（separateParentChild=true の場合のみ適用）
-        if (separateParentChild && d.guardianMemberId === child.memberId) return false;
-        const assigned = result.get(d.availabilityDriverId) ?? [];
-        if (assigned.length >= d.seats) return false;
-        // 同学年の子どもが既に乗っているか
-        return assigned.some(
-          (cId) => children.find((c) => c.id === cId)?.grade === grade
-        );
-      });
+      // 優先順位1: 自分の親の車（separateParentChild=false の場合）
+      const parentDriver = !separateParentChild
+        ? selectedDrivers.find((d) => {
+            if (d.guardianMemberId !== child.memberId) return false;
+            const assigned = result.get(d.availabilityDriverId) ?? [];
+            return assigned.length < d.seats;
+          })
+        : undefined;
 
-      const target = driverWithSameGrade ?? selectedDrivers
+      // 優先順位2: 同学年の子どもが既に乗っているドライバー（親の車がない場合）
+      const driverWithSameGrade = !parentDriver
+        ? selectedDrivers.find((d) => {
+            if (separateParentChild && d.guardianMemberId === child.memberId) return false;
+            const assigned = result.get(d.availabilityDriverId) ?? [];
+            if (assigned.length >= d.seats) return false;
+            return assigned.some(
+              (cId) => children.find((c) => c.id === cId)?.grade === grade
+            );
+          })
+        : undefined;
+
+      const target = parentDriver ?? driverWithSameGrade ?? selectedDrivers
         .filter((d) => {
           // 親子ルール（separateParentChild=true の場合のみ適用）
           if (separateParentChild && d.guardianMemberId === child.memberId) return false;
