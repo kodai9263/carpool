@@ -23,7 +23,7 @@ export const EditInput = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) {
-    const bgColor = hasValue ? "bg-blue-50" : "bg-white";
+    const bgColor = hasValue ? "bg-teal-50/70" : "bg-white";
 
     return (
       <div className="w-full">
@@ -32,7 +32,7 @@ export const EditInput = forwardRef<HTMLInputElement, InputProps>(
             {icon && (
               <span className="text-gray-500 flex-shrink-0">{icon}</span>
             )}
-            <h2 className="text-sm md:text-base font-bold md:whitespace-nowrap md:w-28">
+            <h2 className="text-sm font-semibold text-gray-700 md:w-28 md:whitespace-nowrap">
               {label}
             </h2>
           </div>
@@ -42,9 +42,9 @@ export const EditInput = forwardRef<HTMLInputElement, InputProps>(
               {...props}
               className={`${
                 className ?? "flex-1"
-              } min-w-0 ${bgColor} rounded-lg px-3 md:px-4 py-2 border-2 ${
+              } min-w-0 ${bgColor} rounded-lg px-3 md:px-4 py-3 border ${
                 error ? "border-red-500" : "border-gray-300"
-              } focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-left transition-colors duration-200`}
+              } focus:border-teal-700 focus:ring-4 focus:ring-teal-700/10 focus:outline-none text-left transition-colors duration-200`}
             />
             {right}
           </div>

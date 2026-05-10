@@ -43,7 +43,7 @@ export function FeatureModal({ feature, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* 背景オーバーレイ */}
@@ -51,20 +51,20 @@ export function FeatureModal({ feature, onClose }: Props) {
 
       {/* モーダル本体 */}
       <div
-        className="relative z-10 bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="relative z-10 app-card max-h-[90vh] w-full max-w-lg overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 閉じるボタン */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors z-10"
+          className="app-icon-button absolute right-4 top-4 z-10"
           aria-label="閉じる"
         >
           <X size={16} className="text-gray-600" />
         </button>
 
         {/* スクリーンショット */}
-        <div className="relative w-full aspect-[9/16] sm:aspect-video bg-gray-50 rounded-t-3xl overflow-hidden">
+        <div className="relative aspect-[9/16] w-full overflow-hidden rounded-t-xl bg-gray-50 sm:aspect-video">
           <Image
             src={feature.image}
             alt={feature.title}
@@ -75,16 +75,16 @@ export function FeatureModal({ feature, onClose }: Props) {
 
         {/* テキスト */}
         <div className="p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-          <p className="text-gray-500 text-sm leading-relaxed mb-6">{feature.detail}</p>
+          <h3 className="mb-2 text-xl font-bold text-gray-950">{feature.title}</h3>
+          <p className="mb-6 text-sm leading-relaxed text-gray-500">{feature.detail}</p>
 
           {/* CTA */}
           <TrackedLink
             href="/signup"
             trackLabel="signup_feature_modal"
-            className="flex items-center justify-center h-12 w-full rounded-xl bg-[#5d9b94] hover:bg-[#4a8880] text-white font-semibold transition-all shadow-md hover:shadow-lg"
+            className="app-button-primary w-full"
           >
-            無料で始める →
+            無料で始める
           </TrackedLink>
         </div>
       </div>

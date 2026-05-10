@@ -88,7 +88,7 @@ export default function DriverHeader({
       {/* 削除ボタンとドライバー選択を横並び */}
       <div className="flex items-start gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <CarFront size={24} className="text-[#5d9b94] flex-shrink-0" />
+          <CarFront size={24} className="flex-shrink-0 text-teal-700" />
           <select
             name={name}
             onBlur={onBlur}
@@ -97,7 +97,7 @@ export default function DriverHeader({
               ref(e);
               (selectRef as React.MutableRefObject<HTMLSelectElement | null>).current = e;
             }}
-            className="w-full min-w-0 truncate border-2 border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-[#5d9b94] focus:ring-2 focus:ring-[#5d9b94] focus:outline-none"
+            className="app-select w-full min-w-0 truncate py-2 text-sm"
           >
             <option value={0}>ドライバーを選択</option>
             {availableDrivers.map((driver) => {
@@ -119,7 +119,7 @@ export default function DriverHeader({
         <button
           type="button"
           onClick={onRemove}
-          className="text-gray-400 hover:text-red-500 transition flex-shrink-0 mt-1"
+          className="mt-1 flex-shrink-0 text-gray-400 transition hover:text-red-500"
         >
           <X size={20} />
         </button>
@@ -127,7 +127,7 @@ export default function DriverHeader({
 
       {/* ドライバーのコメント表示 */}
       {comment && (
-        <div className="flex items-start gap-1.5 ml-8 mr-7 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+        <div className="ml-8 mr-7 flex items-start gap-1.5 rounded border border-orange-200 bg-orange-100 px-2 py-1.5 text-xs text-orange-700">
           <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
           <span>{comment}</span>
         </div>

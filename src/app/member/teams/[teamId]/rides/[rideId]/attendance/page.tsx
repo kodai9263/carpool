@@ -33,11 +33,16 @@ export default function Page() {
   if (!data.ride) return <div>配車が見つかりません。</div>;
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
-        <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8">
-          参加者・欠席者一覧
-        </h1>
+    <div className="app-page">
+      <div className="app-container max-w-3xl">
+      <div className="app-card min-w-0 overflow-hidden p-4 md:p-8">
+        <div className="mb-6 md:mb-8">
+          <p className="mb-1 text-sm font-semibold text-teal-700">当日確認</p>
+          <h1 className="app-section-title">参加者・欠席者一覧</h1>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            当日の参加状況を確認できます。
+          </p>
+        </div>
 
         <AttendanceView ride={data.ride} />
 
@@ -51,6 +56,7 @@ export default function Page() {
             className="!w-full !max-w-[300px] py-3 text-base"
           />
         </div>
+      </div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AdminMeResponse } from "@/app/_types/response/adminResponse";
 import { TransferFormValues } from "@/app/_types/admin";
+import { AlertTriangle, Mail, Send, ShieldCheck, Trash2 } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -78,98 +79,128 @@ export default function ProfilePage() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
-      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <h1 className="text-2xl font-bold mb-8">プロフィール</h1>
-
+    <div className="app-page min-h-screen px-4 py-8 md:px-8">
+      <div className="app-container max-w-3xl">
         <div className="mb-8">
-          <label className="block text-sm font-medium text-gray-600 mb-1">メールアドレス</label>
-          <p className="text-lg text-gray-800 bg-gray-50 px-4 py-3 rounded-lg">{data?.admin.email}</p>
+          <p className="mb-1 text-sm font-semibold text-teal-700">Account</p>
+          <h1 className="app-section-title">プロフィール</h1>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            ログイン情報と管理者権限の引き継ぎを管理できます。
+          </p>
         </div>
 
-        <hr className="border-gray-200 mb-8" />
-
-        {/* 管理者の引き継ぎ */}
-        {data?.admin.pendingTransferNewEmail ? (
-          // 引き継ぎ中バナー
-          <div className="mt-6 border border-yellow-200 rounded-xl p-5 bg-yellow-50">
-            <h2 className="text-base font-bold text-yellow-700 mb-2">引き継ぎ中</h2>
-            <p className="text-sm text-yellow-700 mb-4">
-              <span className="font-medium">{data.admin.pendingTransferNewEmail}</span> 宛に招待メールを送信しました。
-              新しい担当者がパスワードを設定するまで、このアカウントで引き続きアクセスできます。
-              <br />
-              メールアドレスを間違えた場合はキャンセルしてください。
-            </p>
-            <button
-              onClick={handleCancelTransfer}
-              disabled={isCancelling}
-              className="w-full py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-300 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              {isCancelling ? "キャンセル中..." : "引き継ぎをキャンセルする"}
-            </button>
-          </div>
-        ) : (
-          // 引き継ぎフォーム
-          <div className="mt-6 border border-orange-200 rounded-xl p-5 bg-orange-50">
-            <h2 className="text-base font-bold text-orange-700 mb-2">管理者の引き継ぎ</h2>
-            <p className="text-sm text-orange-600 mb-4">
-              新しい担当者のメールアドレスを入力してください。
-              入力したメールアドレス宛にパスワード設定用のリンクが送られます。
-            </p>
-            <form onSubmit={handleSubmitTransfer(onTransfer)} className="space-y-3">
-              <div>
-                <input
-                  type="email"
-                  placeholder="新しい担当者のメールアドレス"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-                  {...registerTransfer("newEmail", {
-                    required: "メールアドレスを入力してください",
-                    pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "正しいメールアドレスを入力してください" },
-                  })}
-                />
-                {transferErrors.newEmail && (
-                  <p className="mt-1 text-xs text-red-500">{transferErrors.newEmail.message}</p>
-                )}
+        <div className="space-y-5">
+          <section className="app-card overflow-hidden">
+            <div className="flex items-start gap-4 p-5 md:p-6">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                <Mail size={21} />
               </div>
-              <div>
-                <input
-                  type="email"
-                  placeholder="メールアドレス（確認）"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-                  {...registerTransfer("confirmEmail", {
-                    required: "確認用メールアドレスを入力してください",
-                    validate: (val) => val === watchTransfer("newEmail") || "メールアドレスが一致しません",
-                  })}
-                />
-                {transferErrors.confirmEmail && (
-                  <p className="mt-1 text-xs text-red-500">{transferErrors.confirmEmail.message}</p>
-                )}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-500">メールアドレス</p>
+                <p className="mt-2 truncate text-lg font-bold text-gray-950">{data?.admin.email}</p>
+              </div>
+            </div>
+          </section>
+
+          {data?.admin.pendingTransferNewEmail ? (
+            <section className="app-card border-amber-200 bg-amber-50/80 p-5 md:p-6">
+              <div className="mb-4 flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm">
+                  <ShieldCheck size={21} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-amber-900">引き継ぎ中</h2>
+                  <p className="mt-2 text-sm leading-6 text-amber-800">
+                    <span className="font-semibold">{data.admin.pendingTransferNewEmail}</span> 宛に招待メールを送信しました。
+                    新しい担当者がパスワードを設定するまで、このアカウントで引き続きアクセスできます。
+                  </p>
+                </div>
               </div>
               <button
-                type="submit"
-                disabled={isTransferring}
-                className="w-full py-2 px-4 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-300 text-white text-sm font-medium rounded-lg transition-colors"
+                type="button"
+                onClick={handleCancelTransfer}
+                disabled={isCancelling}
+                className="app-button-secondary w-full border-amber-200 bg-white text-amber-800 hover:bg-amber-100"
               >
-                {isTransferring ? "送信中..." : "引き継ぎメールを送る"}
+                {isCancelling ? "キャンセル中..." : "引き継ぎをキャンセルする"}
               </button>
-            </form>
-          </div>
-        )}
+            </section>
+          ) : (
+            <section className="app-card p-5 md:p-6">
+              <div className="mb-5 flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                  <ShieldCheck size={21} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-950">管理者の引き継ぎ</h2>
+                  <p className="mt-2 text-sm leading-6 text-gray-500">
+                    新しい担当者のメールアドレス宛に、パスワード設定用のリンクを送信します。
+                  </p>
+                </div>
+              </div>
+              <form onSubmit={handleSubmitTransfer(onTransfer)} className="space-y-4">
+                <div>
+                  <input
+                    type="email"
+                    placeholder="新しい担当者のメールアドレス"
+                    className="app-input text-sm"
+                    {...registerTransfer("newEmail", {
+                      required: "メールアドレスを入力してください",
+                      pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "正しいメールアドレスを入力してください" },
+                    })}
+                  />
+                  {transferErrors.newEmail && (
+                    <p className="mt-1 text-xs text-red-500">{transferErrors.newEmail.message}</p>
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="email"
+                    placeholder="メールアドレス（確認）"
+                    className="app-input text-sm"
+                    {...registerTransfer("confirmEmail", {
+                      required: "確認用メールアドレスを入力してください",
+                      validate: (val) => val === watchTransfer("newEmail") || "メールアドレスが一致しません",
+                    })}
+                  />
+                  {transferErrors.confirmEmail && (
+                    <p className="mt-1 text-xs text-red-500">{transferErrors.confirmEmail.message}</p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isTransferring}
+                  className="app-button-primary w-full"
+                >
+                  <Send size={16} />
+                  {isTransferring ? "送信中..." : "引き継ぎメールを送る"}
+                </button>
+              </form>
+            </section>
+          )}
 
-        <hr className="border-gray-200 mb-8 mt-6" />
-
-        <div className="border border-red-200 rounded-xl p-5 bg-red-50">
-          <h2 className="text-base font-bold text-red-700 mb-2">アカウントの削除</h2>
-          <p className="text-sm text-red-600 mb-4">
-            アカウントを削除すると、チーム・メンバー・配車などすべてのデータが完全に削除されます。この操作は取り消せません。
-          </p>
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isDeleting ? "削除中..." : "アカウントを削除する"}
-          </button>
+          <section className="rounded-xl border border-red-100 bg-white p-5 shadow-sm md:p-6">
+            <div className="mb-4 flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                <AlertTriangle size={21} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-950">アカウントの削除</h2>
+                <p className="mt-2 text-sm leading-6 text-gray-500">
+                  アカウントを削除すると、チーム・メンバー・配車などすべてのデータが完全に削除されます。この操作は取り消せません。
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Trash2 size={16} />
+              {isDeleting ? "削除中..." : "アカウントを削除する"}
+            </button>
+          </section>
         </div>
       </div>
     </div>

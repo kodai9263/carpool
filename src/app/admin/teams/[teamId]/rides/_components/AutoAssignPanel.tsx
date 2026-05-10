@@ -53,7 +53,7 @@ export default function AutoAssignPanel({ onAssign, isAssigning, error, defaultN
   };
 
   return (
-    <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg space-y-4">
+    <div className="space-y-4 rounded-xl border border-teal-200 bg-teal-50/80 p-4">
       <div className="flex items-center gap-2">
         <Wand2 size={18} className="text-teal-700" />
         <span className="text-sm font-semibold text-teal-800">自動割り当て</span>
@@ -70,7 +70,7 @@ export default function AutoAssignPanel({ onAssign, isAssigning, error, defaultN
             value={numberOfCarsInput}
             onChange={handleNumberOfCarsChange}
             placeholder="自動計算"
-            className="w-28 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
+            className="app-input w-28 py-2 text-sm"
           />
           <span className="text-xs text-gray-500">
             空欄で自動計算（最大{defaultNumberOfCars ?? "-"}台）
@@ -97,14 +97,14 @@ export default function AutoAssignPanel({ onAssign, isAssigning, error, defaultN
         type="button"
         onClick={handleSubmit}
         disabled={isAssigning}
-        className="w-full py-2 px-4 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white text-sm font-medium rounded-md transition-colors"
+        className="app-button-primary w-full"
       >
         {isAssigning ? "割り当て中..." : "自動割り当てを実行"}
       </button>
 
       {/* エラー表示（消えないインライン） */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700 space-y-2">
+        <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           <p>{error.message}</p>
           {error.minimumCars && (
             <button

@@ -36,8 +36,6 @@ export default function Page() {
   // フォームの値を監視
   const teamName = useWatch({ control, name: "teamName" });
   const teamCode = useWatch({ control, name: "teamCode" });
-  const isMiddleSchool = useWatch({ control, name: "isMiddleSchool" });
-
   // 既存内容を表示
   useEffect(() => {
     if (data?.team)
@@ -46,7 +44,7 @@ export default function Page() {
         teamCode: data.team.teamCode,
         isMiddleSchool: data.team.maxGrade === 3,
     });
-  },[data]);
+  },[data, reset]);
 
   const onSubmit = async (data: TeamFormValues) => {
     if (!token) return;
@@ -99,9 +97,13 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
-      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <h1 className="text-3xl font-bold mb-8 text-center">👥 チーム詳細</h1>
+    <div className="app-page">
+      <div className="app-container max-w-xl">
+        <div className="mb-6">
+          <p className="mb-1 text-sm font-semibold text-teal-700">チーム情報</p>
+          <h1 className="app-section-title">チーム詳細</h1>
+        </div>
+        <div className="app-card p-6 md:p-8">
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <EditInput
@@ -124,23 +126,21 @@ export default function Page() {
             {...register("teamCode", { required: "チームIDを入力してください。" })}
           />
 
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <label className="flex items-center gap-3 cursor-pointer">
+          <label className="group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/60">
               <input
                 type="checkbox"
                 {...register("isMiddleSchool")}
-                className="w-4 h-4 accent-[#5d9b94]"
+                className="h-5 w-5 rounded border-2 border-gray-300 accent-teal-700 transition focus:ring-4 focus:ring-teal-700/15"
               />
-              <span className="text-sm font-medium text-gray-700">中学生チーム（学年を3年までに制限）</span>
-            </label>
-          </div>
+              <span className="text-sm font-semibold text-gray-700 transition group-hover:text-teal-900">中学生チーム（3年まで）</span>
+          </label>
 
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
             <div className="flex items-center gap-3">
               <Users size={20} className="text-gray-500" />
-              <h2 className="text-lg font-bold whitespace-nowrap">メンバー数</h2>
+              <h2 className="whitespace-nowrap text-sm font-semibold text-gray-700">メンバー数</h2>
               <div className="w-full flex justify-center">
-              <span className="text-lg font-bold text-[#5d9b94]">{memberCount}人</span>
+              <span className="text-lg font-bold text-teal-700">{memberCount}人</span>
               </div>
             </div>
           </div>
@@ -151,6 +151,7 @@ export default function Page() {
             isSubmitting={isSubmitting}
           />
         </form>
+        </div>
       </div>
     </div>
   );

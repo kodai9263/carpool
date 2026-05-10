@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Car, Users, Calendar, Zap, Key, UserCog } from "lucide-react";
 import { FeatureModal } from "./FeatureModal";
 
@@ -62,21 +63,32 @@ export function FeaturesSection() {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {features.map((feature, i) => (
           <button
             key={i}
             onClick={() => setSelected(feature)}
-            className="group p-6 rounded-2xl border border-gray-100 hover:border-[#5d9b94]/30 hover:shadow-md transition-all duration-200 text-left cursor-pointer"
+            className="group app-card overflow-hidden p-0 text-left transition duration-200 hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-xl"
           >
-            <div className="w-11 h-11 bg-[#5d9b94]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#5d9b94]/15 transition-colors">
-              {feature.icon}
+            <div className="border-b border-gray-100 bg-gray-50/80 p-3">
+              <Image
+                src={feature.image}
+                alt=""
+                width={640}
+                height={360}
+                className="h-28 w-full rounded-lg object-contain"
+              />
             </div>
-            <h3 className="text-base font-bold mb-2 text-gray-900">{feature.title}</h3>
-            <p className="text-gray-500 text-sm leading-relaxed">{feature.desc}</p>
-            <p className="mt-3 text-xs text-[#5d9b94] font-medium group-hover:underline">
-              詳しく見る →
-            </p>
+            <div className="p-5">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 transition-colors group-hover:bg-teal-100">
+                {feature.icon}
+              </div>
+              <h3 className="mb-2 text-base font-bold text-gray-950">{feature.title}</h3>
+              <p className="text-sm leading-relaxed text-gray-500">{feature.desc}</p>
+              <p className="mt-4 text-xs font-semibold text-teal-700 group-hover:underline">
+                詳しく見る
+              </p>
+            </div>
           </button>
         ))}
       </div>

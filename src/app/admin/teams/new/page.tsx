@@ -1,11 +1,20 @@
+import { Users } from "lucide-react";
 import TeamForm from "../_components/TeamForm";
 
 export default function Page() {
   return (
-    <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[500px] bg-white rounded-xl shadow-xl p-6 md:p-10 border border-gray-100">
-        <h1 className="text-3xl font-bold text-center mb-8">👥 チーム作成</h1>
+    <div className="app-page">
+      <div className="app-container max-w-xl">
+        <div className="mb-6">
+          <p className="mb-1 text-sm font-semibold text-teal-700">新規チーム</p>
+          <h1 className="app-section-title flex items-center gap-2">
+            <Users size={26} className="text-teal-700" />
+            チーム作成
+          </h1>
+        </div>
+        <div className="app-card p-6 md:p-8">
         <TeamForm />
+        </div>
       </div>
     </div>
   );

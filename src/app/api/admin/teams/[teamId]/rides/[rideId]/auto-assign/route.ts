@@ -20,7 +20,7 @@ export const POST = (
           body.numberOfCars !== undefined && body.numberOfCars !== null && body.numberOfCars !== ""
             ? Number(body.numberOfCars)
             : undefined;
-        const gradeGrouping: "mix" = "mix";
+        const gradeGrouping = "mix" as const;
         const separateParentChild: boolean = body.separateParentChild === true;
 
         // 必要なデータを並列取得

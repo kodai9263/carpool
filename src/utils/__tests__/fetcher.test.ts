@@ -24,20 +24,20 @@ describe('fetcher', () => {
   });
 
   test('初回リクエストでgetSession()を呼ぶ', async () => {
-    const { fetcher } = require('../fetcher');
+    const { fetcher } = await import('../fetcher');
     await fetcher('/api/test');
     expect(mockGetSession).toHaveBeenCalledTimes(1);
   });
 
   test('キャッシュ有効期限内の2回目はgetSession()を呼ばない', async () => {
-    const { fetcher } = require('../fetcher');
+    const { fetcher } = await import('../fetcher');
     await fetcher('/api/test');
     await fetcher('/api/test');
     expect(mockGetSession).toHaveBeenCalledTimes(1); // 1回のまま
   });
 
   test('55分経過後はgetSession()を再度呼ぶ', async () => {
-    const { fetcher } = require('../fetcher');
+    const { fetcher } = await import('../fetcher');
     await fetcher('/api/test');
     jest.advanceTimersByTime(55 * 60 * 1000); // 55分進める
     await fetcher('/api/test');
@@ -45,14 +45,14 @@ describe('fetcher', () => {
   });
 
   test('取得したトークンをAPIリクエストに使う', async () => {
-    const { fetcher } = require('../fetcher');
+    const { fetcher } = await import('../fetcher');
     await fetcher('/api/test');
     expect(mockApiGet).toHaveBeenCalledWith('/api/test', 'test-token-123');
   });
 
   test('セッションがない場合はundefinedをAPIに渡す', async () => {
     mockGetSession.mockResolvedValue({ data: { session: null } });
-    const { fetcher } = require('../fetcher');
+    const { fetcher } = await import('../fetcher');
     await fetcher('/api/test');
     expect(mockApiGet).toHaveBeenCalledWith('/api/test', undefined);
   });

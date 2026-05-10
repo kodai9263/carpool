@@ -3,7 +3,7 @@
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, CalendarClock, ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
@@ -11,7 +11,6 @@ import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 import useSWR from "swr";
 import { RideListResponse } from "@/app/_types/response/rideResponse";
 import { useMemberTeamAuth } from "@/app/member/_hooks/useMemberTeamAuth";
-import { Ride } from "@/app/_types/ride";
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -41,27 +40,57 @@ export default function Page() {
   const totalPages = data.totalPages || 1;
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
-      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <h1 className="text-2xl font-bold text-center mb-6">🚗 配車一覧</h1>
+    <div className="app-page">
+      <div className="app-container max-w-3xl">
+        <div className="mb-6 rounded-2xl border border-white/80 bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,118,110,0.08)] ring-1 ring-gray-950/[0.02] backdrop-blur md:p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <CalendarClock size={24} />
+            </div>
+            <div>
+              <p className="mb-1 text-sm font-semibold text-teal-700">メンバーダッシュボード</p>
+              <h1 className="app-section-title">配車一覧</h1>
+              <p className="mt-2 text-sm leading-6 text-gray-500">
+                参加予定の配車と、確定した乗車先を確認できます。
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <div className="space-y-4">
+        <div className="app-card divide-y divide-gray-100 overflow-hidden">
+          {rides?.length === 0 && (
+            <div className="app-empty-state">
+              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                <Calendar size={22} />
+              </span>
+              <p className="font-bold text-gray-950">配車予定はまだありません</p>
+              <p className="mt-2 text-sm leading-6 text-gray-500">
+                新しい配車が作成されると、ここに表示されます。
+              </p>
+            </div>
+          )}
           {rides?.map((ride) => {
             return (
               <Link
                 key={ride.id}
                 href={`/member/teams/${teamId}/rides/${ride.id}`}
-                className="block p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer"
+                className="app-list-row group"
               >
-                <div className="flex items-center gap-3">
-                  <Calendar size={24} className="text-[#5d9b94] shrink-0" />
-                  <span className="text-lg font-medium whitespace-nowrap">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700 transition group-hover:bg-teal-100">
+                  <Calendar size={20} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="block text-base font-bold text-gray-950">
                     {formatDate(ride.date)}
                   </span>
                   {ride.destination && (
-                    <span className="text-sm text-gray-500 ml-auto truncate">{ride.destination}</span>
+                    <span className="mt-1 flex items-center gap-1 truncate text-sm text-gray-500">
+                      <MapPin size={14} />
+                      {ride.destination}
+                    </span>
                   )}
                 </div>
+                <ChevronRight size={18} className="text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-teal-700" />
               </Link>
             );
           })}

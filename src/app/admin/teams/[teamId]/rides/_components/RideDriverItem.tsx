@@ -46,7 +46,7 @@ export default function RideDriverItem({
   const isFull = seatCount > 0 && (childCount + escortCount) >= seatCount;
 
   return (
-    <div className="border-2 border-gray-200 rounded-xl p-4 md:p-5 shadow-sm space-y-4 bg-gray-50 hover:shadow-md transition-shadow">
+    <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50/80 p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
       <DriverHeader
         index={index}
         type="driver"

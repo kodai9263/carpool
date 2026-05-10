@@ -5,6 +5,10 @@ import { useFormContext, useWatch } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import AppDatePicker from "./AppDatePicker.tsx";
 
+type RideBasicFormValues = {
+  destination: string;
+};
+
 interface RideProps {
   date: Date | null;
   onDateChange: (date: Date | null) => void;
@@ -16,32 +20,32 @@ export default function RideBasicForm({
   onDateChange,
   error,
 }: RideProps) {
-  const { register, control } = useFormContext();
+  const { register, control } = useFormContext<RideBasicFormValues>();
 
-  const destination = useWatch({ control, name: "destination" as any });
+  const destination = useWatch({ control, name: "destination" });
 
   const hasDate = !!date;
   const hasDestination = !!destination;
 
   return (
-    <div className="space-y-6 md:space-y-10 w-full">
+    <div className="w-full space-y-6">
       {/* 日付 */}
-      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+      <div className="space-y-2">
         <div className="flex items-center gap-2 md:gap-0">
-          <div className="md:w-10 flex justify-center">
+          <div className="mr-2 flex justify-center">
             <Calendar size={18} className="text-gray-500" />
           </div>
-          <span className="md:w-20 text-base md:text-lg font-bold">日付</span>
+          <span className="text-sm font-semibold text-gray-700">日付</span>
         </div>
 
-        <div className="w-full md:w-96">
+        <div className="w-full">
           <AppDatePicker
             value={date}
             onChange={onDateChange}
             minDate={new Date()}
-            className={`border-2 rounded px-3 py-3 w-full transition-colors duration-200 ${
+            className={`app-input transition-colors duration-200 ${
               error ? "border-red-500" : "border-gray-300"
-            } ${hasDate ? "bg-blue-50" : ""}`}
+            } ${hasDate ? "bg-teal-50/70" : ""}`}
           />
           {error && (
             <p className="text-red-500 text-sm mt-1">
@@ -52,19 +56,19 @@ export default function RideBasicForm({
       </div>
 
       {/* 行き先 */}
-      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+      <div className="space-y-2">
         <div className="flex items-center gap-2 md:gap-0">
-          <div className="md:w-10 flex justify-center">
+          <div className="mr-2 flex justify-center">
             <MapPin size={18} className="text-gray-500" />
           </div>
-          <span className="md:w-20 text-base md:text-lg font-bold">行き先</span>
+          <span className="text-sm font-semibold text-gray-700">行き先</span>
         </div>
 
         <input
           type="text"
-          {...register("destination" as any)}
-          className={`w-full truncate md:w-96 border-2 border-gray-300 rounded px-3 py-3 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none transition-colors duration-200 ${
-            hasDestination ? "bg-blue-50" : ""
+          {...register("destination")}
+          className={`app-input truncate transition-colors duration-200 ${
+            hasDestination ? "bg-teal-50/70" : ""
           }`}
         />
       </div>

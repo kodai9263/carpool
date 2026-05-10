@@ -7,9 +7,14 @@ interface Props {
   className?: string;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 export const AddToHomeScreenButton: React.FC<Props> = ({ className = '' }) => {
   // Androidのbeforeinstallpromptイベントを保持
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
@@ -29,7 +34,7 @@ export const AddToHomeScreenButton: React.FC<Props> = ({ className = '' }) => {
     // Android/Chrome: インストールプロンプトイベントを捕捉
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsVisible(true);
     };
     window.addEventListener('beforeinstallprompt', handler);
@@ -58,7 +63,7 @@ export const AddToHomeScreenButton: React.FC<Props> = ({ className = '' }) => {
     <>
       <button onClick={handleClick} className={className}>
         <Download size={24} />
-        <span className="mt-1">ホーム追加</span>
+        <span className="mt-1">追加</span>
       </button>
 
       {/* iOSユーザー向け手順モーダル */}

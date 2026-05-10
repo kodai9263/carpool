@@ -36,7 +36,8 @@ export default function EscortItem({
   const comment = selectedEscort?.comment;
 
   // 全ドライバーの状態を監視
-  const allDrivers = useWatch({ name: "drivers" }) ?? [];
+  const watchedDrivers = useWatch({ name: "drivers" });
+  const allDrivers = useMemo(() => watchedDrivers ?? [], [watchedDrivers]);
 
   // 引率者候補（availability: true かつ type: 'escort' かつ対応方向）
   const availableEscorts = useMemo(() =>
@@ -79,15 +80,15 @@ export default function EscortItem({
   }, [allDrivers, driverIndex, escortIndex, direction, availabilityDrivers]);
 
   return (
-    <div className="bg-white border border-teal-200 rounded-lg p-3">
+    <div className="rounded-lg border border-teal-200 bg-white p-3">
       {/* 引率者選択 */}
       <div className="flex items-center gap-2">
-        <PersonStanding size={18} className="text-[#5d9b94] flex-shrink-0" />
+        <PersonStanding size={18} className="flex-shrink-0 text-teal-700" />
         <select
           {...register(`drivers.${driverIndex}.escorts.${escortIndex}.availabilityDriverId`, {
             valueAsNumber: true,
           })}
-          className="w-full min-w-0 truncate border-2 border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:border-[#5d9b94] focus:ring-2 focus:ring-[#5d9b94] focus:outline-none"
+          className="app-select w-full min-w-0 truncate py-2 text-sm"
         >
           <option value={0}>引率者を選択</option>
           {availableEscorts.map((escort) => {
@@ -107,14 +108,14 @@ export default function EscortItem({
         <button
           type="button"
           onClick={onRemove}
-          className="text-gray-400 hover:text-red-500 transition flex-shrink-0"
+          className="flex-shrink-0 text-gray-400 transition hover:text-red-500"
         >
           <X size={16} />
         </button>
       </div>
       {/* 引率者のコメント */}
       {comment && (
-        <div className="flex items-start gap-1.5 mt-2 ml-7 mr-6 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+        <div className="ml-7 mr-6 mt-2 flex items-start gap-1.5 rounded border border-orange-200 bg-orange-100 px-2 py-1.5 text-xs text-orange-700">
           <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
           <span>{comment}</span>
         </div>

@@ -8,6 +8,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
 import toast from "react-hot-toast";
+import { AlertCircle, ArrowLeft, Car, LockKeyhole, Mail } from "lucide-react";
 
 type Phase = "request" | "reset";
 
@@ -21,6 +22,7 @@ export default function Page() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { isSubmitting, errors },
     reset,
   } = useForm<FormInput>({
@@ -63,7 +65,10 @@ export default function Page() {
       } else {
         // フェーズ2: パスワードチェックをクリアした後、新しいパスワードに更新
         if (password !== confirmPassword) {
-          alert("パスワードが一致しません。");
+          setError("confirmPassword", {
+            type: "manual",
+            message: "パスワードが一致しません。",
+          });
           return;
         }
         const { error } = await supabase.auth.updateUser({ password });
@@ -74,19 +79,26 @@ export default function Page() {
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "通信エラーが発生しました。";
-      alert(message);
+      setError("root", { type: "manual", message });
       console.error(e);
     }
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-[#5d9b94] via-[#7fb5ae] to-[#a8cec8] p-4">
-      <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+    <div className="app-page flex flex-col items-center justify-center px-4">
+      <Link href="/" className="mb-6 flex items-center gap-2.5 text-lg font-bold tracking-tight text-gray-950">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/70 bg-gradient-to-br from-teal-700 via-teal-700 to-teal-900 text-white shadow-[0_14px_32px_rgba(15,118,110,0.24)]">
+          <Car size={21} strokeWidth={2.35} />
+        </span>
+        <span className="bg-gradient-to-br from-[#153f3b] to-[#2b7a70] bg-clip-text text-transparent">Carpool</span>
+      </Link>
+      <div className="app-card relative w-full max-w-md overflow-hidden p-6 md:p-8">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-700 via-emerald-500 to-amber-300" />
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-950">
             パスワード再設定
           </h1>
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-sm leading-6 text-gray-500">
             {phase === "request"
               ? "登録メールアドレスに再設定用のリンクを送信します"
               : "新しいパスワードを設定してください"}
@@ -94,11 +106,20 @@ export default function Page() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {errors.root?.message && (
+            <div className="flex gap-3 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <p>{errors.root.message}</p>
+            </div>
+          )}
+
           {phase === "request" ? (
             <FormInput
               label="メールアドレス"
+              icon={<Mail size={18} />}
               type="email"
               placeholder="example@mail.com"
+              autoComplete="email"
               disabled={isSubmitting}
               error={errors.email?.message}
               {...register("email", { required: "メールアドレスは必須です。" })}
@@ -107,10 +128,13 @@ export default function Page() {
             <div className="space-y-4">
               <FormInput
                 label="新しいパスワード"
+                icon={<LockKeyhole size={18} />}
                 type="password"
                 placeholder="••••••••"
+                autoComplete="new-password"
                 disabled={isSubmitting}
                 error={errors.password?.message}
+                helperText="8文字以上を推奨します。"
                 {...register("password", {
                   required: "パスワードを入力してください。",
                 })}
@@ -118,8 +142,10 @@ export default function Page() {
 
               <FormInput
                 label="パスワード(確認)"
+                icon={<LockKeyhole size={18} />}
                 type="password"
                 placeholder="••••••••"
+                autoComplete="new-password"
                 disabled={isSubmitting}
                 error={errors.confirmPassword?.message}
                 {...register("confirmPassword", {
@@ -133,32 +159,34 @@ export default function Page() {
             label={phase === "request" ? "メールを送信" : "パスワードを更新"}
             loadingLabel="送信中..."
             isSubmitting={isSubmitting}
+            className="w-full"
           />
         </form>
 
-        <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="mt-8 border-t border-gray-200 pt-6">
           <div className="flex justify-center gap-6">
             <Link
               href="/login"
-              className="text-sm text-gray-600 hover:text-[#0F766E] transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-teal-800"
             >
-              ← ログインに戻る
+              <ArrowLeft size={15} />
+              ログインに戻る
             </Link>
             <span className="text-gray-300">|</span>
             <Link
               href="/"
-              className="text-sm text-gray-600 hover:text-[#0F766E] transition-colors"
+              className="text-sm font-medium text-gray-500 transition-colors hover:text-teal-800"
             >
               ホームに戻る
             </Link>
           </div>
         </div>
       </div>
-      <footer className="mt-6 py-2 text-center text-sm text-white/80">
+      <footer className="mt-6 py-2 text-center text-sm text-gray-500">
         お問い合わせ:{" "}
         <a
           href="mailto:carpool.app.2026@gmail.com"
-          className="hover:text-white underline"
+          className="underline hover:text-teal-800"
         >
           carpool.app.2026@gmail.com
         </a>

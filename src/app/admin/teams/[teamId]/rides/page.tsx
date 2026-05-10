@@ -7,7 +7,7 @@ import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
-import { Calendar } from "lucide-react";
+import { Calendar, CalendarPlus, ChevronRight, MapPin } from "lucide-react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
 
@@ -33,47 +33,70 @@ export default function Page() {
   if (error) return <div>エラーが発生しました。</div>
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
-      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-center flex-1 -ml-6">🚗 配車一覧</h1>
+    <div className="app-page">
+      <div className="app-container max-w-3xl">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <p className="mb-1 text-sm font-semibold text-teal-700">{teamData?.team.teamName}</p>
+            <h1 className="app-section-title">配車一覧</h1>
+            <p className="mt-2 text-sm text-gray-500">{rides.length}件の配車予定を表示中</p>
+          </div>
           <NewButton 
             href={`/admin/teams/${teamId}/rides/new`}
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="app-card divide-y divide-gray-100 overflow-hidden">
+          {rides.length === 0 && (
+            <div className="app-empty-state">
+              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                <CalendarPlus size={22} />
+              </span>
+              <p className="font-bold text-gray-950">まだ配車予定がありません</p>
+              <p className="mt-2 text-sm leading-6 text-gray-500">
+                試合や練習の日程を作成すると、メンバーへの回答依頼を始められます。
+              </p>
+            </div>
+          )}
           {rides.map((ride: Ride) => {
             return(
               <div 
                 key={ride.id}
                 onClick={() => router.push(`/admin/teams/${teamId}/rides/${ride.id}`)}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer"
+                className="app-list-row group"
               >
-                <div className="flex items-center gap-3">
-                  <Calendar size={24} className="text-[#5d9b94] shrink-0" />
-                  <span className="text-lg font-medium whitespace-nowrap">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700 transition group-hover:bg-teal-100">
+                  <Calendar size={20} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-base font-bold text-gray-950">
                     {formatDate(ride.date)}
                   </span>
                   {ride.isAssignmentComplete ? (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium whitespace-nowrap">
+                    <span className="app-status bg-green-100 text-green-700">
                       完了
                     </span>
                   ) : (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium whitespace-nowrap">
+                    <span className="app-status bg-gray-100 text-gray-500">
                       未完了
                     </span>
                   )}
+                  </div>
                   {ride.destination && (
-                    <span className="text-sm text-gray-500 ml-auto truncate">{ride.destination}</span>
+                    <span className="mt-1 flex items-center gap-1 truncate text-sm text-gray-500">
+                      <MapPin size={14} />
+                      {ride.destination}
+                    </span>
                   )}
                 </div>
+                <ChevronRight size={18} className="text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-teal-700" />
               </div>
             )
           })}
         </div>
 
-        <div className="mt-10">
+        <div className="mt-8">
           {totalPages > 1 && (
             <PaginationNav 
               page={page}

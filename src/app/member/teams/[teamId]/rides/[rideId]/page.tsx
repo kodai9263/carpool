@@ -9,6 +9,7 @@ import RideDriverGrid from "./_components/RideDriverGrid";
 import { useMemberRideAuth } from "@/app/member/_hooks/useMemberRideAuth";
 import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
+import { ArrowRight, Bike } from "lucide-react";
 
 export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
@@ -36,12 +37,17 @@ export default function Page() {
   const ride = data.ride;
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
-        <div className="flex justify-between items-center mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-center flex-1 break-words">
-            🚗 配車詳細
-          </h1>
+    <div className="app-page">
+      <div className="app-container max-w-3xl">
+      <div className="app-card min-w-0 overflow-hidden p-4 md:p-8">
+        <div className="mb-6 flex flex-col gap-4 md:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="mb-1 text-sm font-semibold text-teal-700">配車情報</p>
+            <h1 className="app-section-title">配車詳細</h1>
+            <p className="mt-2 text-sm leading-6 text-gray-500">
+              配車結果と当日の参加状況を確認できます。
+            </p>
+          </div>
           <button
             type="button"
             onClick={() =>
@@ -49,9 +55,10 @@ export default function Page() {
                 `/member/teams/${teamId}/rides/${rideId}/availability`
               )
             }
-            className="bg-[#2f6f68] text-white px-4 py-2 rounded-lg hover:bg-[#2a5f5a] whitespace-nowrap text-sm font-medium shrink-0"
+            className="app-button-primary shrink-0 whitespace-nowrap"
           >
             配車可否入力へ
+            <ArrowRight size={16} />
           </button>
         </div>
 
@@ -78,13 +85,16 @@ export default function Page() {
               .filter((c): c is NonNullable<typeof c> => c !== undefined);
             if (selfDrivingChildren.length === 0) return null;
             return (
-              <div className="p-4 border-2 border-blue-200 rounded-xl bg-blue-50 min-w-0">
-                <h3 className="text-base font-bold mb-3">🚗 自走参加者</h3>
+              <div className="min-w-0 rounded-xl border border-blue-100 bg-blue-50/80 p-4">
+                <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-blue-900">
+                  <Bike size={18} />
+                  自走参加者
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {selfDrivingChildren.map((child) => (
                     <span
                       key={child.id}
-                      className="px-3 py-1.5 bg-white border border-blue-200 rounded-full text-sm"
+                      className="rounded-full border border-blue-100 bg-white px-3 py-1.5 text-sm font-medium text-blue-900 shadow-sm"
                     >
                       {child.name}
                     </span>
@@ -94,6 +104,7 @@ export default function Page() {
             );
           })()}
         </div>
+      </div>
       </div>
     </div>
   );

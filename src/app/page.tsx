@@ -1,224 +1,244 @@
 import Image from "next/image";
-import { Check, ChevronRight, Users, UserCog, ArrowDown } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarCheck,
+  Car,
+  ClipboardList,
+  KeyRound,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { Footer } from "./_components/Footer";
 import { LpTracker, TrackedLink } from "./_components/LpTracker";
 import { FeaturesSection } from "./_components/FeaturesSection";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
+const problems = [
+  "LINEで誰が乗せるか毎回確認している",
+  "Excelの更新履歴が追えない",
+  "急な欠席で配車の調整が大変",
+  "言った・言わないのトラブルが心配",
+];
+
+const benefits = [
+  { icon: ClipboardList, title: "回答を集める", desc: "保護者の配車可否と子どもの参加可否を一画面で確認。" },
+  { icon: Sparkles, title: "自動で割り当て", desc: "座席数に合わせて、子どもをドライバーへ自動アサイン。" },
+  { icon: CalendarCheck, title: "当日も確認", desc: "参加者・欠席者をその場で見られるので調整が早い。" },
+];
+
+const adminSteps = [
+  { n: "1", title: "チームを作成", desc: "チームID・チーム名・PINコードを登録します。" },
+  { n: "2", title: "メンバーを登録", desc: "保護者名と子どもの名前・学年を登録します。" },
+  { n: "3", title: "配車日程を作成", desc: "日付と行き先を登録し、回答期限を設定できます。" },
+  { n: "4", title: "配車を確定", desc: "回答を確認し、自動割り当てや手動調整で配車を保存します。" },
+];
+
+const memberSteps = [
+  { n: "1", title: "PINコードで参加", desc: "アカウント登録なしで配車閲覧コードを入力します。" },
+  { n: "2", title: "可否を回答", desc: "配車可・引率可・自走・不参加を選んで送信します。" },
+  { n: "3", title: "配車結果を確認", desc: "誰の車に乗るか、当日の参加者・欠席者を確認できます。" },
+];
+
 export default async function Home() {
   const teamCount = await prisma.team.count();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#f5f8f4] text-gray-950">
       <LpTracker />
 
-      {/* ヒーローセクション */}
-      <section id="section-hero" className="relative flex flex-col items-center justify-center min-h-screen text-center px-4 pb-16 md:pb-20 overflow-hidden">
-        {/* 背景グラデーション */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#f0f9f8] via-white to-white pointer-events-none" />
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-[#5d9b94]/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-40 right-1/4 w-56 h-56 bg-[#5d9b94]/8 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col items-center">
-          <p className="text-sm md:text-base mb-6 text-[#5d9b94] font-semibold tracking-widest uppercase">
-            少年野球・サッカーの配車を、もっとかんたんに
-          </p>
-          <h1 className="text-7xl md:text-8xl font-bold mb-5 text-gray-900 tracking-tight">Carpool</h1>
-          <p className="text-xl md:text-2xl text-gray-500 mb-10 font-normal max-w-sm leading-relaxed">
-            ExcelやLINEのやり取りは<br />もう終わり
-          </p>
-
-          <div className="flex justify-center items-center gap-8 mb-10">
-            <Image src="/bat.png" alt="bat" width={100} height={100} />
-            <Image src="/car.png" alt="car" width={130} height={100} />
-          </div>
-
-          {/* チーム数バッジ */}
-          <div className="flex items-center justify-center mb-8">
-            <span className="inline-flex items-center gap-2 bg-white border border-green-200 text-green-700 px-4 py-2 rounded-full font-medium shadow-sm text-sm">
-              <span className="w-2 h-2 bg-green-500 rounded-full inline-block animate-pulse" />
-              <strong className="text-green-800 mx-0.5">{teamCount}</strong> チームが利用中
+      <section id="section-hero" className="relative overflow-hidden px-4 py-5 md:py-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(15,118,110,0.13),transparent_28rem),linear-gradient(135deg,#f8fbf7_0%,#edf5ef_58%,#f7f4ed_100%)]" />
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-3 shadow-[0_18px_60px_rgba(15,51,46,0.09)] ring-1 ring-gray-950/[0.02] backdrop-blur md:px-5">
+          <TrackedLink href="/" trackLabel="nav_logo" className="flex items-center gap-2.5 font-bold tracking-tight text-gray-950">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/70 bg-gradient-to-br from-[#0f766e] via-[#246f68] to-[#183f3c] text-white shadow-[0_10px_26px_rgba(20,83,75,0.24)] ring-1 ring-teal-900/10">
+              <Car size={20} strokeWidth={2.35} />
             </span>
-          </div>
-
-          {/* CTAボタン群 */}
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
-            <TrackedLink
-              href="/signup"
-              trackLabel="signup_hero"
-              className="inline-flex items-center justify-center h-14 px-10 rounded-2xl bg-[#5d9b94] hover:bg-[#4a8880] text-white font-semibold text-lg transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform"
-            >
+            <span className="bg-gradient-to-br from-[#153f3b] to-[#2b7a70] bg-clip-text text-transparent">
+              Carpool
+            </span>
+          </TrackedLink>
+          <div className="flex shrink-0 items-center gap-3 md:gap-7">
+            <TrackedLink href="/login" trackLabel="login_nav" className="text-sm font-semibold text-gray-600 transition hover:text-teal-800">
+              ログイン
+            </TrackedLink>
+            <TrackedLink href="/signup" trackLabel="signup_nav" className="app-button-primary min-h-10 px-3 text-sm md:min-h-11 md:px-5">
               無料で始める
             </TrackedLink>
-            <TrackedLink
-              href="/login?guest=true"
-              trackLabel="demo_hero"
-              className="inline-flex items-center justify-center h-14 px-8 rounded-2xl border-2 border-gray-200 hover:border-gray-300 text-gray-600 font-medium transition-all hover:bg-gray-50"
-            >
-              デモを試す →
-            </TrackedLink>
           </div>
-          <TrackedLink
-            href="/login"
-            trackLabel="login_hero"
-            className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            すでにアカウントをお持ちの方はログイン
-          </TrackedLink>
         </div>
 
-        <div className="absolute bottom-8 md:bottom-6 animate-bounce z-10">
-          <ArrowDown size={24} className="text-gray-300" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 py-14 md:grid-cols-[1fr_1fr] md:gap-16 md:py-20">
+          <div>
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-white/90 px-3 py-1 text-sm font-semibold text-teal-800 shadow-sm">
+              <Users size={15} />
+              少年野球・サッカーの配車管理
+            </p>
+            <h1 className="max-w-2xl text-4xl font-bold leading-[1.16] tracking-normal text-gray-950 md:text-6xl md:leading-[1.12]">
+              配車調整を、
+              <br />
+              <span className="bg-gradient-to-r from-teal-800 to-[#3f817a] bg-clip-text text-transparent">
+                チーム全員で
+              </span>
+              <br />
+              迷わず進める。
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-8 text-gray-600 md:text-lg">
+              LINEやExcelでのやり取りを減らし、配車可否の収集から自動アサイン、当日の出欠確認までをひとつのアプリで完結します。
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <TrackedLink href="/signup" trackLabel="signup_hero" className="app-button-primary min-h-12 px-7 text-base">
+                無料で始める
+                <ArrowRight size={18} />
+              </TrackedLink>
+              <TrackedLink href="/login?guest=true" trackLabel="demo_hero" className="app-button-secondary min-h-12 border-gray-200 bg-white/90 px-7 text-base shadow-sm">
+                デモを見る
+              </TrackedLink>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-gray-600">
+              <span className="app-status border border-teal-100 bg-white/80 text-teal-800 shadow-sm">
+                {teamCount} チームが利用中
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <KeyRound size={15} className="text-teal-700" />
+                メンバーはPINコードで参加
+              </span>
+            </div>
+          </div>
+
+          <HeroProductMockup />
         </div>
       </section>
 
-      {/* こんなお悩みありませんか？ */}
-      <section id="section-problems" className="py-24 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-3 text-gray-900">こんなお悩みありませんか？</h2>
-          <p className="text-gray-400 text-center mb-14 text-base">配車担当者なら誰もが経験する、あの煩わしさ</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-            {[
-              "LINEで誰が乗せるか毎回確認してる",
-              "Excelの更新履歴が追えない",
-              "急な欠席で配車の調整が大変",
-              "「言った・言わない」のトラブルが心配",
-            ].map((problem, i) => (
-              <div key={i} className="flex items-center gap-4 bg-white p-5 rounded-xl border border-red-100 shadow-sm">
-                <div className="flex-shrink-0 w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M3 3L11 11M11 3L3 11" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <p className="text-gray-700 text-base font-medium">{problem}</p>
-              </div>
-            ))}
+      <section id="section-problems" className="px-4 py-16">
+        <div className="app-container">
+          <div className="mb-10 max-w-2xl">
+            <p className="mb-2 text-sm font-semibold text-teal-700">課題と解決</p>
+            <h2 className="app-section-title">配車担当の負担を、見える形で減らします。</h2>
           </div>
 
-          <div className="bg-[#5d9b94] rounded-2xl px-8 py-6 text-center shadow-lg">
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                <Check size={22} className="text-white" />
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="app-card p-5 md:p-6">
+              <h3 className="mb-4 text-lg font-bold text-gray-950">よくある困りごと</h3>
+              <div className="space-y-3">
+                {problems.map((problem) => (
+                  <div key={problem} className="flex gap-3 rounded-lg border border-red-100 bg-red-50/70 p-3 text-sm font-medium text-gray-700">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-red-400" />
+                    {problem}
+                  </div>
+                ))}
               </div>
-              <p className="text-2xl font-bold text-white">Carpoolなら全部解決！</p>
-              <ChevronRight size={28} className="text-white/70 flex-shrink-0" />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {benefits.map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="app-card p-5">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                    <Icon size={20} />
+                  </div>
+                  <h3 className="font-bold text-gray-950">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-gray-500">{desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* アプリの特徴 */}
-      <section id="section-features" className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-3 text-gray-900">Carpoolの特徴</h2>
-          <p className="text-gray-400 text-center mb-16 text-base">チームの送迎を、ひとつのアプリで完結</p>
-
+      <section id="section-features" className="px-4 py-16">
+        <div className="app-container">
+          <div className="mb-10 text-center">
+            <p className="mb-2 text-sm font-semibold text-teal-700">機能</p>
+            <h2 className="app-section-title">Carpoolの特徴</h2>
+            <p className="mt-3 text-gray-500">チームの送迎を、今ある運用に合わせてひとつのアプリで完結。</p>
+          </div>
           <FeaturesSection />
         </div>
       </section>
 
-      {/* 使い方セクション */}
-      <section id="section-how-to-use" className="py-24 bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-3 text-gray-900">使い方</h2>
-          <p className="text-gray-400 text-center mb-16 text-base">シンプルなステップで、すぐに始められます</p>
-
-          {/* 管理者向け */}
-          <div className="mb-10">
-            <div className="flex items-center gap-3 mb-5 px-1">
-              <div className="w-10 h-10 bg-[#5d9b94] rounded-xl flex items-center justify-center flex-shrink-0">
-                <UserCog size={20} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-[#5d9b94] font-semibold tracking-wider uppercase mb-0.5">For Admin</p>
-                <h3 className="text-lg font-bold text-gray-900">管理者（コーチ・保護者代表）</h3>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              {[
-                { n: "1", title: "チームを作成", desc: "会員登録後、チーム名・メンバー・子供の名前を登録します" },
-                { n: "2", title: "配車日程を作成・PINを共有", desc: "試合や練習の日付と行き先を登録し、PINコードをLINEでメンバーに共有します" },
-                { n: "3", title: "配車・引率を確定する", desc: "メンバーの回答を確認し、ドライバー・引率者を選択。自動アサインで子供を各車に割り当てます" },
-                { n: "4", title: "当日の出欠確認", desc: "出席確認ページで当日の参加状況をリアルタイムに把握できます" },
-              ].map((step, i, arr) => (
-                <div key={i} className={`flex gap-5 p-6 ${i < arr.length - 1 ? "border-b border-gray-50" : ""}`}>
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#5d9b94]/10 text-[#5d9b94] rounded-full flex items-center justify-center font-bold text-sm">
-                    {step.n}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 mb-1">{step.title}</h4>
-                    <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+      <section id="section-how-to-use" className="px-4 py-16">
+        <div className="app-container">
+          <div className="mb-10 text-center">
+            <p className="mb-2 text-sm font-semibold text-teal-700">使い方</p>
+            <h2 className="app-section-title">管理者もメンバーも、迷わず使えます。</h2>
           </div>
 
-          {/* メンバー向け */}
-          <div>
-            <div className="flex items-center gap-3 mb-5 px-1">
-              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Users size={20} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-emerald-600 font-semibold tracking-wider uppercase mb-0.5">For Member</p>
-                <h3 className="text-lg font-bold text-gray-900">メンバー（保護者）</h3>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              {[
-                { n: "1", title: "PINコードで参加", desc: "アカウント登録不要。管理者から共有されたPINコードを入力するだけでアクセスできます" },
-                { n: "2", title: "配車・引率・自走を回答", desc: "送迎できるか・引率できるか・子供が自走参加するかを選択して送信します" },
-                { n: "3", title: "配車結果を確認", desc: "配車が確定したら、誰の車に乗るかをアプリで確認できます" },
-              ].map((step, i, arr) => (
-                <div key={i} className={`flex gap-5 p-6 ${i < arr.length - 1 ? "border-b border-gray-50" : ""}`}>
-                  <div className="flex-shrink-0 w-8 h-8 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center font-bold text-sm">
-                    {step.n}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 mb-1">{step.title}</h4>
-                    <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <StepCard title="管理者（コーチ・保護者代表）" steps={adminSteps} />
+            <StepCard title="メンバー（保護者）" steps={memberSteps} />
           </div>
         </div>
       </section>
 
-      {/* CTAセクション */}
-      <section id="section-cta" className="py-24 bg-gradient-to-br from-[#5d9b94] to-[#0F766E]">
-        <div className="max-w-2xl mx-auto text-center px-4">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">さあ、始めましょう！</h2>
-          <p className="text-white/70 mb-10 text-lg">チームの送迎を、もっとスムーズに</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <TrackedLink
-              href="/signup"
-              trackLabel="signup_cta"
-              className="inline-flex items-center justify-center h-14 px-10 rounded-2xl bg-white text-[#5d9b94] font-bold text-lg transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transform w-full sm:w-auto"
-            >
-              無料で始める
-            </TrackedLink>
-            <TrackedLink
-              href="/login?guest=true"
-              trackLabel="demo_cta"
-              className="inline-flex items-center justify-center h-14 px-8 rounded-2xl border-2 border-white/30 hover:border-white/60 text-white font-medium transition-all w-full sm:w-auto"
-            >
-              デモを試す →
-            </TrackedLink>
+      <section id="section-cta" className="px-4 py-16">
+        <div className="app-container">
+          <div className="app-card overflow-hidden border-teal-100 bg-gradient-to-br from-[#5aa49a] via-[#4a968d] to-[#3f817a] p-8 text-center text-white shadow-[0_24px_70px_rgba(38,104,96,0.18)] md:p-12">
+            <h2 className="text-3xl font-bold md:text-4xl">次の配車から、すぐに軽く。</h2>
+            <p className="mt-4 text-white/85">チームを作成して、PINコードを共有するだけで始められます。</p>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <TrackedLink href="/signup" trackLabel="signup_cta" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-white px-7 text-base font-bold text-teal-800 shadow-sm transition hover:bg-teal-50">
+                無料で始める
+              </TrackedLink>
+              <TrackedLink href="/login?guest=true" trackLabel="demo_cta" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/45 px-7 text-base font-semibold text-white transition hover:bg-white/10">
+                デモを見る
+              </TrackedLink>
+            </div>
           </div>
-          <TrackedLink
-            href="/login"
-            trackLabel="login_cta"
-            className="mt-5 inline-block text-sm text-white/50 hover:text-white/80 transition-colors"
-          >
-            ログイン
-          </TrackedLink>
         </div>
       </section>
 
       <Footer />
+    </div>
+  );
+}
+
+function HeroProductMockup() {
+  return (
+    <div className="relative">
+      <div className="absolute -inset-5 rounded-[28px] bg-gradient-to-br from-teal-700/10 via-white/40 to-amber-200/20 blur-2xl" />
+
+      <div className="relative ml-auto w-full max-w-[680px] overflow-hidden rounded-2xl border border-white/90 bg-white p-2 shadow-[0_34px_90px_rgba(26,45,42,0.16)]">
+        <div className="relative aspect-[16/7.4] overflow-hidden rounded-xl bg-[#eaf5f0]">
+          <Image
+            src="/header-visual.png"
+            alt="Carpoolの紹介ビジュアル"
+            width={1408}
+            height={768}
+            priority
+            className="h-full w-full object-cover object-top"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StepCard({
+  title,
+  steps,
+}: {
+  title: string;
+  steps: { n: string; title: string; desc: string }[];
+}) {
+  return (
+    <div className="app-card p-5 md:p-6">
+      <h3 className="mb-5 text-lg font-bold text-gray-950">{title}</h3>
+      <div className="space-y-3">
+        {steps.map((step) => (
+          <div key={step.n} className="flex gap-4 rounded-lg border border-gray-100 bg-gray-50/70 p-4">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-700 text-sm font-bold text-white">
+              {step.n}
+            </span>
+            <div>
+              <h4 className="font-bold text-gray-950">{step.title}</h4>
+              <p className="mt-1 text-sm leading-6 text-gray-500">{step.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

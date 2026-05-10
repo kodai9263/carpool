@@ -36,7 +36,8 @@ export default function RideDriverList({
   const { control } = useFormContext<UpdateRideValues>();
 
   // フォームの現在の drivers 状態を監視
-  const formDrivers = useWatch({ control, name: "drivers" }) ?? [];
+  const watchedDrivers = useWatch({ control, name: "drivers" });
+  const formDrivers = useMemo(() => watchedDrivers ?? [], [watchedDrivers]);
 
   // 行き・帰りのドライバー候補数・インデックスをメモ化（formDriversかavailabilityDriversが変わった時だけ再計算）
   const { outboundCandidates, inboundCandidates, outboundIndices, inboundIndices } = useMemo(() => ({
@@ -63,11 +64,11 @@ export default function RideDriverList({
     direction: "outbound" | "inbound"
   ) => (
     <div className="space-y-4">
-      <h3 className="text-base font-bold text-gray-700 border-b border-gray-200 pb-2">
+      <h3 className="border-b border-gray-200 pb-2 text-base font-bold text-gray-700">
         {label}
       </h3>
       <div className="flex flex-col items-center space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-[920px]">
+        <div className="grid w-full max-w-[920px] grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {indices.map((i) => {
             const field = drivers[i];
             if (!field) return null;
@@ -96,13 +97,13 @@ export default function RideDriverList({
                   (document.activeElement as HTMLElement)?.blur();
                 });
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-[#5d9b94] text-white rounded-lg hover:bg-[#4a7d77] transition font-medium"
+              className="app-button-primary"
             >
               <Plus size={20} />
               <span>ドライバー追加</span>
             </button>
           ) : (
-            <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-3 text-xs text-yellow-700 font-medium">
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-3 text-center text-xs font-medium text-yellow-700">
               {candidates.length === 0
                 ? "候補のドライバーがいません"
                 : `候補のドライバーがいません（${candidates.length}人まで配車可能）`}
@@ -128,11 +129,11 @@ export default function RideDriverList({
     <div className="space-y-8">
       {separateDirections ? (
         <>
-          {renderSection("🚗 行き配車", outboundIndices, outboundCandidates, "outbound")}
-          {renderSection("🚗 帰り配車", inboundIndices, inboundCandidates, "inbound")}
+          {renderSection("行き配車", outboundIndices, outboundCandidates, "outbound")}
+          {renderSection("帰り配車", inboundIndices, inboundCandidates, "inbound")}
         </>
       ) : (
-        renderSection("🚗 配車", allDriverIndices, allDriverCandidates, "outbound")
+        renderSection("配車", allDriverIndices, allDriverCandidates, "outbound")
       )}
     </div>
   );

@@ -15,6 +15,7 @@ import { useAvailabilityMembers } from "@/app/member/_hooks/useAvailabilityMembe
 import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 import toast from "react-hot-toast";
 import { useState, useEffect, useMemo } from "react";
+import { AlertCircle } from "lucide-react";
 
 export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
@@ -37,7 +38,7 @@ export default function Page() {
 
   const {
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     control,
     register,
     setError,
@@ -202,7 +203,10 @@ export default function Page() {
       router.push(`/member/teams/${teamId}/rides/${rideId}`);
     } catch (e: unknown) {
       console.error(e);
-      alert("送信中にエラーが発生しました");
+      setError("root", {
+        type: "manual",
+        message: "送信中にエラーが発生しました。時間をおいて再度お試しください。",
+      });
     }
   };
 
@@ -215,15 +219,28 @@ export default function Page() {
   const ride = data.ride;
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[800px] bg-white rounded-xl shadow-lg p-4 md:p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">🚗 配車・引率可否</h1>
+    <div className="app-page">
+      <div className="app-container max-w-3xl">
+      <div className="app-card p-4 md:p-8">
+        <div className="mb-6">
+          <p className="mb-1 text-sm font-semibold text-teal-700">回答入力</p>
+          <h1 className="app-section-title">配車・引率可否</h1>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            保護者ごとの配車・引率可否と、子どもの参加状況をまとめて送信できます。
+          </p>
+        </div>
 
         <div className="space-y-8">
           <RideBasicInfo date={ride.date} destination={ride.destination} />
 
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {errors.root?.message && (
+                <div className="flex gap-3 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+                  <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                  <p>{errors.root.message}</p>
+                </div>
+              )}
               <AvailabilityFormList
                 guardians={guardians}
                 registeredGuardianIds={registeredGuardianIds}
@@ -234,7 +251,7 @@ export default function Page() {
               />
 
               <ChildAvailabilitySection
-                children={visibleChildren}
+                childList={visibleChildren}
                 notParticipatingIds={notParticipatingIds}
                 selfDrivingIds={selfDrivingIds}
                 onToggleNotParticipating={toggleNotParticipating}
@@ -246,11 +263,12 @@ export default function Page() {
                 type="submit"
                 isSubmitting={isSubmitting}
                 loadingLabel="送信中..."
-                className="!w-full !max-w-[240px] py-3 text-base"
+                className="w-full py-3 text-base sm:max-w-[260px]"
               />
             </form>
           </FormProvider>
         </div>
+      </div>
       </div>
     </div>
   );

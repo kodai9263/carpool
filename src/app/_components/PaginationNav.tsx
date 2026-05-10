@@ -29,21 +29,29 @@ export default function PaginationNav({ page, totalPages, onPageChange, delta = 
   return (
     <div className="flex items-center justify-center gap-2">
       <button
+        type="button"
+        aria-label="前のページ"
         onClick={() => onPageChange(Math.max(1, page - 1))}
         disabled={page <= 1}
-        className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+        className="app-icon-button min-h-10 min-w-10 disabled:opacity-40"
       >
-        <ChevronLeft size={24} />
+        <ChevronLeft size={18} />
       </button>
 
       {pages.map((p, idx) => 
         p === "..." ? (
-          <span key={`gap-${idx}`} className="px-2 select-none">...</span>
+          <span key={`gap-${idx}`} className="select-none px-2 text-sm font-medium text-gray-400">...</span>
         ) : (
           <button
+            type="button"
             key={p}
+            aria-current={p === page ? "page" : undefined}
             onClick={() => onPageChange(p as number)}
-            className={`px-3 py-1 border rounded ${p === page ? 'bg-[#2f6f68] text-white border-[#2f6f68]' : 'hover:bg-gray-100'}`}
+            className={`min-h-10 min-w-10 rounded-lg border px-3 text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-teal-700/10 ${
+              p === page
+                ? "border-teal-700 bg-teal-700 text-white shadow-sm"
+                : "border-gray-200 bg-white text-gray-600 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800"
+            }`}
           >
             {p}
           </button>
@@ -51,11 +59,13 @@ export default function PaginationNav({ page, totalPages, onPageChange, delta = 
       )}
 
       <button
+        type="button"
+        aria-label="次のページ"
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
         disabled={page >= totalPages}
-        className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+        className="app-icon-button min-h-10 min-w-10 disabled:opacity-40"
       >
-        <ChevronRight size={24} />
+        <ChevronRight size={18} />
       </button>
     </div>
   );
