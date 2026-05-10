@@ -60,19 +60,20 @@ export default function MemberForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-8">
       {/* 保護者フィールド */}
-      <div className="space-y-3">
+      <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4">
+        <h2 className="text-base font-bold text-gray-950">保護者</h2>
         {guardianFields.map((guardian, index) => (
           <div key={guardian.id}>
-            <label className="block text-sm font-medium flex items-center gap-2 mb-2">
+            <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
               <User size={18} className="text-gray-500" />
               保護者 {index + 1}
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
-                className="flex-1 min-w-0 rounded-lg px-4 py-2 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
+                className="app-input min-w-0 flex-1"
                 {...register(`guardians.${index}.name` as const, { required: "保護者名を入力してください" })}
                 disabled={isSubmitting}
               />
@@ -80,7 +81,7 @@ export default function MemberForm() {
                 <button
                   type="button"
                   onClick={() => removeGuardian(index)}
-                  className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
+                  className="app-icon-button flex-shrink-0"
                   disabled={isSubmitting}
                 >
                   <X size={20} />
@@ -96,7 +97,7 @@ export default function MemberForm() {
           <button
             type="button"
             onClick={() => appendGuardian({ name: '' })}
-            className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
+            className="app-button-secondary px-3"
             disabled={isSubmitting}
           >
             <Plus size={20} />
@@ -105,22 +106,23 @@ export default function MemberForm() {
       </div>
 
       {/* 子供フィールド */}
-      <div className="space-y-3">
+      <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4">
+        <h2 className="text-base font-bold text-gray-950">子ども</h2>
         {childFields.map((child, index) => (
           <div key={child.id}>
-            <label className="block text-sm font-medium flex items-center gap-2 mb-2">
+            <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
               <Baby size={18} className="text-gray-500" />
               子供 {index + 1}
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
-                className="flex-1 min-w-0 rounded-lg px-4 py-2 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none"
+                className="app-input min-w-0 flex-1"
                 {...register(`children.${index}.name` as const)}
                 disabled={isSubmitting}
               />
               <select
-                className="w-20 rounded-lg px-2 py-2 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-sm"
+                className="app-select w-24 text-sm"
                 {...register(`children.${index}.grade` as const, { valueAsNumber: true })}
                 disabled={isSubmitting}
               >
@@ -138,7 +140,7 @@ export default function MemberForm() {
                 <button
                   type="button"
                   onClick={() => removeChild(index)}
-                  className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
+                  className="app-icon-button flex-shrink-0"
                 >
                   <X size={20} />
                 </button>
@@ -151,7 +153,7 @@ export default function MemberForm() {
           <button
             type="button"
             onClick={() => appendChild({ name: '', grade: undefined })}
-            className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
+            className="app-button-secondary px-3"
             disabled={isSubmitting}
           >
             <Plus size={20} />
@@ -164,6 +166,7 @@ export default function MemberForm() {
           label="登録"
           loadingLabel="登録中..."
           isSubmitting={isSubmitting}
+          className="w-full"
         />
       </div>
     </form>

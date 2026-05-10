@@ -43,9 +43,14 @@ export default function RideDriverGrid({ drivers, separateDirections }: Props) {
 
   const renderSection = (label: string, sectionDrivers: Driver[], emptyMessage: string) => (
     <div>
-      <h2 className="text-lg font-bold mb-4">{label}</h2>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-bold text-gray-950">{label}</h2>
+        <span className="app-status border border-teal-100 bg-teal-50 text-teal-800">
+          {sectionDrivers.length}台
+        </span>
+      </div>
       {sectionDrivers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-[920px]">
+        <div className="grid w-full max-w-[920px] grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {sectionDrivers.map((driver) => (
             <div key={driver.id} className="min-w-0">
               <RideDriverCard driver={driver} />
@@ -53,7 +58,9 @@ export default function RideDriverGrid({ drivers, separateDirections }: Props) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-500">{emptyMessage}</p>
+        <div className="rounded-xl border border-gray-100 bg-gray-50/80 px-4 py-5 text-center text-sm text-gray-500">
+          {emptyMessage}
+        </div>
       )}
     </div>
   );
@@ -62,11 +69,11 @@ export default function RideDriverGrid({ drivers, separateDirections }: Props) {
     <div className="space-y-8">
       {separateDirections ? (
         <>
-          {renderSection("🚗 行き配車", outboundDrivers, "行きの配車情報はまだありません")}
-          {renderSection("🚗 帰り配車", inboundDrivers, "帰りの配車情報はまだありません")}
+          {renderSection("行き配車", outboundDrivers, "行きの配車情報はまだありません")}
+          {renderSection("帰り配車", inboundDrivers, "帰りの配車情報はまだありません")}
         </>
       ) : (
-        renderSection("🚗 配車", drivers, "配車情報はまだありません")
+        renderSection("配車", drivers, "配車情報はまだありません")
       )}
     </div>
   );

@@ -2,13 +2,14 @@
 
 import { useMemo } from "react";
 
-export function getValueByPath(obj: any, path: (string | number)[]): any {
-  let current = obj;
+export function getValueByPath(obj: unknown, path: (string | number)[]): unknown {
+  let current: unknown = obj;
 
   for(const key of path) {
     if (current == null) return undefined;
+    if (typeof current !== "object" && typeof current !== "function") return undefined;
 
-    current = current[key];
+    current = (current as Record<string | number, unknown>)[key];
   }
 
   return current;
@@ -39,13 +40,16 @@ export function useExcludeIds<T>(
       // 子どもの配列の場合 childIdを集める
       if (Array.isArray(value)) {
         value.forEach((assignment) => {
-          const id = assignment.childId;
+          const id =
+            assignment && typeof assignment === "object" && "childId" in assignment
+              ? Number(assignment.childId)
+              : 0;
           if (id && id !== 0) set.add(id);
         });
       }
       // ドライバーの場合
       else {
-        const id = value as number;
+        const id = typeof value === "number" ? value : Number(value);
         if (id && id !== 0) set.add(id);
       }
     });

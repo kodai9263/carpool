@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AlertTriangle, Home, RotateCcw } from "lucide-react";
 
 export default function Error({
   error,
@@ -14,31 +15,35 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-center px-4 bg-gradient-to-b from-white to-gray-50">
-      <div className="max-w-md w-full space-y-6">
-        {/* イラスト風のエモジ */}
-        <div className="text-8xl mb-4">😵</div>
+    <div className="app-page flex min-h-screen flex-col items-center justify-center px-4 text-center">
+      <div className="app-card w-full max-w-md p-6 md:p-8">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+          <AlertTriangle size={30} />
+        </div>
         
-        <h1 className="text-4xl font-bold text-gray-800">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-950">
           エラーが発生しました
         </h1>
         
-        <p className="text-gray-600 text-lg">
+        <p className="mt-3 text-sm leading-6 text-gray-500">
           申し訳ございません。<br />
           予期しない問題が発生しました。
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <button
+            type="button"
             onClick={() => reset()}
-            className="flex-1 inline-flex items-center justify-center h-12 px-8 rounded-lg bg-[#0F766E] hover:bg-[#0D6B64] text-white font-medium transition-all hover:shadow-lg"
+            className="app-button-primary flex-1"
           >
+            <RotateCcw size={16} />
             もう一度試す
           </button>
           <a
             href="/"
-            className="flex-1 inline-flex items-center justify-center h-12 px-8 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+            className="app-button-secondary flex-1"
           >
+            <Home size={16} />
             トップに戻る
           </a>
         </div>

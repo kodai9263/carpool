@@ -46,7 +46,7 @@ export default function AvailabilityFormList({
   }, [availabilities]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {fields.map((field, index) => (
         <AvailabilityFormItem
           key={field.id}
@@ -66,7 +66,7 @@ export default function AvailabilityFormList({
       <button
         type="button"
         onClick={() => append({ guardianId: 0, driverAvailability: false, driverDirection: "both", seats: 1, driverComment: "", escortAvailability: false, escortDirection: "both", escortComment: "" })}
-        className="flex items-center gap-2 px-4 py-2 text-teal-700 hover:text-teal-800 transition"
+        className="app-button-secondary w-full sm:w-auto"
       >
         <Plus size={18} />
         <span className="text-sm">保護者追加</span>

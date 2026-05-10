@@ -50,7 +50,7 @@ export default function RideForm() {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 flex flex-col items-center max-w-xl mx-auto">
+      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto flex max-w-xl flex-col space-y-6">
         <RideBasicForm
           date={date}
           onDateChange={handleDateChange}

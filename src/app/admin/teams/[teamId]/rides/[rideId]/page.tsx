@@ -13,8 +13,7 @@ import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
-import { Copy, Share2 } from "lucide-react";
-import { formatDate } from "@/utils/formatDate";
+import { Car, Copy, Share2 } from "lucide-react";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { supabase } from "@/utils/supabase";
 import toast from "react-hot-toast";
@@ -232,7 +231,7 @@ export default function Page() {
       await navigator.clipboard.writeText(text);
       setCopied(label);
       setTimeout(() => setCopied(null), 2000);
-    } catch (err) {
+    } catch {
       alert("コピーに失敗しました");
     }
   };
@@ -260,7 +259,7 @@ export default function Page() {
     const text = `${dateLabel}${destination}への車出し可否・お子さんの参加可否の入力をお願いします。
 ${rideUrl}
 
-📌 PINコード: ${pin}
+PINコード: ${pin}
 ${deadlineText}`;
 
     copyToClipboard(text, "入力依頼テキスト");
@@ -284,7 +283,7 @@ ${deadlineText}`;
     const text = `${dateLabel}${destination}への配車割をご確認ください。
 ${rideUrl}
 
-📌 PINコード: ${pin}
+PINコード: ${pin}
 
 よろしくお願いします。`;
 
@@ -302,18 +301,23 @@ ${rideUrl}
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-4 md:py-10 px-4">
-      <div className="w-full max-w-[1000px] bg-white rounded-xl shadow-lg p-4 md:p-8 min-w-0 overflow-hidden">
-        <h1 className="text-3xl font-bold text-center mb-6 md:mb-8 break-words">
-          🚗 配車詳細
-        </h1>
+    <div className="app-page">
+      <div className="app-container">
+        <div className="mb-6">
+          <p className="mb-1 text-sm font-semibold text-teal-700">配車情報</p>
+          <h1 className="app-section-title flex items-center gap-2">
+            <Car size={26} className="text-teal-700" />
+            配車詳細
+          </h1>
+        </div>
+      <div className="app-card min-w-0 overflow-hidden p-4 md:p-8">
         <FormProvider {...methods}>
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6 md:space-y-8 min-w-0"
           >
-            <div className="flex justify-center">
-              <div className="w-full max-w-md">
+            <div className="app-panel p-4 md:p-5">
+              <div className="mx-auto w-full max-w-md">
                 <RideBasicForm
                   date={date}
                   onDateChange={handleDateChange}
@@ -330,7 +334,7 @@ ${rideUrl}
             </div>
 
             {/* 行き帰り別配車モード切替 */}
-            <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <div className="relative">
                   <input
@@ -338,7 +342,7 @@ ${rideUrl}
                     className="sr-only"
                     {...methods.register("separateDirections")}
                   />
-                  <div className={`w-11 h-6 rounded-full transition-colors ${separateDirections ? 'bg-teal-600' : 'bg-gray-300'}`} />
+                  <div className={`h-6 w-11 rounded-full transition-colors ${separateDirections ? 'bg-teal-600' : 'bg-gray-300'}`} />
                   <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${separateDirections ? 'translate-x-5' : 'translate-x-0'}`} />
                 </div>
                 <span className="text-sm font-medium text-gray-700">
@@ -385,7 +389,7 @@ ${rideUrl}
               if (selfDrivingChildren.length === 0) return null;
               return (
                 <div className="p-4 border-2 border-blue-200 rounded-xl bg-blue-50">
-                  <h3 className="text-base font-bold mb-3">🚗 自走参加者</h3>
+                  <h3 className="mb-3 text-base font-bold">自走参加者</h3>
                   <div className="flex flex-wrap gap-2">
                     {selfDrivingChildren.map((child) => (
                       <span
@@ -401,17 +405,17 @@ ${rideUrl}
             })()}
 
             {/* メンバー共有セクション */}
-            <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Share2 size={20} className="text-blue-600" />
+            <div className="mt-8 rounded-xl border border-teal-200 bg-teal-50/80 p-4 md:p-6">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-950">
+                <Share2 size={20} className="text-teal-700" />
                 メンバー共有用
               </h3>
 
               {/* ゲストユーザーの場合のみPINコードを表示 */}
               {isGuestUser && (
-                <div className="mb-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
-                  <p className="text-sm font-bold text-amber-800 mb-1 flex items-center gap-1">
-                    🎭 デモ用PINコード
+                <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4">
+                  <p className="mb-1 flex items-center gap-1 text-sm font-bold text-amber-800">
+                    デモ用PINコード
                   </p>
                   <p className="text-3xl font-mono font-bold text-amber-900 my-2">
                     1234
@@ -436,7 +440,7 @@ ${rideUrl}
                         ? `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`
                         : ""
                     }
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+                    className="app-input flex-1 text-sm"
                   />
                   <button
                     type="button"
@@ -446,7 +450,7 @@ ${rideUrl}
                         "URL",
                       )
                     }
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
+                    className="app-button-primary whitespace-nowrap"
                   >
                     <Copy size={16} />
                     {copied === "URL" ? "✓" : "コピー"}
@@ -464,13 +468,13 @@ ${rideUrl}
                     type="date"
                     value={deadline}
                     onChange={(e) => setDeadline(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+                    className="app-input max-w-44 text-sm"
                   />
                   <button
                     type="button"
                     onClick={saveDeadline}
                     disabled={isSavingDeadline}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm whitespace-nowrap disabled:opacity-50"
+                    className="app-button-primary whitespace-nowrap"
                   >
                     {isSavingDeadline ? "保存中..." : "設定"}
                   </button>
@@ -485,7 +489,7 @@ ${rideUrl}
                 <button
                   type="button"
                   onClick={copyShareText}
-                  className="w-full py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+                  className="app-button-primary w-full text-xs sm:text-sm"
                 >
                   <Share2 size={18} />
                   {copied === "入力依頼テキスト"
@@ -495,7 +499,7 @@ ${rideUrl}
                 <button
                   type="button"
                   onClick={copyAssignmentText}
-                  className="w-full py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                  className="app-button-secondary w-full text-sm"
                 >
                   <Share2 size={18} />
                   {copied === "配車割テキスト"
@@ -512,6 +516,7 @@ ${rideUrl}
             />
           </form>
         </FormProvider>
+      </div>
       </div>
     </div>
   );

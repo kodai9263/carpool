@@ -6,14 +6,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FormInput } from "../_components/FormInput";
 import { FormButton } from "../_components/FormButton";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LoadingSpinner } from "../_components/LoadingSpinner";
-import toast from "react-hot-toast";
+import { AlertCircle, ArrowLeft, Car, LockKeyhole, Mail } from "lucide-react";
 
 export default function Page() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { isSubmitting, errors },
   } = useForm({
     defaultValues: { email: "", password: "" },
@@ -21,15 +22,6 @@ export default function Page() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isGuestLoading, setIsGuestLoading] = useState(false);
-
-  // URLパラメータでguest=trueがある場合、自動でゲストログイン
-  useEffect(() => {
-    const isGuest = searchParams.get('guest');
-    if (isGuest === 'true') {
-      setIsGuestLoading(true);
-      handleGuestLogin();
-    }
-  }, [searchParams]);
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -45,7 +37,10 @@ export default function Page() {
         password: data.password,
       });
       if (error) {
-        alert("ログインに失敗しました。");
+        setError("root", {
+          type: "manual",
+          message: "メールアドレスまたはパスワードを確認してください。",
+        });
         console.error(error.message);
       } else {
         router.replace("/admin/teams");
@@ -53,19 +48,22 @@ export default function Page() {
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "通信エラーが発生しました。";
-      alert(message);
+      setError("root", { type: "manual", message });
       console.error(e);
     }
   };
 
-  const handleGuestLogin = async () => {
+  const handleGuestLogin = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: "guest@carpool.demo",
         password: "guest123456",
       });
       if (error) {
-        alert("ゲストログインに失敗しました。");
+        setError("root", {
+          type: "manual",
+          message: "ゲストログインに失敗しました。時間をおいて再度お試しください。",
+        });
         console.error(error.message);
         setIsGuestLoading(false);
       } else {
@@ -74,33 +72,58 @@ export default function Page() {
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "通信エラーが発生しました。";
-        alert(message);
+        setError("root", { type: "manual", message });
         console.error(e);
         setIsGuestLoading(false);
     }
-  };
+  }, [router, setError]);
+
+  // URLパラメータでguest=trueがある場合、自動でゲストログイン
+  useEffect(() => {
+    const isGuest = searchParams.get('guest');
+    if (isGuest === 'true') {
+      setIsGuestLoading(true);
+      handleGuestLogin();
+    }
+  }, [handleGuestLogin, searchParams]);
 
   if (isGuestLoading) {
     return <LoadingSpinner />
   }
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-[#5d9b94] via-[#7fb5ae] to-[#a8cec8] p-4">
-      <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+    <div className="app-page flex min-h-dvh flex-col items-center justify-start px-4 py-4 sm:justify-center md:py-10">
+      <Link href="/" className="mb-4 flex items-center gap-2.5 text-lg font-bold tracking-tight text-gray-950">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/70 bg-gradient-to-br from-teal-700 via-teal-700 to-teal-900 text-white shadow-[0_14px_32px_rgba(15,118,110,0.24)]">
+          <Car size={20} strokeWidth={2.35} />
+        </span>
+        <span className="bg-gradient-to-br from-[#153f3b] to-[#2b7a70] bg-clip-text text-transparent">Carpool</span>
+      </Link>
+      <div className="app-card relative w-full max-w-md overflow-hidden p-4 sm:p-6 md:p-8">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-700 via-emerald-500 to-amber-300" />
+        <div className="mb-5 text-center md:mb-8">
+          <h1 className="mb-1.5 text-2xl font-bold tracking-tight text-gray-950 md:text-3xl">
             ログイン
           </h1>
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-sm text-gray-500">
             管理者アカウントでログイン
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
+          {errors.root?.message && (
+            <div className="flex gap-3 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <p>{errors.root.message}</p>
+            </div>
+          )}
+
           <FormInput
             label="メールアドレス"
+            icon={<Mail size={18} />}
             type="email"
             placeholder="example@mail.com"
+            autoComplete="email"
             disabled={isSubmitting}
             error={errors.email?.message}
             {...register("email", { required: "メールアドレスは必須です。" })}
@@ -108,8 +131,10 @@ export default function Page() {
 
           <FormInput
             label="パスワード"
+            icon={<LockKeyhole size={18} />}
             type="password"
             placeholder="••••••••"
+            autoComplete="current-password"
             disabled={isSubmitting}
             error={errors.password?.message}
             {...register("password", {
@@ -120,7 +145,7 @@ export default function Page() {
           <div className="text-center">
             <Link
               href="/reset-password"
-              className="inline-block text-sm text-[#0F766E] hover:text-[#0D6B64] hover:underline underline-offset-2 transition-colors"
+              className="inline-block text-xs font-medium text-teal-700 transition-colors hover:text-teal-900 hover:underline underline-offset-2 md:text-sm"
             >
               パスワードをお忘れですか？
             </Link>
@@ -130,10 +155,11 @@ export default function Page() {
             label="ログイン"
             loadingLabel="ログイン中..."
             isSubmitting={isSubmitting}
+            className="w-full"
           />
         </form>
 
-        <div className="mt-6">
+        <div className="mt-4 md:mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200" />
@@ -145,7 +171,7 @@ export default function Page() {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="mt-4 w-full flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="app-button-secondary mt-3 w-full md:mt-4"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
@@ -157,32 +183,33 @@ export default function Page() {
           </button>
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-4 text-center md:mt-6">
           <p className="text-sm text-gray-600">
             アカウントをお持ちでない方は{" "}
             <Link
               href="/signup"
-              className="text-[#0F766E] hover:text-[#0D6B64] font-medium hover:underline transition-colors"
+              className="font-semibold text-teal-700 transition-colors hover:text-teal-900 hover:underline"
             >
               こちら
             </Link>
           </p>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="mt-5 border-t border-gray-200 pt-4 max-[700px]:hidden md:mt-8 md:pt-6">
           <Link
             href="/"
-            className="flex items-center justify-center text-sm text-gray-600 hover:text-[#0F766E] transition-colors"
+            className="flex items-center justify-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-teal-800"
           >
-            <span>← ホームに戻る</span>
+            <ArrowLeft size={15} />
+            <span>ホームに戻る</span>
           </Link>
         </div>
       </div>
-      <footer className="mt-6 py-2 text-center text-sm text-white/80">
+      <footer className="mt-6 py-2 text-center text-sm text-gray-500 max-[700px]:hidden">
         お問い合わせ:{" "}
         <a
           href="mailto:carpool.app.2026@gmail.com"
-          className="hover:text-white underline"
+          className="underline hover:text-teal-800"
         >
           carpool.app.2026@gmail.com
         </a>

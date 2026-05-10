@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { AlertCircle, KeyRound, LockKeyhole } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 interface PinValues {
@@ -14,6 +15,7 @@ export default function Page() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { isSubmitting, errors },
     reset,
   } = useForm<PinValues>();
@@ -29,8 +31,11 @@ export default function Page() {
       });
 
       if (!response.ok) {
-        alert("配車コードが正しくありません");
         reset();
+        setError("pin", {
+          type: "manual",
+          message: "配車コードが正しくありません。",
+        });
         return;
       }
 
@@ -45,25 +50,39 @@ export default function Page() {
         router.push(`/member/teams/${teamId}/rides`);
       }
     } catch {
-      alert("エラーが発生しました");
+      setError("root", {
+        type: "manual",
+        message: "通信エラーが発生しました。時間をおいて再度お試しください。",
+      });
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#5d9b94] via-[#7fb5ae] to-[#a8cec8] p-4">
-      <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
+    <div className="app-page flex min-h-screen items-center justify-center px-4">
+      <div className="app-card relative w-full max-w-md overflow-hidden p-6 md:p-8">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-700 via-emerald-500 to-amber-300" />
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+            <KeyRound size={30} />
+          </div>
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-950">
             配車閲覧
           </h1>
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-sm text-gray-500">
             配車閲覧コードを入力してください
           </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {errors.root?.message && (
+            <div className="flex gap-3 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <p>{errors.root.message}</p>
+            </div>
+          )}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <LockKeyhole size={17} className="text-gray-500" />
               配車閲覧コード
             </label>
             <input
@@ -71,7 +90,7 @@ export default function Page() {
                 required: "配車コードを入力してください",
                 minLength: { value: 4, message: "4桁以上で入力してください" },
               })}
-              className="border-2 border-gray-300 rounded-lg px-4 py-3 w-full focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 focus:outline-none transition-all"
+              className={`app-input ${errors.pin ? "border-red-500 focus:border-red-500 focus:ring-red-500/10" : ""}`}
               type="password"
               autoComplete="off"
               placeholder="••••"
@@ -87,7 +106,7 @@ export default function Page() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-[#0F766E] to-[#0D6B64] hover:from-[#0D6B64] hover:to-[#0B5F57] text-white font-medium rounded-lg py-3 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="app-button-primary w-full"
           >
             {isSubmitting ? "確認中..." : "配車表示"}
           </button>

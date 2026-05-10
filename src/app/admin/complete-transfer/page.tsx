@@ -6,6 +6,7 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { api } from "@/utils/api";
 import { supabase } from "@/utils/supabase";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
+import { AlertCircle, LockKeyhole, ShieldCheck } from "lucide-react";
 
 export default function CompleteTransferPage() {
   const router = useRouter();
@@ -44,35 +45,58 @@ export default function CompleteTransferPage() {
   if (isLoading || (!error && !token)) return <LoadingSpinner />;
 
   return (
-    <div className="min-h-screen flex justify-center items-center px-4">
-      <div className="w-full max-w-[400px] p-8 rounded-xl shadow-lg bg-white">
-        <h1 className="text-xl font-bold mb-2">管理者引き継ぎ</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          ログインに使用するパスワードを設定してください。
-        </p>
+    <div className="app-page flex min-h-screen items-center justify-center px-4">
+      <div className="app-card relative w-full max-w-md overflow-hidden p-6 md:p-8">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-700 via-emerald-500 to-amber-300" />
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+            <ShieldCheck size={30} />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-950">管理者引き継ぎ</h1>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            ログインに使用するパスワードを設定してください。
+          </p>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="password"
-            placeholder="新しいパスワード（8文字以上）"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <input
-            type="password"
-            placeholder="パスワード（確認）"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          <label className="block">
+            <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <LockKeyhole size={17} className="text-gray-500" />
+              新しいパスワード
+            </span>
+            <input
+              type="password"
+              placeholder="8文字以上"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={8}
+              required
+              className="app-input text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <LockKeyhole size={17} className="text-gray-500" />
+              パスワード（確認）
+            </span>
+            <input
+              type="password"
+              placeholder="もう一度入力"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+              className="app-input text-sm"
+            />
+          </label>
+          {error && (
+            <div className="flex gap-3 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-sm font-medium rounded-lg transition-colors"
+            className="app-button-primary w-full"
           >
             {isSubmitting ? "設定中..." : "パスワードを設定して引き継ぎを完了する"}
           </button>

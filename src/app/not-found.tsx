@@ -2,39 +2,45 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, CircleHelp, Home } from "lucide-react";
 
 export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-center px-4 bg-gradient-to-b from-white to-gray-50">
-      <div className="max-w-md w-full space-y-6">
-        <div className="text-8xl mb-4">🚗💨</div>
+    <div className="app-page flex min-h-screen flex-col items-center justify-center px-4 text-center">
+      <div className="app-card w-full max-w-md p-6 md:p-8">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+          <CircleHelp size={30} />
+        </div>
         
-        <h1 className="text-7xl font-bold text-[#0F766E] mb-2">
+        <h1 className="mb-2 text-6xl font-bold tracking-tight text-teal-800">
           404
         </h1>
         
-        <h2 className="text-3xl font-bold text-gray-800">
-          迷子になっちゃいました
+        <h2 className="text-2xl font-bold text-gray-950">
+          ページが見つかりません
         </h2>
         
-        <p className="text-gray-600 text-lg">
-          ページが見つかりません。
+        <p className="mt-3 text-sm leading-6 text-gray-500">
+          URLが変更されたか、ページが削除された可能性があります。
         </p>
 
-        <div className="pt-4 flex flex-col gap-3 items-center">
+        <div className="mt-8 flex flex-col gap-3">
           <button
+            type="button"
             onClick={() => router.back()}
-            className="inline-flex items-center justify-center h-12 px-8 rounded-lg bg-[#0F766E] hover:bg-[#0D6B64] text-white font-medium transition-all hover:shadow-lg w-[240px]"
+            className="app-button-primary w-full"
           >
+            <ArrowLeft size={16} />
             前のページに戻る
           </button>
           
           <Link
             href="/"
-            className="inline-flex items-center justify-center h-10 px-6 rounded-lg border-2 border-gray-300 hover:border-[#0F766E] text-gray-700 hover:text-[#0F766E] font-medium transition-all text-sm w-[240px]"
+            className="app-button-secondary w-full"
           >
+            <Home size={16} />
             トップページに戻る
           </Link>
         </div>

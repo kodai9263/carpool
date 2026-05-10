@@ -21,6 +21,8 @@
 *.pem
 CLAUDE.md
 plans
+tasks
+AGENTS.md
 
 # debug
 npm-debug.log*

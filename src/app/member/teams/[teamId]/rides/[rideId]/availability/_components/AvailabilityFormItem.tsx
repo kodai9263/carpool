@@ -1,7 +1,7 @@
 "use client";
 
 import { AvailabilityListFormValues } from "@/app/_types/availability";
-import { User, X } from "lucide-react";
+import { Car, PersonStanding, User, X } from "lucide-react";
 import { useEffect } from "react";
 import { Control, useFormContext, UseFormRegister, useWatch } from "react-hook-form";
 
@@ -105,7 +105,7 @@ export default function AvailabilityFormItem({
   const isChangingEscortToUnavailable = existingEscortData?.availability && !escortAvailability;
 
   return (
-    <div className="p-3 md:p-4 border rounded-lg bg-gray-50 space-y-3">
+    <div className="space-y-4 rounded-xl border border-white/80 bg-white/95 p-4 shadow-[0_14px_34px_rgba(15,118,110,0.08)] ring-1 ring-gray-950/[0.02] md:p-5">
       {/* 保護者名 */}
       <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
         <div className="flex items-center gap-2">
@@ -119,10 +119,10 @@ export default function AvailabilityFormItem({
             required: true,
             valueAsNumber: true,
           })}
-          className={`w-full md:flex-1 border-2 rounded px-3 py-2 text-base focus:ring-2 focus:outline-none ${
+          className={`app-select w-full md:flex-1 ${
             guardianIdError
-              ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:border-teal-700 focus:ring-teal-700"
+              ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+              : ""
           }`}
         >
           <option value={0}>選択してください</option>
@@ -166,7 +166,7 @@ export default function AvailabilityFormItem({
       )}
 
       {/* 配車セクション */}
-      <div className="border border-gray-200 rounded-md p-3 space-y-3 bg-white">
+      <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/80 p-3">
         <label
           className={`flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
             isGuardianSelected
@@ -180,7 +180,8 @@ export default function AvailabilityFormItem({
             disabled={!isGuardianSelected}
             className="w-6 h-6 text-teal-700 rounded focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed"
           />
-          <span className="text-base font-medium">🚗 配車可</span>
+          <Car size={18} className="text-teal-700" />
+          <span className="text-base font-medium">配車可</span>
         </label>
 
         {driverAvailability && (
@@ -215,7 +216,7 @@ export default function AvailabilityFormItem({
                 {...register(`availabilities.${index}.seats`, {
                   valueAsNumber: true,
                 })}
-                className="border-2 border-gray-300 rounded px-3 py-2 w-full md:w-32 text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+                className="app-select w-full md:w-32"
               >
                 {[...Array(10)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -231,7 +232,7 @@ export default function AvailabilityFormItem({
                 type="text"
                 {...register(`availabilities.${index}.driverComment`)}
                 placeholder="例: 兄弟2人も同乗、行きのみ可など"
-                className="border-2 border-gray-300 rounded px-3 py-2 w-full text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+                className="app-input"
               />
             </div>
           </>
@@ -239,14 +240,13 @@ export default function AvailabilityFormItem({
 
         {isChangingDriverToUnavailable && (
           <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded border border-orange-200">
-            <span>⚠️</span>
             <span>この登録を「配車不可」に変更します</span>
           </div>
         )}
       </div>
 
       {/* 引率セクション */}
-      <div className="border border-gray-200 rounded-md p-3 space-y-3 bg-white">
+      <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/80 p-3">
         <label
           className={`flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
             isGuardianSelected
@@ -260,7 +260,8 @@ export default function AvailabilityFormItem({
             disabled={!isGuardianSelected}
             className="w-6 h-6 text-teal-700 rounded focus:ring-2 focus:ring-teal-500 disabled:cursor-not-allowed"
           />
-          <span className="text-base font-medium">🚶 引率可</span>
+          <PersonStanding size={18} className="text-teal-700" />
+          <span className="text-base font-medium">引率可</span>
         </label>
 
         {escortAvailability && (
@@ -292,7 +293,7 @@ export default function AvailabilityFormItem({
                 type="text"
                 {...register(`availabilities.${index}.escortComment`)}
                 placeholder="例: 午前中のみ可など"
-                className="border-2 border-gray-300 rounded px-3 py-2 w-full text-base focus:border-teal-700 focus:ring-2 focus:ring-teal-700 focus:outline-none"
+                className="app-input"
               />
             </div>
           </>
@@ -300,7 +301,6 @@ export default function AvailabilityFormItem({
 
         {isChangingEscortToUnavailable && (
           <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 px-3 py-2 rounded border border-orange-200">
-            <span>⚠️</span>
             <span>この登録を「引率不可」に変更します</span>
           </div>
         )}

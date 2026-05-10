@@ -3,7 +3,7 @@
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Team } from "@/app/_types/team";
 import { TeamsListResponse } from "@/app/_types/response/teamResponse";
-import { Users } from "lucide-react";
+import { ChevronRight, Sparkles, Users } from "lucide-react";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useMemo, useState } from "react";
 import PaginationNav from "@/app/_components/PaginationNav";
@@ -35,21 +35,24 @@ export default function Page() {
     ];
 
     return (
-      <div className="min-h-screen flex justify-center items-center px-4 bg-gradient-to-br from-[#eaf4f3] to-[#f5fafa]">
+      <div className="app-page flex items-center justify-center">
         <div className="w-full max-w-[460px]">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 shadow-sm">
+            <Sparkles size={24} />
+          </div>
           {/* タイトル */}
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2 tracking-tight">
+          <h1 className="mb-2 text-center text-3xl font-bold tracking-tight text-gray-950">
             はじめましょう
           </h1>
-          <p className="text-sm text-gray-400 text-center mb-10">
+          <p className="mb-10 text-center text-sm text-gray-500">
             まずはチームを作成してください
           </p>
 
           {/* ステップ */}
-          <div className="bg-white rounded-2xl shadow-md p-6 mb-6 space-y-5">
+          <div className="app-card mb-6 space-y-5 p-6">
             {steps.map(({ step, label, description }, index) => (
               <div key={step} className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-[#5d9b94] to-[#3d7970] text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-teal-700 text-sm font-bold text-white shadow-sm">
                   {step}
                 </div>
                 <div className="flex-1 pt-0.5">
@@ -73,35 +76,43 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start py-4 md:py-10 px-4">
-      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-center flex-1 -ml-6">👥 チーム一覧</h1>
+    <div className="app-page">
+      <div className="app-container max-w-3xl">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <p className="mb-1 text-sm font-semibold text-teal-700">チーム管理</p>
+            <h1 className="app-section-title">チーム一覧</h1>
+            <p className="mt-2 text-sm text-gray-500">{teams.length}件のチームを管理中</p>
+          </div>
           <NewButton
             href="/admin/teams/new"
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="app-card divide-y divide-gray-100 overflow-hidden">
           {teams.map((team: Team) => {
             return (
               <div
                 key={team.id}
                 onClick={() => router.push(`/admin/teams/${team.id}`)}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#5d9b94] hover:shadow-md transition-all duration-200 cursor-pointer w-full"
+                className="app-list-row group"
               >
-                <div className="grid grid-cols-[24px_1fr] gap-3 items-center">
-                  <Users size={24} className="text-[#5d9b94]" />
-                  <span className="text-lg font-medium truncate" title={team.teamName}>
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700 transition group-hover:bg-teal-100">
+                  <Users size={20} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-base font-bold text-gray-950" title={team.teamName}>
                     {team.teamName}
                   </span>
+                  <span className="text-sm text-gray-500">チーム詳細へ</span>
                 </div>
+                <ChevronRight size={18} className="text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-teal-700" />
               </div>
             )
           })}
         </div>
 
-        <div className="mt-10">
+        <div className="mt-8">
           {totalPages > 1 && (
           <PaginationNav
             page={page}

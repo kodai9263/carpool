@@ -26,12 +26,14 @@ interface Props {
 
 export default function RideDriverCard({ driver }: Props) {
   return (
-    <div className="border-2 border-gray-200 rounded-xl p-4 md:p-5 shadow-sm space-y-4 bg-gray-50 hover:shadow-md transition-shadow min-w-0 overflow-hidden">
+    <div className="min-w-0 space-y-4 overflow-hidden rounded-xl border border-white/80 bg-white/95 p-4 shadow-[0_14px_34px_rgba(15,118,110,0.08)] ring-1 ring-gray-950/[0.02] transition hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(15,118,110,0.12)] md:p-5">
       {/* ドライバー名 */}
       <div className="flex items-center gap-3 min-w-0">
-        <CarFront size={24} className="text-teal-700 flex-shrink-0" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+          <CarFront size={22} />
+        </span>
         <div
-          className="min-w-0 flex-1 font-medium text-base line-clamp-2 break-all overflow-wrap-anywhere"
+          className="min-w-0 flex-1 text-base font-bold text-gray-950 line-clamp-2 break-all overflow-wrap-anywhere"
           title={`${driver.availabilityDriver.guardian.name}号`}
         >
           {driver.availabilityDriver.guardian.name}号
@@ -40,7 +42,7 @@ export default function RideDriverCard({ driver }: Props) {
 
       {/* ドライバーのコメント */}
       {driver.availabilityDriver.comment && (
-        <div className="flex items-start gap-1.5 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+        <div className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
           <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
           <span>{driver.availabilityDriver.comment}</span>
         </div>
@@ -48,7 +50,7 @@ export default function RideDriverCard({ driver }: Props) {
 
       {/* 乗車する子供 */}
       <div className="space-y-2 min-w-0">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">乗車する子供</h3>
+        <h3 className="mb-2 text-sm font-semibold text-gray-700">乗車する子供</h3>
         {driver.rideAssignments.length > 0 ? (
           <div className="space-y-2">
             {[...driver.rideAssignments]
@@ -56,7 +58,7 @@ export default function RideDriverCard({ driver }: Props) {
               .map((assignment) => (
                 <div
                   key={assignment.id}
-                  className="flex items-center gap-2 min-w-0 bg-white p-3 rounded-lg border border-gray-200"
+                    className="flex items-center gap-2 min-w-0 rounded-lg border border-gray-100 bg-gray-50/80 p-3"
                 >
                   <User size={18} className="text-gray-600 flex-shrink-0" />
                   <span
@@ -72,14 +74,14 @@ export default function RideDriverCard({ driver }: Props) {
               ))}
           </div>
         ) : (
-          <p className="text-xs text-gray-400">未割当</p>
+          <p className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-500">未割当</p>
         )}
       </div>
 
       {/* 引率者（いる場合のみ表示） */}
       {driver.escorts.length > 0 && (
-        <div className="pt-3 border-t border-gray-200 space-y-2 min-w-0">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">🚶 引率者</h3>
+        <div className="pt-3 border-t border-gray-100 space-y-2 min-w-0">
+          <h3 className="mb-2 text-sm font-semibold text-gray-700">引率者</h3>
           {driver.escorts.map((escort) => (
             <div key={escort.id} className="space-y-1.5">
               <div className="flex items-center gap-2 min-w-0">
@@ -90,7 +92,7 @@ export default function RideDriverCard({ driver }: Props) {
               </div>
               {/* 引率者のコメント */}
               {escort.availabilityDriver.comment && (
-                <div className="flex items-start gap-1.5 text-xs text-orange-700 bg-orange-100 border border-orange-200 px-2 py-1.5 rounded">
+                <div className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
                   <MessageSquare size={14} className="flex-shrink-0 mt-0.5" />
                   <span>{escort.availabilityDriver.comment}</span>
                 </div>
@@ -102,7 +104,7 @@ export default function RideDriverCard({ driver }: Props) {
                     .map((ra) => (
                       <div
                         key={ra.id}
-                        className="flex items-center gap-1.5 bg-white px-2 py-1.5 rounded border border-gray-200"
+                        className="flex items-center gap-1.5 rounded border border-gray-100 bg-gray-50/80 px-2 py-1.5"
                       >
                         <User size={14} className="text-gray-500 flex-shrink-0" />
                         <span className="text-xs min-w-0 flex-1 break-all">

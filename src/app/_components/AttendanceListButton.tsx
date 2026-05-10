@@ -15,7 +15,7 @@ export function AttendanceListButton({ href, className }: AttendanceListButtonPr
       onClick={() => router.push(href)}
       className={
         className ??
-        "px-6 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium text-sm"
+        "app-button-secondary w-full sm:w-auto"
       }
     >
       参加者・欠席者一覧を見る

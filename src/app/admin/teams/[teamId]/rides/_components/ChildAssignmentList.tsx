@@ -35,9 +35,13 @@ export default function ChildAssignmentList({
   });
 
   // ドライバーの一括取得
-  const drivers = useWatch({ control, name: "drivers" }) ?? [];
+  const watchedDrivers = useWatch({ control, name: "drivers" });
+  const drivers = useMemo(() => watchedDrivers ?? [], [watchedDrivers]);
   const driver = drivers[index];
-  const currentAssignments = driver.rideAssignments ?? [];
+  const currentAssignments = useMemo(
+    () => driver.rideAssignments ?? [],
+    [driver.rideAssignments]
+  );
   const selectedDriverId = driver.availabilityDriverId ?? null;
 
   // 学年降順ソート（高学年が先、未設定は末尾）
@@ -106,7 +110,7 @@ export default function ChildAssignmentList({
 
   return (
     <div className="space-y-2">
-      <h4 className="text-sm font-medium text-gray-700 mb-2">乗車する子供</h4>
+      <h4 className="mb-2 text-sm font-semibold text-gray-700">乗車する子供</h4>
 
       {fields.map((item, childIndex) => {
         const currentChildId = currentAssignments[childIndex]?.childId ?? 0;
@@ -114,7 +118,7 @@ export default function ChildAssignmentList({
         return (
           <div
             key={item.id}
-            className="flex items-center bg-white p-3 rounded-lg border border-gray-200 min-w-0"
+            className="flex min-w-0 items-center rounded-lg border border-gray-200 bg-white p-3"
           >
             <User size={18} className="text-gray-600 mr-2 flex-shrink-0" />
 
@@ -123,7 +127,7 @@ export default function ChildAssignmentList({
                 `drivers.${index}.rideAssignments.${childIndex}.childId`,
                 { valueAsNumber: true }
               )}
-              className="w-full min-w-0 truncate border-2 border-gray-300 rounded px-2 py-1 text-sm flex-1 focus:border-[#5d9b94] focus:ring-2 focus:ring-[#5d9b94] focus:outline-none"
+              className="app-select min-w-0 flex-1 truncate py-2 text-sm"
             >
               <option value={0}></option>
 
@@ -151,7 +155,7 @@ export default function ChildAssignmentList({
             <button
               type="button"
               onClick={() => remove(childIndex)}
-              className="text-gray-400 hover:text-red-500 transition ml-2 flex-shrink-0"
+              className="ml-2 flex-shrink-0 text-gray-400 transition hover:text-red-500"
             >
               <X size={18} />
             </button>
@@ -165,7 +169,7 @@ export default function ChildAssignmentList({
           <button
             type="button"
             onClick={() => append({ childId: 0 })}
-            className="w-full flex items-center justify-center gap-2 text-[#5d9b94] hover:text-[#4a7d77] transition bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm font-medium"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-100"
           >
             <Plus size={18} />
             <span>子供を追加</span>
@@ -178,7 +182,7 @@ export default function ChildAssignmentList({
             <button
               type="button"
               onClick={() => append({ childId: 0 })}
-              className="w-full flex items-center justify-center gap-2 text-[#5d9b94] hover:text-[#4a7d77] transition bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm font-medium"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-100"
             >
               <Plus size={18} />
               <span>あと{seatCount - fields.length - escortCount}人乗車できます</span>

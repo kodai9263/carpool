@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <div className="flex">
       {hasPin && <Sidebar />}
-      <main className={`flex-1 ${hasPin ? 'pb-20 md:pb-0' : ''}`}>{children}</main>
+      <main className={`flex-1 ${hasPin ? 'pb-20 md:ml-56 md:pb-0' : ''}`}>{children}</main>
     </div>
   );
 }

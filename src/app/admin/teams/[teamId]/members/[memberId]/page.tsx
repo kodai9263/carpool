@@ -119,9 +119,13 @@ export default function Page() {
   }
 
   return (
-    <div className="flex justify-center items-start py-4 md:py-10 px-4">
-      <div className="w-full max-w-[500px] p-6 md:p-8 rounded-xl shadow-lg bg-white">
-        <h1 className="text-3xl font-bold mb-8 text-center">👤 メンバー詳細</h1>
+    <div className="app-page">
+      <div className="app-container max-w-xl">
+        <div className="mb-6">
+          <p className="mb-1 text-sm font-semibold text-teal-700">メンバー情報</p>
+          <h1 className="app-section-title">メンバー詳細</h1>
+        </div>
+        <div className="app-card p-6 md:p-8">
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* 保護者フィールド */}
@@ -141,7 +145,7 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => removeGuardian(index)}
-                      className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
+                      className="app-icon-button flex-shrink-0"
                       disabled={isSubmitting}
                     >
                       <X size={20} />
@@ -155,7 +159,7 @@ export default function Page() {
               <button
                 type="button"
                 onClick={() => appendGuardian({ name: '' })}
-                className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
+                className="app-button-secondary px-3"
                 disabled={isSubmitting}
               >
                 <Plus size={20} />
@@ -177,7 +181,7 @@ export default function Page() {
                 right={
                   <div className="flex gap-1">
                     <select
-                      className="w-15 rounded-lg px-2 py-2 border-2 border-gray-300 focus:border-[#356963] focus:ring-2 focus:ring-[#356963] focus:outline-none text-sm"
+                      className="app-select w-24 text-sm"
                       {...register(`children.${index}.grade` as const, { valueAsNumber: true })}
                       disabled={isSubmitting}
                     >
@@ -194,7 +198,7 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => removeChild(index)}
-                      className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition flex-shrink-0"
+                      className="app-icon-button flex-shrink-0"
                       disabled={isSubmitting}
                     >
                       <X size={20} />
@@ -208,7 +212,7 @@ export default function Page() {
               <button
                 type="button"
                 onClick={() => appendChild({ name: "", grade: undefined })}
-                className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex-shrink-0"
+                className="app-button-secondary px-3"
                 disabled={isSubmitting}
               >
                 <Plus size={20} />
@@ -222,6 +226,7 @@ export default function Page() {
             isSubmitting={isSubmitting}
           />
         </form>
+        </div>
       </div>
     </div>
   );

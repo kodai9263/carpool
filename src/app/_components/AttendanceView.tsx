@@ -95,8 +95,8 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
     <div className="space-y-8">
       {/* 参加者セクション */}
       <section>
-        <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-          ✅ 参加者一覧
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+          参加者一覧
           <span className="text-sm font-normal text-gray-500">
             （{participants.length + selfDrivingChildren.length}名）
           </span>
@@ -110,7 +110,7 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
             {participants.map((p, i) => (
               <div
                 key={`participant-${p.child.id}-${i}`}
-                className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
+                className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-3"
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{p.child.name}</span>
@@ -125,7 +125,7 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
             {selfDrivingChildren.map((child) => (
               <div
                 key={`self-driving-${child.id}`}
-                className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
+                className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-3"
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{child.name}</span>
@@ -146,8 +146,8 @@ export function AttendanceView({ ride }: AttendanceViewProps) {
 
       {/* 欠席者セクション */}
       <section>
-        <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-          ❌ 欠席者一覧
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+          欠席者一覧
           <span className="text-sm font-normal text-gray-500">
             （{absentees.length}名）
           </span>

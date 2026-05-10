@@ -12,18 +12,18 @@ export default function RideBasicInfo({ date, destination }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="space-y-6 md:space-y-10 w-full">
+    <div className="app-panel w-full space-y-4 p-4 md:p-5">
       {/* 日付 */}
-      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+      <div className="space-y-2">
         <div className="flex items-center gap-2 md:gap-0">
-          <div className="md:w-10 flex justify-center">
+          <div className="mr-2 flex justify-center">
             <Calendar size={18} className="text-gray-500" />
           </div>
-          <span className="md:w-20 text-base md:text-lg font-bold">日付</span>
+          <span className="text-sm font-semibold text-gray-700">日付</span>
         </div>
 
-        <div className="w-full md:flex-1">
-          <div className="border-2 border-gray-300 rounded px-3 py-3 bg-gray-50">
+        <div className="w-full">
+          <div className="rounded-lg border border-teal-100 bg-teal-50/70 px-3 py-3 font-semibold text-gray-950">
             {new Date(date).toLocaleDateString("ja-JP", {
               year: "numeric",
               month: "2-digit",
@@ -34,17 +34,17 @@ export default function RideBasicInfo({ date, destination }: Props) {
       </div>
 
       {/* 行き先 */}
-      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+      <div className="space-y-2">
         <div className="flex items-center gap-2 md:gap-0">
-          <div className="md:w-10 flex justify-center">
+          <div className="mr-2 flex justify-center">
             <MapPin size={18} className="text-gray-500" />
           </div>
-          <span className="md:w-20 text-base md:text-lg font-bold">行き先</span>
+          <span className="text-sm font-semibold text-gray-700">行き先</span>
         </div>
 
-        <div className="w-full md:flex-1 min-w-0">
+        <div className="w-full min-w-0">
           <div
-            className={`border-2 border-gray-300 rounded px-3 py-3 bg-gray-50 break-all overflow-wrap-anywhere ${
+            className={`overflow-wrap-anywhere cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-3 text-gray-800 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/50 break-all ${
               isExpanded ? "" : "line-clamp-3"
             }`}
             onClick={() => setIsExpanded(!isExpanded)}
