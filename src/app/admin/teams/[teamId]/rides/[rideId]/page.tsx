@@ -13,6 +13,7 @@ import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
+import { formatRideExportText } from "@/utils/rideExport";
 import { Car, Copy, Share2 } from "lucide-react";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { supabase } from "@/utils/supabase";
@@ -185,6 +186,13 @@ export default function Page() {
     } finally {
       setIsAutoAssigning(false);
     }
+  };
+
+  // 配車内容のテキストエクスポート（LINE共有用）
+  const copyDetailText = () => {
+    if (!data?.ride) return;
+    const text = formatRideExportText(data.ride);
+    copyToClipboard(text, "配車内容テキスト");
   };
 
   // 配車削除
@@ -505,6 +513,16 @@ PINコード: ${pin}
                   {copied === "配車割テキスト"
                     ? "コピーしました！"
                     : "②配車決定後の案内をコピー"}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyDetailText}
+                  className="w-full py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <Copy size={18} />
+                  {copied === "配車内容テキスト"
+                    ? "コピーしました！"
+                    : "③配車内容をテキストでコピー（LINE共有用）"}
                 </button>
               </div>
             </div>
