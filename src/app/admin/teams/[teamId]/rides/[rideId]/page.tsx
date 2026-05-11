@@ -69,7 +69,7 @@ export default function Page() {
   const { token } = useSupabaseSession();
   const router = useRouter();
 
-  const { data, error, isLoading } = useFetch<RideDetailResponse>(
+  const { data, error, isLoading, mutate } = useFetch<RideDetailResponse>(
     `/api/admin/teams/${teamId}/rides/${rideId}`,
   );
   const isDeleting = useRef(false);
@@ -141,6 +141,7 @@ export default function Page() {
         token,
       );
       toast.success("配車詳細を更新しました。");
+      await mutate();
     } catch (e: unknown) {
       console.error(e);
       alert("更新中にエラーが発生しました。");
