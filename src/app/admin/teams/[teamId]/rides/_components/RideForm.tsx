@@ -4,6 +4,7 @@ import { FormButton } from "@/app/_components/FormButton";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { RideFormValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
+import { trackEvent } from "@/utils/analytics";
 import { useParams, useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import RideBasicForm from "./RideBasicForm";
@@ -40,6 +41,7 @@ export default function RideForm() {
         token,
       );
 
+      trackEvent("ride_created", { team_id: teamId });
       router.push(`/admin/teams/${teamId}/rides`);
       toast.success('配車を作成しました。');
     } catch (e: unknown) {

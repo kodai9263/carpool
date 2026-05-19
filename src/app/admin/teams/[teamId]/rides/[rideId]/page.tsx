@@ -5,6 +5,7 @@ import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { UpdateRideValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
+import { trackEvent } from "@/utils/analytics";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -177,6 +178,12 @@ export default function Page() {
           }),
       }));
       reset({ ...methods.getValues(), drivers: processedDrivers });
+      trackEvent("auto_assign_used", {
+        team_id: teamId,
+        ride_id: rideId,
+        number_of_cars: options.numberOfCars ?? "auto",
+        separate_parent_child: options.separateParentChild,
+      });
       toast.success("自動割り当て完了。保存ボタンで確定してください。");
     } catch (e: unknown) {
       const err = e as { message?: string; minimumCars?: number };
@@ -239,6 +246,11 @@ export default function Page() {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(label);
+      trackEvent("share_text_copied", {
+        team_id: teamId,
+        ride_id: rideId,
+        copy_type: label,
+      });
       setTimeout(() => setCopied(null), 2000);
     } catch {
       alert("コピーに失敗しました");

@@ -11,7 +11,9 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AdminMeResponse } from "@/app/_types/response/adminResponse";
 import { TransferFormValues } from "@/app/_types/admin";
-import { AlertTriangle, Mail, Send, ShieldCheck, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Mail, Send, ShieldCheck, Sparkles, Trash2, WalletCards } from "lucide-react";
+import { trackEvent } from "@/utils/analytics";
+import { PRO_ADDITIONAL_TEAM_PRICE_JPY } from "@/utils/billing";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -76,6 +78,11 @@ export default function ProfilePage() {
     }
   };
 
+  const handleUpgradeClick = () => {
+    trackEvent("upgrade_clicked", { source: "profile_plan_card" });
+    toast.success("Proプランへの関心を記録しました。準備ができ次第ご案内します。");
+  };
+
   if (isLoading) return <LoadingSpinner />;
 
   return (
@@ -98,6 +105,56 @@ export default function ProfilePage() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-gray-500">メールアドレス</p>
                 <p className="mt-2 truncate text-lg font-bold text-gray-950">{data?.admin.email}</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="plan" className="app-card overflow-hidden border-teal-100">
+            <div className="border-b border-gray-100 bg-teal-50/60 p-5 md:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-teal-700 shadow-sm">
+                    <WalletCards size={21} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-teal-700">現在のプラン</p>
+                    <h2 className="mt-1 text-xl font-bold text-gray-950">Free</h2>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                      1チームは無料で利用できます。複数チームの管理が必要になったらProを検討できます。
+                    </p>
+                  </div>
+                </div>
+                <span className="app-status bg-white text-teal-800">1チーム無料</span>
+              </div>
+            </div>
+
+            <div className="grid gap-4 p-5 md:grid-cols-[1fr_0.9fr] md:p-6">
+              <div className="space-y-3">
+                {["配車作成・回答収集", "自動割り当て", "LINE共有用テキストコピー"].map((feature) => (
+                  <div key={feature} className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                    <CheckCircle2 size={17} className="text-teal-700" />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Sparkles size={18} className="text-amber-700" />
+                  <p className="text-sm font-bold text-amber-900">Proプラン</p>
+                </div>
+                <p className="text-sm leading-6 text-amber-900">
+                  複数チーム向けに、追加チームごと月額
+                  <span className="font-bold"> {PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円 </span>
+                  から準備中です。
+                </p>
+                <button
+                  type="button"
+                  onClick={handleUpgradeClick}
+                  className="app-button-secondary mt-4 w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
+                >
+                  Proに興味があります
+                </button>
               </div>
             </div>
           </section>

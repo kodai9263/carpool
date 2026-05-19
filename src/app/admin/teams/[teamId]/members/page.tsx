@@ -49,6 +49,7 @@ export default function Page() {
           </div>
           <NewButton
             href={`/admin/teams/${teamId}/members/new`}
+            trackLabel="member_header"
           />
         </div>
 
@@ -77,6 +78,14 @@ export default function Page() {
               <p className="mt-2 text-sm leading-6 text-gray-500">
                 {search ? `「${search}」の検索条件を変えてみてください。` : "保護者と子どもを登録すると、配車の回答依頼を始められます。"}
               </p>
+              {!search && (
+                <div className="mt-5">
+                  <NewButton
+                    href={`/admin/teams/${teamId}/members/new`}
+                    trackLabel="member_empty_state"
+                  />
+                </div>
+              )}
             </div>
           )}
           {members.map((member: Member) => {

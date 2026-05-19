@@ -43,6 +43,7 @@ export default function Page() {
           </div>
           <NewButton 
             href={`/admin/teams/${teamId}/rides/new`}
+            trackLabel="ride_header"
           />
         </div>
 
@@ -56,6 +57,12 @@ export default function Page() {
               <p className="mt-2 text-sm leading-6 text-gray-500">
                 試合や練習の日程を作成すると、メンバーへの回答依頼を始められます。
               </p>
+              <div className="mt-5">
+                <NewButton
+                  href={`/admin/teams/${teamId}/rides/new`}
+                  trackLabel="ride_empty_state"
+                />
+              </div>
             </div>
           )}
           {rides.map((ride: Ride) => {

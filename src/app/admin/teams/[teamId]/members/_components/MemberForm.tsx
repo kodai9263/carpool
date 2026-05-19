@@ -6,6 +6,7 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { MemberFormValues } from "@/app/_types/member"; 
 import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { api } from "@/utils/api";
+import { trackEvent } from "@/utils/analytics";
 import { Baby, Plus, User, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -51,6 +52,7 @@ export default function MemberForm() {
         token,
       );
 
+      trackEvent("member_created", { team_id: teamId });
       router.push(`/admin/teams/${teamId}/members`);
       toast.success('メンバーを登録しました。');
     } catch (e: unknown) {
