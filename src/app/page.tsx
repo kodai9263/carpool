@@ -3,15 +3,21 @@ import {
   ArrowRight,
   CalendarCheck,
   Car,
+  CheckCircle2,
+  CircleHelp,
   ClipboardList,
+  CreditCard,
   KeyRound,
+  ShieldCheck,
   Sparkles,
   Users,
+  WalletCards,
 } from "lucide-react";
 import { Footer } from "./_components/Footer";
 import { LpTracker, TrackedLink } from "./_components/LpTracker";
 import { FeaturesSection } from "./_components/FeaturesSection";
 import { prisma } from "@/lib/prisma";
+import { FREE_TEAM_LIMIT, PRO_ADDITIONAL_TEAM_PRICE_JPY } from "@/utils/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +45,39 @@ const memberSteps = [
   { n: "1", title: "PINコードで参加", desc: "アカウント登録なしで配車閲覧コードを入力します。" },
   { n: "2", title: "可否を回答", desc: "配車可・引率可・自走・不参加を選んで送信します。" },
   { n: "3", title: "配車結果を確認", desc: "誰の車に乗るか、当日の参加者・欠席者を確認できます。" },
+];
+
+const freeFeatures = [
+  "1チームまで無料",
+  "配車作成・メンバー回答・自動アサインを利用可能",
+  "メンバーはアカウント登録なしで参加",
+  "LINEに貼れる共有テキストをコピー",
+];
+
+const proFeatures = [
+  "複数チームの管理",
+  "チーム追加ごとのシンプルな料金",
+  "今後の高度な運用機能を優先提供",
+  "既存の1チーム利用は無料のまま",
+];
+
+const faqs = [
+  {
+    question: "無料でどこまで使えますか？",
+    answer: `まずは${FREE_TEAM_LIMIT}チームを無料で使えます。配車作成、メンバー回答、自動割り当てなど、基本機能は試せます。`,
+  },
+  {
+    question: "メンバーにも登録や支払いが必要ですか？",
+    answer: "不要です。管理者がPINコードとURLをLINEなどで共有すれば、メンバーはアカウントなしで回答できます。",
+  },
+  {
+    question: "Proはどんな人向けですか？",
+    answer: "複数チームを管理するコーチ・保護者代表、学年ごとにチームを分けたい団体向けです。",
+  },
+  {
+    question: "支払い開始後にすぐ使えなくなりますか？",
+    answer: "既存の1チーム利用を急に止める想定はありません。まず無料範囲を明確にし、必要になったタイミングでProを選べる形にします。",
+  },
 ];
 
 export default async function Home() {
@@ -173,6 +212,10 @@ export default async function Home() {
         </div>
       </section>
 
+      <PricingSection />
+
+      <FaqSection />
+
       <section id="section-cta" className="px-4 py-16">
         <div className="app-container">
           <div className="app-card overflow-hidden border-teal-100 bg-gradient-to-br from-[#5aa49a] via-[#4a968d] to-[#3f817a] p-8 text-center text-white shadow-[0_24px_70px_rgba(38,104,96,0.18)] md:p-12">
@@ -192,6 +235,119 @@ export default async function Home() {
 
       <Footer />
     </div>
+  );
+}
+
+function PricingSection() {
+  return (
+    <section id="section-pricing" className="px-4 py-16">
+      <div className="app-container">
+        <div className="mb-10 max-w-2xl">
+          <p className="mb-2 text-sm font-semibold text-teal-700">料金</p>
+          <h2 className="app-section-title">1チームは無料。必要になったらProへ。</h2>
+          <p className="mt-3 text-sm leading-7 text-gray-500 md:text-base">
+            個人の配車係が安心して使い始められるよう、まずは無料で運用できます。
+            複数チームの管理が必要になったタイミングでProを検討できます。
+          </p>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="app-card p-5 md:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                  <ShieldCheck size={22} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-950">Free</h3>
+                <p className="mt-1 text-sm text-gray-500">まずは配車係1人で試したい方向け</p>
+              </div>
+              <span className="app-status bg-teal-50 text-teal-800">おすすめ</span>
+            </div>
+
+            <div className="mb-6">
+              <span className="text-4xl font-bold tracking-normal text-gray-950">¥0</span>
+              <span className="ml-2 text-sm font-semibold text-gray-500">/ 月</span>
+            </div>
+
+            <PlanFeatureList features={freeFeatures} />
+
+            <TrackedLink href="/signup" trackLabel="signup_pricing_free" className="app-button-primary mt-6 w-full">
+              無料で始める
+              <ArrowRight size={17} />
+            </TrackedLink>
+          </div>
+
+          <div className="app-card border-amber-200 bg-amber-50/45 p-5 shadow-[0_22px_60px_rgba(180,83,9,0.10)] md:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm">
+                  <WalletCards size={22} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-950">Pro</h3>
+                <p className="mt-1 text-sm text-gray-600">複数チームをまとめて管理したい方向け</p>
+              </div>
+              <span className="app-status bg-white text-amber-800">準備中</span>
+            </div>
+
+            <div className="mb-6">
+              <span className="text-4xl font-bold tracking-normal text-gray-950">
+                ¥{PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}
+              </span>
+              <span className="ml-2 text-sm font-semibold text-gray-600">/ 追加チーム・月</span>
+            </div>
+
+            <PlanFeatureList features={proFeatures} />
+
+            <TrackedLink
+              href="mailto:carpool.app.2026@gmail.com?subject=Carpool%20Pro%E3%83%97%E3%83%A9%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"
+              trackLabel="upgrade_lp_pricing"
+              className="app-button-secondary mt-6 w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
+            >
+              Pro利用を相談する
+              <CreditCard size={17} />
+            </TrackedLink>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PlanFeatureList({ features }: { features: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {features.map((feature) => (
+        <li key={feature} className="flex gap-3 text-sm leading-6 text-gray-700">
+          <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-teal-700" />
+          <span>{feature}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function FaqSection() {
+  return (
+    <section id="section-faq" className="px-4 py-16">
+      <div className="app-container">
+        <div className="mb-10 text-center">
+          <p className="mb-2 text-sm font-semibold text-teal-700">FAQ</p>
+          <h2 className="app-section-title">始める前の不安を減らします。</h2>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {faqs.map((faq) => (
+            <div key={faq.question} className="app-card p-5">
+              <div className="mb-3 flex items-center gap-2 text-gray-950">
+                <CircleHelp size={18} className="text-teal-700" />
+                <h3 className="font-bold">{faq.question}</h3>
+              </div>
+              <p className="text-sm leading-7 text-gray-500">{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

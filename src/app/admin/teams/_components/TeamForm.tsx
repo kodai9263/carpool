@@ -5,6 +5,7 @@ import { FormInput } from "@/app/_components/FormInput";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { TeamFormValues } from "@/app/_types/team";
 import { api } from "@/utils/api";
+import { trackEvent } from "@/utils/analytics";
 import { Building2, Key, KeyRound, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -40,6 +41,7 @@ export default function TeamForm() {
         token
       );
 
+      trackEvent("team_created", { source: "admin_team_form" });
       router.push(`/admin/teams/${id}/rides`);
       toast.success("チームを作成しました。");
     } catch (e: unknown) {

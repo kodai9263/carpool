@@ -11,6 +11,7 @@ import {
   User,
   UserCircle,
   Users,
+  WalletCards,
 } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { AddToHomeScreenButton } from "@/app/_components/AddToHomeScreenButton";
@@ -105,6 +106,13 @@ export const Sidebar: React.FC = () => {
                 >
                   <UserCircle size={18} />
                   <span>プロフィール</span>
+                </Link>
+                <Link
+                  href="/admin/profile#plan"
+                  className={navItemClass}
+                >
+                  <WalletCards size={18} />
+                  <span>プラン</span>
                 </Link>
                 {teamId && (
                   <Link href={`/admin/teams/${teamId}`} className={pathname === `/admin/teams/${teamId}` ? activeNavItemClass : navItemClass}>
