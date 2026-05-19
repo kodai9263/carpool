@@ -39,6 +39,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         id: true,
         date: true,
         destination: true,
+        meetingPlace: true,
         _count: {
           select: {
             rideAssignments: true,
@@ -83,6 +84,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
           id: ride.id,
           date: ride.date,
           destination: ride.destination,
+          meetingPlace: ride.meetingPlace,
           isAssignmentComplete: participatingCount > 0 && ride._count.rideAssignments >= participatingCount,
         };
       });
@@ -119,9 +121,10 @@ export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =
         data: {
           date: date,
           destination: body.destination.trim(),
+          meetingPlace: body.meetingPlace?.trim() || null,
           team: { connect: { id: teamId } },
         },
-        select: { id: true, date: true, destination: true },
+        select: { id: true, date: true, destination: true, meetingPlace: true },
       });
 
       return NextResponse.json(

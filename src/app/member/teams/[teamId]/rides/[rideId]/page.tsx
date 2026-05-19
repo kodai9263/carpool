@@ -64,7 +64,11 @@ export default function Page() {
 
         <div className="space-y-6 md:space-y-8 min-w-0">
           <div className="min-w-0 overflow-hidden">
-            <RideBasicInfo date={ride.date} destination={ride.destination} />
+            <RideBasicInfo
+              date={ride.date}
+              destination={ride.destination}
+              meetingPlace={ride.meetingPlace}
+            />
           </div>
 
           <div className="flex justify-center">

@@ -5,6 +5,7 @@ describe('convertRideDetailToFormValues', () => {
     const apiDate = {
       date: '2024-12-25',
       destination: 'テストグラウンド',
+      meetingPlace: '学校正門',
       drivers: [
         {
           id: 1,
@@ -22,6 +23,7 @@ describe('convertRideDetailToFormValues', () => {
 
     expect(result.date).toEqual(new Date('2024-12-25'));
     expect(result.destination).toBe('テストグラウンド');
+    expect(result.meetingPlace).toBe('学校正門');
     expect(result.drivers).toHaveLength(1);
     expect(result.drivers[0].availabilityDriverId).toBe(10);
     expect(result.drivers[0].seats).toBe(3);
@@ -40,6 +42,7 @@ describe('convertRideDetailToFormValues', () => {
 
     expect(result.date).toBeNull();
     expect(result.destination).toBe('テストグラウンド');
+    expect(result.meetingPlace).toBe('');
   });
 
   test('driversがundefinedの場合、空配列を返す', () => {

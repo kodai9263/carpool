@@ -87,6 +87,7 @@ model Ride {
   id                  Int                  @id @default(autoincrement())
   date                DateTime
   destination         String
+  meetingPlace        String?
   deadline            DateTime?
   separateDirections  Boolean              @default(false)  // true: 行き帰り別配車モード
   teamId              Int

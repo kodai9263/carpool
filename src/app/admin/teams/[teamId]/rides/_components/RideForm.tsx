@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 
 export default function RideForm() {
   const methods = useForm<RideFormValues>({
-    defaultValues: { date: null, destination: '' },
+    defaultValues: { date: null, destination: '', meetingPlace: '' },
     mode: 'onSubmit',
   });
 

@@ -39,7 +39,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
     const pastSkip = Math.max(0, skip - futureCount);
     const pastTake = perPage - futureTake;
 
-    const rideSelect = { id: true, date: true, destination: true } as const;
+    const rideSelect = { id: true, date: true, destination: true, meetingPlace: true } as const;
     type RideRow = Awaited<ReturnType<typeof prisma.ride.findMany<{ select: typeof rideSelect }>>>[number];
 
     // フェーズ2: 必要分だけDBから取得

@@ -1,6 +1,6 @@
 export interface RideListResponse {
   status: "OK";
-  rides: { id: number; date: Date, destination: string; isAssignmentComplete?: boolean }[];
+  rides: { id: number; date: Date, destination: string; meetingPlace?: string | null; isAssignmentComplete?: boolean }[];
   page: number;
   perPage: number;
   total: number;
@@ -19,6 +19,7 @@ export interface RideDetailResponse {
     id: number;
     date: string;
     destination: string;
+    meetingPlace?: string | null;
     deadline?: string | null;
     separateDirections?: boolean;
     team?: {
@@ -95,6 +96,7 @@ export interface UpdateRideResponse {
     id: number;
     date: string;
     destination: string;
+    meetingPlace?: string | null;
     drivers: {
       id: number;
       availabilityDriver: {

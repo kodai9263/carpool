@@ -34,6 +34,10 @@ export function formatRideExportText(ride: Ride): string {
 
   const blocks: string[] = [header];
 
+  if (ride.meetingPlace) {
+    blocks.push(`集合場所: ${ride.meetingPlace}`);
+  }
+
   if (ride.separateDirections) {
     const outbound = ride.drivers.filter((d) => d.direction === "outbound");
     const inbound = ride.drivers.filter((d) => d.direction === "inbound");

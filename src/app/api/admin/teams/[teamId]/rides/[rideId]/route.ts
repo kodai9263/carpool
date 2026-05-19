@@ -40,6 +40,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             id: true,
             date: true,
             destination: true,
+            meetingPlace: true,
             deadline: true,
             separateDirections: true,
             team: {
@@ -118,6 +119,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           id: ride.id,
           date: ride.date.toISOString(),
           destination: ride.destination,
+          meetingPlace: ride.meetingPlace,
           deadline: ride.deadline ? ride.deadline.toISOString() : null,
           separateDirections: ride.separateDirections,
           drivers: drivers.map((driver) => ({
@@ -174,7 +176,12 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           // Ride自体を更新
           await tx.ride.update({
             where: { id: rideIdNum },
-            data: { date, destination: body.destination, separateDirections: body.separateDirections ?? false },
+            data: {
+              date,
+              destination: body.destination,
+              meetingPlace: body.meetingPlace?.trim() || null,
+              separateDirections: body.separateDirections ?? false,
+            },
           });
 
           // 既存のDriverとAssignmentを削除（引率者も含む）
