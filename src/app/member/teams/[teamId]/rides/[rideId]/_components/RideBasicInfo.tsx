@@ -1,15 +1,22 @@
 "use client";
 
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, MapPinned } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
   date: Date | string;
   destination: string;
+  meetingPlace?: string | null;
 }
 
-export default function RideBasicInfo({ date, destination }: Props) {
-  const [isExpanded, setIsExpanded] = useState(false);
+type ExpandableField = "destination" | "meetingPlace";
+
+export default function RideBasicInfo({ date, destination, meetingPlace }: Props) {
+  const [expandedField, setExpandedField] = useState<ExpandableField | null>(null);
+
+  const toggleField = (field: ExpandableField) => {
+    setExpandedField((current) => (current === field ? null : field));
+  };
 
   return (
     <div className="app-panel w-full space-y-4 p-4 md:p-5">
@@ -33,26 +40,51 @@ export default function RideBasicInfo({ date, destination }: Props) {
         </div>
       </div>
 
-      {/* 行き先 */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 md:gap-0">
-          <div className="mr-2 flex justify-center">
-            <MapPin size={18} className="text-gray-500" />
+      <div className={`grid gap-4 ${meetingPlace ? "md:grid-cols-2" : ""}`}>
+        {/* 行き先 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 md:gap-0">
+            <div className="mr-2 flex justify-center">
+              <MapPin size={18} className="text-gray-500" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">行き先</span>
           </div>
-          <span className="text-sm font-semibold text-gray-700">行き先</span>
+
+          <div className="w-full min-w-0">
+            <div
+              className={`overflow-wrap-anywhere cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-3 text-gray-800 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/50 break-all ${
+                expandedField === "destination" ? "" : "line-clamp-3"
+              }`}
+              onClick={() => toggleField("destination")}
+              title={destination}
+            >
+              {destination}
+            </div>
+          </div>
         </div>
 
-        <div className="w-full min-w-0">
-          <div
-            className={`overflow-wrap-anywhere cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-3 text-gray-800 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/50 break-all ${
-              isExpanded ? "" : "line-clamp-3"
-            }`}
-            onClick={() => setIsExpanded(!isExpanded)}
-            title={destination}
-          >
-            {destination}
+        {meetingPlace && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 md:gap-0">
+              <div className="mr-2 flex justify-center">
+                <MapPinned size={18} className="text-gray-500" />
+              </div>
+              <span className="text-sm font-semibold text-gray-700">集合場所</span>
+            </div>
+
+            <div className="w-full min-w-0">
+              <div
+                className={`overflow-wrap-anywhere cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-3 text-gray-800 shadow-sm transition hover:border-teal-200 hover:bg-teal-50/50 break-all ${
+                  expandedField === "meetingPlace" ? "" : "line-clamp-3"
+                }`}
+                onClick={() => toggleField("meetingPlace")}
+                title={meetingPlace}
+              >
+                {meetingPlace}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ export interface DriverFormAPI {
 interface RideDetailAPI {
   date?: string;
   destination: string;
+  meetingPlace?: string | null;
   separateDirections?: boolean;
   drivers?: DriverFormAPI[];
 }
@@ -34,6 +35,7 @@ export const convertRideDetailToFormValues = (ride: RideDetailAPI) : UpdateRideV
   return {
     date: ride.date ? new Date(ride.date) : null,
     destination: ride.destination,
+    meetingPlace: ride.meetingPlace ?? "",
     separateDirections: ride.separateDirections ?? false,
     // type==="escort" のドライバーはトップレベルに含めない（各ドライバーのescorts配列に入っている）
     drivers: (ride.drivers ?? [])

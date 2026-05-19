@@ -7,7 +7,7 @@ import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
-import { Calendar, CalendarPlus, ChevronRight, MapPin } from "lucide-react";
+import { Calendar, CalendarPlus, ChevronRight, MapPin, MapPinned } from "lucide-react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
 
@@ -90,11 +90,21 @@ export default function Page() {
                     </span>
                   )}
                   </div>
-                  {ride.destination && (
-                    <span className="mt-1 flex items-center gap-1 truncate text-sm text-gray-500">
-                      <MapPin size={14} />
-                      {ride.destination}
-                    </span>
+                  {(ride.destination || ride.meetingPlace) && (
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                      {ride.destination && (
+                        <span className="flex min-w-0 max-w-full items-center gap-1">
+                          <MapPin size={14} className="shrink-0" />
+                          <span className="min-w-0 truncate">行き先: {ride.destination}</span>
+                        </span>
+                      )}
+                      {ride.meetingPlace && (
+                        <span className="flex min-w-0 max-w-full items-center gap-1">
+                          <MapPinned size={14} className="shrink-0" />
+                          <span className="min-w-0 truncate">集合場所: {ride.meetingPlace}</span>
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
                 <ChevronRight size={18} className="text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-teal-700" />

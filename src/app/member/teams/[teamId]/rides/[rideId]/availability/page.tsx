@@ -231,7 +231,11 @@ export default function Page() {
         </div>
 
         <div className="space-y-8">
-          <RideBasicInfo date={ride.date} destination={ride.destination} />
+          <RideBasicInfo
+            date={ride.date}
+            destination={ride.destination}
+            meetingPlace={ride.meetingPlace}
+          />
 
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

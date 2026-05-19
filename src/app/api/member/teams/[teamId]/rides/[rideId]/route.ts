@@ -47,6 +47,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           id: true,
           date: true,
           destination: true,
+          meetingPlace: true,
           separateDirections: true,
           availabilityDrivers: {
             select: {
@@ -112,6 +113,7 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
         id: ride.id,
         date: ride.date.toISOString(),
         destination: ride.destination,
+        meetingPlace: ride.meetingPlace,
         drivers: drivers.map((driver) => ({
           ...driver,
           // 欠席の子供をrideAssignmentsから除外

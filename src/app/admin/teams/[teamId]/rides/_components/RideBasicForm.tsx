@@ -1,12 +1,13 @@
 "use client";
 
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, MapPinned } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import AppDatePicker from "./AppDatePicker.tsx";
 
 type RideBasicFormValues = {
   destination: string;
+  meetingPlace?: string | null;
 };
 
 interface RideProps {
@@ -23,9 +24,11 @@ export default function RideBasicForm({
   const { register, control } = useFormContext<RideBasicFormValues>();
 
   const destination = useWatch({ control, name: "destination" });
+  const meetingPlace = useWatch({ control, name: "meetingPlace" });
 
   const hasDate = !!date;
   const hasDestination = !!destination;
+  const hasMeetingPlace = !!meetingPlace;
 
   return (
     <div className="w-full space-y-6">
@@ -55,22 +58,42 @@ export default function RideBasicForm({
         </div>
       </div>
 
-      {/* 行き先 */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 md:gap-0">
-          <div className="mr-2 flex justify-center">
-            <MapPin size={18} className="text-gray-500" />
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* 行き先 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 md:gap-0">
+            <div className="mr-2 flex justify-center">
+              <MapPin size={18} className="text-gray-500" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">行き先</span>
           </div>
-          <span className="text-sm font-semibold text-gray-700">行き先</span>
+
+          <input
+            type="text"
+            {...register("destination")}
+            className={`app-input transition-colors duration-200 ${
+              hasDestination ? "bg-teal-50/70" : ""
+            }`}
+          />
         </div>
 
-        <input
-          type="text"
-          {...register("destination")}
-          className={`app-input truncate transition-colors duration-200 ${
-            hasDestination ? "bg-teal-50/70" : ""
-          }`}
-        />
+        {/* 集合場所 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 md:gap-0">
+            <div className="mr-2 flex justify-center">
+              <MapPinned size={18} className="text-gray-500" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">集合場所</span>
+          </div>
+
+          <input
+            type="text"
+            {...register("meetingPlace")}
+            className={`app-input transition-colors duration-200 ${
+              hasMeetingPlace ? "bg-teal-50/70" : ""
+            }`}
+          />
+        </div>
       </div>
     </div>
   );

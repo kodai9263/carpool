@@ -33,6 +33,7 @@ export default function Page() {
   const methods = useForm<UpdateRideValues>({
     defaultValues: {
       destination: "",
+      meetingPlace: "",
       separateDirections: false,
       drivers: [],
     },
@@ -276,8 +277,11 @@ export default function Page() {
       : "";
 
     const destination = data.ride.destination ? ` ${data.ride.destination}` : "";
+    const meetingPlaceLine = data.ride.meetingPlace
+      ? `\n集合場所: ${data.ride.meetingPlace}`
+      : "";
 
-    const text = `${dateLabel}${destination}への車出し可否・お子さんの参加可否の入力をお願いします。
+    const text = `${dateLabel}${destination}への車出し可否・お子さんの参加可否の入力をお願いします。${meetingPlaceLine}
 ${rideUrl}
 
 PINコード: ${pin}
@@ -300,8 +304,11 @@ ${deadlineText}`;
 
     const dateLabel = formatRideDate(data.ride.date);
     const destination = data.ride.destination ? ` ${data.ride.destination}` : "";
+    const meetingPlaceLine = data.ride.meetingPlace
+      ? `\n集合場所: ${data.ride.meetingPlace}`
+      : "";
 
-    const text = `${dateLabel}${destination}への配車割をご確認ください。
+    const text = `${dateLabel}${destination}への配車割をご確認ください。${meetingPlaceLine}
 ${rideUrl}
 
 PINコード: ${pin}
