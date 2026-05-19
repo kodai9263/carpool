@@ -508,42 +508,67 @@ PINコード: ${pin}
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  設定すると①のテキストに「〇月〇日までにご回答をお願いします。」が追加されます
+                  設定すると入力依頼テキストに「〇月〇日までにご回答をお願いします。」が追加されます
                 </p>
               </div>
 
               {/* 共有用テキストコピーボタン */}
-              <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={copyShareText}
-                  className="app-button-primary w-full text-xs sm:text-sm"
-                >
-                  <Share2 size={18} />
-                  {copied === "入力依頼テキスト"
-                    ? "コピーしました！"
-                    : "①配車可否・参加可否の入力依頼をコピー"}
-                </button>
-                <button
-                  type="button"
-                  onClick={copyAssignmentText}
-                  className="app-button-secondary w-full text-sm"
-                >
-                  <Share2 size={18} />
-                  {copied === "配車割テキスト"
-                    ? "コピーしました！"
-                    : "②配車決定後の案内をコピー"}
-                </button>
-                <button
-                  type="button"
-                  onClick={copyDetailText}
-                  className="w-full py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors flex items-center justify-center gap-2 text-sm"
-                >
-                  <Copy size={18} />
-                  {copied === "配車内容テキスト"
-                    ? "コピーしました！"
-                    : "③配車内容をテキストでコピー（LINE共有用）"}
-                </button>
+              <div className="mt-5 border-t border-teal-200/70 pt-5">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-sm font-bold text-gray-950">
+                    共有テキストをコピー
+                  </p>
+                  <p className="shrink-0 text-xs font-medium text-teal-800">
+                    LINE共有用
+                  </p>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={copyShareText}
+                    className="app-button-primary min-h-[4.25rem] w-full flex-col items-start justify-start px-4 py-2.5 text-left md:min-h-[5rem] md:py-3"
+                  >
+                    <span className="text-xs font-semibold text-white/75">
+                      1. 依頼
+                    </span>
+                    <span className="flex items-center gap-2 text-sm">
+                      <Share2 size={18} />
+                      {copied === "入力依頼テキスト"
+                        ? "コピーしました！"
+                        : "入力依頼をコピー"}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={copyAssignmentText}
+                    className="app-button-secondary min-h-[4.25rem] w-full flex-col items-start justify-start px-4 py-2.5 text-left md:min-h-[5rem] md:py-3"
+                  >
+                    <span className="text-xs font-semibold text-gray-500">
+                      2. 決定後
+                    </span>
+                    <span className="flex items-center gap-2 text-sm text-gray-800">
+                      <Share2 size={18} />
+                      {copied === "配車割テキスト"
+                        ? "コピーしました！"
+                        : "決定後の案内をコピー"}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={copyDetailText}
+                    className="app-button-secondary min-h-[4.25rem] w-full flex-col items-start justify-start border-teal-200 bg-white px-4 py-2.5 text-left text-teal-900 hover:bg-teal-50 md:min-h-[5rem] md:py-3"
+                  >
+                    <span className="text-xs font-semibold text-teal-700">
+                      配車内容
+                    </span>
+                    <span className="flex items-center gap-2 text-sm">
+                      <Copy size={18} />
+                      {copied === "配車内容テキスト"
+                        ? "コピーしました！"
+                        : "配車内容をコピー"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
 
