@@ -179,12 +179,6 @@ export default function Page() {
           }),
       }));
       reset({ ...methods.getValues(), drivers: processedDrivers });
-      trackEvent("auto_assign_used", {
-        team_id: teamId,
-        ride_id: rideId,
-        number_of_cars: options.numberOfCars ?? "auto",
-        separate_parent_child: options.separateParentChild,
-      });
       toast.success("自動割り当て完了。保存ボタンで確定してください。");
     } catch (e: unknown) {
       const err = e as { message?: string; minimumCars?: number };

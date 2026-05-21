@@ -80,6 +80,31 @@ const faqs = [
   },
 ];
 
+const monitorApplicationHref = `mailto:carpool.app.2026@gmail.com?${new URLSearchParams({
+  subject: "Carpoolについて相談",
+  body: "【チーム種別】少年野球 / サッカー / その他\n【配車で困っていること】\n【今の管理方法】LINE / Excel / 紙 / その他\n",
+}).toString()}`;
+const monitorInstagramHref = "https://www.instagram.com/arrow_room_repository/";
+const monitorDmKeyword = "配車";
+
+const monitorTargets = [
+  "少年野球・サッカーなどの配車係",
+  "保護者代表・学年代表・コーチ",
+  "LINEで車出し可否や乗車割り当てを毎回まとめている方",
+];
+
+const monitorSupport = [
+  `DMで「${monitorDmKeyword}」と送るだけ`,
+  "配車で困っていることを聞かせてください",
+  "必要ならデモや使い方を案内します",
+];
+
+const monitorRequests = [
+  "車出し可否を集める流れ",
+  "子どもの参加・欠席の見え方",
+  "乗車割り当てと共有のイメージ",
+];
+
 export default async function Home() {
   const teamCount = await prisma.team.count();
 
@@ -112,7 +137,7 @@ export default async function Home() {
           <div>
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-white/90 px-3 py-1 text-sm font-semibold text-teal-800 shadow-sm">
               <Users size={15} />
-              少年野球・サッカーの配車管理
+              少年野球・サッカーの配車係さんへ
             </p>
             <h1 className="max-w-2xl text-4xl font-bold leading-[1.16] tracking-normal text-gray-950 md:text-6xl md:leading-[1.12]">
               配車調整を、
@@ -128,8 +153,8 @@ export default async function Home() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <TrackedLink href="/signup" trackLabel="signup_hero" className="app-button-primary min-h-12 px-7 text-base">
-                無料で始める
+              <TrackedLink href="#section-monitor" trackLabel="contact_hero_scroll" className="app-button-primary min-h-12 px-7 text-base">
+                DMで相談する
                 <ArrowRight size={18} />
               </TrackedLink>
               <TrackedLink href="/login?guest=true" trackLabel="demo_hero" className="app-button-secondary min-h-12 border-gray-200 bg-white/90 px-7 text-base shadow-sm">
@@ -187,6 +212,8 @@ export default async function Home() {
         </div>
       </section>
 
+      <DmContactSection />
+
       <section id="section-features" className="px-4 py-16">
         <div className="app-container">
           <div className="mb-10 text-center">
@@ -222,8 +249,8 @@ export default async function Home() {
             <h2 className="text-3xl font-bold md:text-4xl">次の配車から、すぐに軽く。</h2>
             <p className="mt-4 text-white/85">チームを作成して、PINコードを共有するだけで始められます。</p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <TrackedLink href="/signup" trackLabel="signup_cta" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-white px-7 text-base font-bold text-teal-800 shadow-sm transition hover:bg-teal-50">
-                無料で始める
+              <TrackedLink href={monitorInstagramHref} trackLabel="contact_cta_instagram" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-white px-7 text-base font-bold text-teal-800 shadow-sm transition hover:bg-teal-50">
+                Instagramで相談する
               </TrackedLink>
               <TrackedLink href="/login?guest=true" trackLabel="demo_cta" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/45 px-7 text-base font-semibold text-white transition hover:bg-white/10">
                 デモを見る
@@ -234,6 +261,84 @@ export default async function Home() {
       </section>
 
       <Footer />
+    </div>
+  );
+}
+
+function DmContactSection() {
+  return (
+    <section id="section-monitor" className="border-y border-teal-100/80 bg-white/55 px-4 pb-24 pt-16 md:py-16">
+      <div className="app-container">
+        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div>
+            <p className="mb-3 text-sm font-semibold text-teal-700">Instagram DMで相談できます</p>
+            <h2 className="app-section-title">
+              配車で困ることを、まず1つだけ聞かせてください。
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-gray-600">
+              使うかどうかは後で大丈夫です。InstagramのDMで
+              <span className="font-bold text-gray-950">「{monitorDmKeyword}」</span>
+              と送ってください。今の配車のまとめ方を聞いたうえで、必要ならデモや使い方を案内します。
+            </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <TrackedLink href={monitorInstagramHref} trackLabel="contact_section_instagram" className="app-button-primary min-h-12 px-7 text-base">
+                InstagramでDMする
+                <ArrowRight size={18} />
+              </TrackedLink>
+              <TrackedLink href="/login?guest=true" trackLabel="demo_monitor" className="app-button-secondary min-h-12 px-7 text-base">
+                先にデモを見る
+              </TrackedLink>
+            </div>
+
+            <p className="mt-3 pr-16 text-xs leading-6 text-gray-500 sm:pr-0">
+              Instagramを使っていない方は{" "}
+              <TrackedLink href={monitorApplicationHref} trackLabel="contact_section_mail_fallback" className="font-semibold text-teal-700 underline underline-offset-4 hover:text-teal-900">
+                メールでも相談できます
+              </TrackedLink>
+              。
+            </p>
+          </div>
+
+          <div className="app-card overflow-hidden">
+            <div className="border-b border-teal-100 bg-teal-50/70 p-5 md:p-6">
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white text-teal-700 shadow-sm">
+                <ClipboardList size={22} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-950">こんな方に向けたアプリです</h3>
+            </div>
+            <div className="space-y-3 p-5 md:p-6">
+              {monitorTargets.map((target) => (
+                <div key={target} className="flex gap-3 rounded-lg border border-gray-100 bg-gray-50/70 p-3 text-sm font-medium leading-6 text-gray-700">
+                  <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-teal-700" />
+                  <span>{target}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <MonitorInfoCard title="DMでできること" items={monitorSupport} />
+          <MonitorInfoCard title="このページで確認できること" items={monitorRequests} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MonitorInfoCard({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="app-card p-5 md:p-6">
+      <h3 className="mb-4 text-base font-bold text-gray-950">{title}</h3>
+      <ul className="space-y-3">
+        {items.map((item) => (
+          <li key={item} className="flex gap-3 text-sm leading-6 text-gray-600">
+            <Sparkles size={17} className="mt-0.5 shrink-0 text-amber-600" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

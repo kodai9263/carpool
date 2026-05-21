@@ -1,6 +1,7 @@
 import { CreateRideResponse, RideListResponse } from "@/app/_types/response/rideResponse";
 import { RideFormValues } from "@/app/_types/ride"; 
 import { prisma } from "@/lib/prisma";
+import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuthTeam } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -105,7 +106,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
 
 // 配車作成
 export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =>
-  withAuthTeam(request, async({ teamId }) => {
+  withAuthTeam(request, async({ adminId, teamId }) => {
     try {
       const body = await request.json().catch(() => null) as RideFormValues | null;
       if (!body) {
@@ -126,6 +127,17 @@ export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =
         },
         select: { id: true, date: true, destination: true, meetingPlace: true },
       });
+
+      await trackServerEvent(
+        "ride_created",
+        {
+          admin_id: adminId,
+          team_id: teamId,
+          ride_id: data.id,
+          has_meeting_place: Boolean(data.meetingPlace),
+        },
+        { adminId, request },
+      );
 
       return NextResponse.json(
         { status: "OK", message: "作成しました", id: data.id } satisfies CreateRideResponse,

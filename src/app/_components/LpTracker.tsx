@@ -10,6 +10,7 @@ export function LpTracker() {
     const sections = [
       { id: "section-hero", name: "hero" },
       { id: "section-problems", name: "problems" },
+      { id: "section-monitor", name: "contact" },
       { id: "section-features", name: "features" },
       { id: "section-how-to-use", name: "how_to_use" },
       { id: "section-pricing", name: "pricing" },
@@ -31,6 +32,9 @@ export function LpTracker() {
               trackEvent("lp_section_view", { section: name });
               if (name === "pricing") {
                 trackEvent("pricing_viewed", { source: "lp" });
+              }
+              if (name === "contact") {
+                trackEvent("dm_contact_viewed", { source: "lp" });
               }
               observer.disconnect();
             }
@@ -59,6 +63,9 @@ export function TrackedLink({ trackLabel, onClick, ...props }: TrackedLinkProps)
     trackEvent("lp_cta_click", { button: trackLabel });
     if (trackLabel.startsWith("upgrade_")) {
       trackEvent("upgrade_clicked", { source: trackLabel });
+    }
+    if (trackLabel.startsWith("contact_")) {
+      trackEvent("dm_contact_clicked", { source: trackLabel });
     }
     onClick?.(e);
   };

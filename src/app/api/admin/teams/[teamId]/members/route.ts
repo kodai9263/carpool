@@ -2,6 +2,7 @@ import { MemberFormValues } from "@/app/_types/member";
 import { CreateMemberResponse, MemberListResponse } from "@/app/_types/response/memberResponse";
 import { prisma } from "@/lib/prisma";
 import { getCurrentSchoolYear } from "@/utils/gradeUtils";
+import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuthTeam } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -63,7 +64,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
 
   // メンバー作成
   export const POST = (request: NextRequest, ctx: { params: { teamId: string }}) =>
-    withAuthTeam(request, async({ teamId }) => {
+    withAuthTeam(request, async({ adminId, teamId }) => {
       try {
         const body = await request.json().catch(() => null) as MemberFormValues | null;
         if (!body) {
@@ -139,6 +140,18 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
           }
           return { memberId: member.id, createdChildren };
         });
+
+        await trackServerEvent(
+          "member_created",
+          {
+            admin_id: adminId,
+            team_id: teamId,
+            member_id: result.memberId,
+            guardian_count: validGuardians.length,
+            child_count: result.createdChildren,
+          },
+          { adminId, request },
+        );
 
         return NextResponse.json(
           { status: "OK", message: "作成しました", memberId: result.memberId, children: result.createdChildren } satisfies CreateMemberResponse,
