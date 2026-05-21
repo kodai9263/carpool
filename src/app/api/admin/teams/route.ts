@@ -1,6 +1,7 @@
 import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/teamResponse"; 
 import { TeamFormValues } from "@/app/_types/team";
 import { prisma } from "@/lib/prisma";
+import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
@@ -85,6 +86,16 @@ export const POST = (request: NextRequest) => {
         },
         select: { id: true, teamName: true, teamCode: true },
       });
+
+      await trackServerEvent(
+        "team_created",
+        {
+          admin_id: adminId,
+          team_id: data.id,
+          is_middle_school: Boolean(isMiddleSchool),
+        },
+        { adminId, request },
+      );
 
       return NextResponse.json(
         { status: "OK", message: "作成しました", id: data.id } satisfies CreateTeamResponse,

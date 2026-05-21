@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { MessageSquarePlus, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -19,6 +20,9 @@ interface FeedbackFormValues {
 export const FeedbackWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { token } = useSupabaseSession();
+  const pathname = usePathname();
+  const hasMobileBottomNav = pathname.startsWith("/admin") || pathname.startsWith("/member");
+  const mobileBottomOffset = hasMobileBottomNav ? "bottom-20" : "bottom-4";
 
   const {
     register,
@@ -64,11 +68,11 @@ export const FeedbackWidget: React.FC = () => {
       <button
         onClick={() => setIsOpen(true)}
         aria-label="フィードバックを送る"
-        className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-40
+        className={`fixed ${mobileBottomOffset} right-4 md:bottom-8 md:right-8 z-40
                    flex items-center gap-2 bg-teal-700 hover:bg-teal-800
                    text-white text-sm font-medium
                    px-4 py-3 rounded-full shadow-lg
-                   transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                   transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2`}
       >
         <MessageSquarePlus size={18} />
         <span className="hidden sm:inline">フィードバック</span>

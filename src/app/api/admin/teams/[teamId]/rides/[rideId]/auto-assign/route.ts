@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { calcCurrentGrade } from "@/utils/gradeUtils";
 import { autoAssign, isAutoAssignError } from "@/utils/autoAssign";
+import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAdminTeamRide } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,7 +14,7 @@ export const POST = (
 ) =>
   withAdminTeamRide(
     request,
-    async ({ teamId, rideId }) => {
+    async ({ adminId, teamId, rideId }) => {
       try {
         const body = await request.json();
         const numberOfCars: number | undefined =
@@ -148,6 +149,20 @@ export const POST = (
           rideAssignments: d.rideAssignments,
           escorts: [],
         }));
+
+        await trackServerEvent(
+          "auto_assign_used",
+          {
+            admin_id: adminId,
+            team_id: teamId,
+            ride_id: rideId,
+            number_of_cars: numberOfCars ?? "auto",
+            separate_parent_child: separateParentChild,
+            driver_count: drivers.length,
+            child_count: childCandidates.length,
+          },
+          { adminId, request },
+        );
 
         return NextResponse.json({ drivers }, { status: 200 });
       } catch (e) {
