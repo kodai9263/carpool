@@ -10,6 +10,7 @@ type AnalyticsRequest = {
 
 const measurementId = process.env.GA4_MEASUREMENT_ID ?? process.env.NEXT_PUBLIC_GA_ID;
 const apiSecret = process.env.GA4_MEASUREMENT_API_SECRET;
+const excludedAdminIds = process.env.ANALYTICS_EXCLUDED_ADMIN_IDS ?? "4";
 
 const GA4_ENDPOINT = "https://www.google-analytics.com/mp/collect";
 
@@ -38,11 +39,21 @@ function buildClientId(adminId?: number) {
   return adminId ? `server.admin.${adminId}` : "server.admin.unknown";
 }
 
+function isExcludedAdmin(adminId?: number) {
+  if (!adminId) return false;
+
+  return excludedAdminIds
+    .split(",")
+    .map((id) => Number(id.trim()))
+    .some((id) => Number.isInteger(id) && id === adminId);
+}
+
 export async function trackServerEvent(
   eventName: string,
   params: ServerAnalyticsParams = {},
   options: { adminId?: number; request?: AnalyticsRequest; timeoutMs?: number } = {},
 ) {
+  if (isExcludedAdmin(options.adminId)) return;
   if (!measurementId || !apiSecret) return;
 
   const controller = new AbortController();

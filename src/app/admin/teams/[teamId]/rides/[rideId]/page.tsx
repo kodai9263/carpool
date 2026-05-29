@@ -17,10 +17,11 @@ import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 import { formatRideExportText } from "@/utils/rideExport";
 import { Car, Copy, Share2 } from "lucide-react";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
-import { supabase } from "@/utils/supabase";
 import toast from "react-hot-toast";
 import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
 import AutoAssignPanel, { AutoAssignOptions } from "../_components/AutoAssignPanel";
+
+const GUEST_EMAIL = "guest@carpool.demo";
 
 function formatRideDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -68,7 +69,9 @@ export default function Page() {
   const params = useParams<{ teamId: string; rideId: string }>();
   const teamId = params.teamId;
   const rideId = params.rideId;
-  const { token } = useSupabaseSession();
+  const { token, session } = useSupabaseSession();
+  const isGuestUser = session?.user.email === GUEST_EMAIL;
+  const shouldTrackShareCopy = Boolean(session?.user.email && !isGuestUser);
   const router = useRouter();
 
   const { data, error, isLoading, mutate } = useFetch<RideDetailResponse>(
@@ -76,23 +79,10 @@ export default function Page() {
   );
   const isDeleting = useRef(false);
   const [copied, setCopied] = useState<string | null>(null);
-  const [isGuestUser, setIsGuestUser] = useState(false);
   const [deadline, setDeadline] = useState("");
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [autoAssignError, setAutoAssignError] = useState<{ message: string; minimumCars?: number } | null>(null);
-
-  useEffect(() => {
-    const checkGuestUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user?.email === "guest@carpool.demo") {
-        setIsGuestUser(true);
-      }
-    };
-    checkGuestUser();
-  }, []);
 
   useEffect(() => {
     if (data?.ride) {
@@ -241,11 +231,13 @@ export default function Page() {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(label);
-      trackEvent("share_text_copied", {
-        team_id: teamId,
-        ride_id: rideId,
-        copy_type: label,
-      });
+      if (shouldTrackShareCopy) {
+        trackEvent("share_text_copied", {
+          team_id: teamId,
+          ride_id: rideId,
+          copy_type: label,
+        });
+      }
       setTimeout(() => setCopied(null), 2000);
     } catch {
       alert("コピーに失敗しました");
