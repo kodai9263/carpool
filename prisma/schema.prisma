@@ -183,3 +183,18 @@ model Feedback {
   admin      Admin?   @relation(fields: [adminId], references: [id])
   createdAt  DateTime @default(now())
 }
+
+model LoginAttempt {
+  id           Int       @id @default(autoincrement())
+  email        String
+  ipAddress    String
+  failedCount  Int       @default(0)
+  lockedUntil  DateTime?
+  lastFailedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([email, ipAddress], name: "email_ipAddress")
+  @@index([email, lockedUntil])
+  @@index([ipAddress, lockedUntil])
+}

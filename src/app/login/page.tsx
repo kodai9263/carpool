@@ -32,19 +32,43 @@ export default function Page() {
 
   const onSubmit = async (data: { email: string; password: string }) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        accessToken?: string;
+        refreshToken?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !payload.accessToken || !payload.refreshToken) {
+        setError("root", {
+          type: "manual",
+          message:
+            payload.error ??
+            "メールアドレスまたはパスワードを確認してください。",
+        });
+        return;
+      }
+
+      const { error } = await supabase.auth.setSession({
+        access_token: payload.accessToken,
+        refresh_token: payload.refreshToken,
+      });
+
       if (error) {
         setError("root", {
           type: "manual",
-          message: "メールアドレスまたはパスワードを確認してください。",
+          message: "ログイン状態の保存に失敗しました。もう一度お試しください。",
         });
         console.error(error.message);
-      } else {
-        router.replace("/admin/teams");
+        return;
       }
+
+      router.replace("/admin/teams");
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "通信エラーが発生しました。";
