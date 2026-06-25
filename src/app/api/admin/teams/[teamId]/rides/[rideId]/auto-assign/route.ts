@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { calcCurrentGrade } from "@/utils/gradeUtils";
 import { autoAssign, isAutoAssignError } from "@/utils/autoAssign";
+import { consumeAutoAssignFreeUse, getAutoAssignBillingStatus } from "@/utils/billingServer";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAdminTeamRide } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
@@ -23,6 +24,31 @@ export const POST = (
             : undefined;
         const gradeGrouping = "mix" as const;
         const separateParentChild: boolean = body.separateParentChild === true;
+
+        const autoAssignBilling = await getAutoAssignBillingStatus(adminId);
+        if (!autoAssignBilling.canUseAutoAssign) {
+          await trackServerEvent(
+            "auto_assign_limit_reached",
+            {
+              admin_id: adminId,
+              team_id: teamId,
+              ride_id: rideId,
+              plan: autoAssignBilling.plan,
+              free_limit: autoAssignBilling.freeLimit,
+              used: autoAssignBilling.used,
+            },
+            { adminId, request },
+          );
+
+          return NextResponse.json(
+            {
+              message: "無料で試せる自動割り当ての回数を使い切りました。Proプランで無制限に使えます。",
+              code: "AUTO_ASSIGN_LIMIT_REACHED",
+              billing: autoAssignBilling,
+            },
+            { status: 402 },
+          );
+        }
 
         // 必要なデータを並列取得
         const [ride, availabilityDrivers, children, pastDrivers] = await Promise.all([
@@ -150,6 +176,8 @@ export const POST = (
           escorts: [],
         }));
 
+        const updatedAutoAssignBilling = await consumeAutoAssignFreeUse(adminId);
+
         await trackServerEvent(
           "auto_assign_used",
           {
@@ -160,11 +188,17 @@ export const POST = (
             separate_parent_child: separateParentChild,
             driver_count: drivers.length,
             child_count: childCandidates.length,
+            plan: updatedAutoAssignBilling.plan,
+            free_limit: updatedAutoAssignBilling.freeLimit,
+            remaining_free_uses: updatedAutoAssignBilling.remaining,
           },
           { adminId, request },
         );
 
-        return NextResponse.json({ drivers }, { status: 200 });
+        return NextResponse.json(
+          { drivers, billing: updatedAutoAssignBilling },
+          { status: 200 },
+        );
       } catch (e) {
         console.error("自動割り当てエラー:", e);
         return NextResponse.json(

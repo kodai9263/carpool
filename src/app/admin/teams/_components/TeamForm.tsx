@@ -55,6 +55,11 @@ export default function TeamForm() {
           });
           return;
         }
+        if (error.status === 402) {
+          toast.error(error.message);
+          router.push("/admin/profile#plan");
+          return;
+        }
       }
       alert("作成中にエラーが発生しました。");
     }

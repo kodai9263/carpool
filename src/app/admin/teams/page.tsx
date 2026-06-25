@@ -2,6 +2,7 @@
 
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Team } from "@/app/_types/team";
+import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
 import { TeamsListResponse } from "@/app/_types/response/teamResponse";
 import { CalendarPlus, CheckCircle2, ChevronRight, Sparkles, Users, WalletCards } from "lucide-react";
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
@@ -10,7 +11,12 @@ import PaginationNav from "@/app/_components/PaginationNav";
 import { NewButton } from "./_components/NewButton";
 import { useRouter } from "next/navigation";
 import { trackEvent } from "@/utils/analytics";
-import { FREE_TEAM_LIMIT, isSecondTeamCandidate, PRO_ADDITIONAL_TEAM_PRICE_JPY } from "@/utils/billing";
+import {
+  AUTO_ASSIGN_FREE_TRIAL_LIMIT,
+  FREE_TEAM_LIMIT,
+  isSecondTeamCandidate,
+  PRO_ADDITIONAL_TEAM_PRICE_JPY,
+} from "@/utils/billing";
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -19,11 +25,15 @@ export default function Page() {
   // ページ番号が押されたときだけレンダリングしたいので、useMemoを使用
   const url = useMemo(() => `/api/admin/teams?page=${page}`,[page]);
   const { data, error, isLoading } = useFetch<TeamsListResponse>(url);
+  const { data: billingData } = useFetch<BillingStatusResponse>("/api/admin/billing/status");
 
   if (!data) return;
   const teams = (data.teams || []) as Team[];
   const totalPages = data.totalPages || 1;
   const totalTeams = data.total || teams.length;
+  const isTeamLimitCandidate = isSecondTeamCandidate(totalTeams);
+  const isPro = billingData?.billing.isPro === true;
+  const shouldBlockTeamCreation = isTeamLimitCandidate && !isPro;
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
@@ -72,7 +82,7 @@ export default function Page() {
             <div className="flex gap-3 text-sm leading-6 text-teal-900">
               <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-teal-700" />
               <p>
-                {FREE_TEAM_LIMIT}チームまでは無料で、配車作成・回答収集・自動割り当てを試せます。
+                {FREE_TEAM_LIMIT}チームまでは無料で、配車作成・回答収集・自動割り当て{AUTO_ASSIGN_FREE_TRIAL_LIMIT}回を試せます。
               </p>
             </div>
           </div>
@@ -95,13 +105,26 @@ export default function Page() {
             <h1 className="app-section-title">チーム一覧</h1>
             <p className="mt-2 text-sm text-gray-500">{totalTeams}件のチームを管理中</p>
           </div>
-          <NewButton
-            href="/admin/teams/new"
-            trackLabel={isSecondTeamCandidate(totalTeams) ? "team_new_soft_pro_candidate" : "team_new"}
-          />
+          {shouldBlockTeamCreation ? (
+            <button
+              type="button"
+              onClick={() => {
+                trackEvent("upgrade_clicked", { source: "team_list_team_limit" });
+                router.push("/admin/profile#plan");
+              }}
+              className="app-button-secondary min-h-11 shrink-0 border-amber-200 bg-white px-5 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-100"
+            >
+              プランを見る
+            </button>
+          ) : (
+            <NewButton
+              href="/admin/teams/new"
+              trackLabel={isTeamLimitCandidate ? "team_new_pro" : "team_new"}
+            />
+          )}
         </div>
 
-        {isSecondTeamCandidate(totalTeams) && (
+        {shouldBlockTeamCreation && (
           <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex gap-3">
@@ -109,16 +132,16 @@ export default function Page() {
                   <WalletCards size={20} />
                 </span>
                 <div>
-                  <p className="text-sm font-bold text-amber-900">2チーム目以降はPro対象として準備中です</p>
+                  <p className="text-sm font-bold text-amber-900">Freeでは1チームまで作成できます</p>
                   <p className="mt-1 text-xs leading-5 text-amber-800">
-                    今は作成を止めません。追加チームは月額{PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円から検討中です。
+                    複数チームと自動割り当て無制限は、Proプラン（月額{PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => {
-                  trackEvent("upgrade_clicked", { source: "team_list_soft_limit" });
+                  trackEvent("upgrade_clicked", { source: "team_list_team_limit" });
                   router.push("/admin/profile#plan");
                 }}
                 className="app-button-secondary shrink-0 border-amber-200 bg-white text-amber-900 hover:bg-amber-100"

@@ -25,6 +25,7 @@
     "react-hook-form": "^7.65.0",
     "react-hot-toast": "^2.6.0",
     "react-paginate": "^8.3.0",
+    "stripe": "^22.2.1",
     "swr": "^2.3.6"
   },
   "devDependencies": {

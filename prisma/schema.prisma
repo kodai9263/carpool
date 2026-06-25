@@ -18,6 +18,11 @@ model Admin {
   supabaseUid             String   @unique
   pendingTransferNewEmail     String?  // 招待中の新担当者メールアドレス
   pendingTransferNewSupabaseUid String? // 招待中の新担当者 Supabase UID
+  billingPlan             String   @default("free")
+  autoAssignTrialUsed     Int      @default(0)
+  stripeCustomerId        String?  @unique
+  stripeSubscriptionId    String?  @unique
+  stripeSubscriptionStatus String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   teams                   Team[]

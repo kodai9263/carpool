@@ -17,11 +17,17 @@ import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 import { formatRideExportText } from "@/utils/rideExport";
 import { Car, Copy, Share2 } from "lucide-react";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
+import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
 import toast from "react-hot-toast";
 import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
 import AutoAssignPanel, { AutoAssignOptions } from "../_components/AutoAssignPanel";
 
 const GUEST_EMAIL = "guest@carpool.demo";
+
+type AutoAssignResponse = {
+  drivers: UpdateRideValues["drivers"];
+  billing?: BillingStatusResponse["autoAssign"];
+};
 
 function formatRideDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -76,6 +82,9 @@ export default function Page() {
 
   const { data, error, isLoading, mutate } = useFetch<RideDetailResponse>(
     `/api/admin/teams/${teamId}/rides/${rideId}`,
+  );
+  const { data: billingData, mutate: mutateBilling } = useFetch<BillingStatusResponse>(
+    "/api/admin/billing/status",
   );
   const isDeleting = useRef(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -146,14 +155,14 @@ export default function Page() {
     setIsAutoAssigning(true);
     setAutoAssignError(null);
     try {
-      const result = await api.post<{ numberOfCars?: number }>(
+      const result = await api.post(
         `/api/admin/teams/${teamId}/rides/${rideId}/auto-assign`,
         {
           numberOfCars: options.numberOfCars,
           separateParentChild: options.separateParentChild,
         },
         token,
-      ) as { drivers: UpdateRideValues["drivers"] };
+      ) as AutoAssignResponse;
       // 初期ロード時と同じ前処理（空行除去 + 学年降順ソート）を適用
       const childrenMap = new Map(
         (data?.ride?.children ?? []).map((c) => [c.id, c.currentGrade])
@@ -170,15 +179,38 @@ export default function Page() {
       }));
       reset({ ...methods.getValues(), drivers: processedDrivers });
       toast.success("自動割り当て完了。保存ボタンで確定してください。");
+      await mutateBilling();
     } catch (e: unknown) {
-      const err = e as { message?: string; minimumCars?: number };
+      const err = e as {
+        message?: string;
+        minimumCars?: number;
+        billing?: BillingStatusResponse["autoAssign"];
+      };
       setAutoAssignError({
         message: err.message ?? "自動割り当てに失敗しました。",
         minimumCars: err.minimumCars,
       });
+      if (err.billing) {
+        await mutateBilling(
+          {
+            status: "OK",
+            billing: {
+              plan: err.billing.plan,
+              isPro: err.billing.isPro,
+            },
+            autoAssign: err.billing,
+          },
+          { revalidate: false },
+        );
+      }
     } finally {
       setIsAutoAssigning(false);
     }
+  };
+
+  const handleAutoAssignUpgradeClick = () => {
+    trackEvent("upgrade_clicked", { source: "auto_assign_limit" });
+    router.push("/admin/profile#plan");
   };
 
   // 配車内容のテキストエクスポート（LINE共有用）
@@ -373,6 +405,8 @@ PINコード: ${pin}
               defaultNumberOfCars={data?.ride?.availabilityDrivers.filter(
                 (d) => d.type === "driver" && d.availability === true
               ).length}
+              billingStatus={billingData?.autoAssign}
+              onUpgradeClick={handleAutoAssignUpgradeClick}
             />
 
             <RideDriverList
