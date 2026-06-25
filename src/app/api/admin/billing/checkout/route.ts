@@ -10,6 +10,71 @@ function getAppUrl(request: NextRequest) {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin).replace(/\/$/, "");
 }
 
+type CheckoutAdmin = {
+  id: number;
+  email: string;
+};
+
+type StripeResourceError = {
+  code?: string;
+  param?: string;
+  message?: string;
+  raw?: {
+    code?: string;
+    param?: string;
+    message?: string;
+  };
+};
+
+function isMissingStripeCustomerError(error: unknown) {
+  const stripeError = error as StripeResourceError;
+  const code = stripeError.code ?? stripeError.raw?.code;
+  const param = stripeError.param ?? stripeError.raw?.param;
+  const message = stripeError.message ?? stripeError.raw?.message ?? "";
+
+  return code === "resource_missing" && (param === "customer" || message.includes("No such customer"));
+}
+
+async function createCustomerForAdmin(
+  stripe: ReturnType<typeof getStripeClient>,
+  admin: CheckoutAdmin,
+) {
+  const customer = await stripe.customers.create({
+    email: admin.email,
+    metadata: { adminId: String(admin.id) },
+  });
+
+  await prisma.admin.update({
+    where: { id: admin.id },
+    data: { stripeCustomerId: customer.id },
+  });
+
+  return customer.id;
+}
+
+function createCheckoutSession(
+  stripe: ReturnType<typeof getStripeClient>,
+  params: {
+    adminId: number;
+    customerId: string;
+    priceId: string;
+    appUrl: string;
+  },
+) {
+  return stripe.checkout.sessions.create({
+    mode: "subscription",
+    customer: params.customerId,
+    line_items: [{ price: params.priceId, quantity: 1 }],
+    success_url: `${params.appUrl}/admin/profile?checkout=success&session_id={CHECKOUT_SESSION_ID}#plan`,
+    cancel_url: `${params.appUrl}/admin/profile?checkout=cancel#plan`,
+    client_reference_id: String(params.adminId),
+    metadata: { adminId: String(params.adminId) },
+    subscription_data: {
+      metadata: { adminId: String(params.adminId) },
+    },
+  });
+}
+
 export const POST = (request: NextRequest) =>
   withAuth(request, async (adminId) => {
     try {
@@ -40,30 +105,31 @@ export const POST = (request: NextRequest) =>
 
       let customerId = admin.stripeCustomerId;
       if (!customerId) {
-        const customer = await stripe.customers.create({
-          email: admin.email,
-          metadata: { adminId: String(admin.id) },
-        });
-        customerId = customer.id;
-
-        await prisma.admin.update({
-          where: { id: admin.id },
-          data: { stripeCustomerId: customerId },
-        });
+        customerId = await createCustomerForAdmin(stripe, admin);
       }
 
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        customer: customerId,
-        line_items: [{ price: priceId, quantity: 1 }],
-        success_url: `${appUrl}/admin/profile?checkout=success&session_id={CHECKOUT_SESSION_ID}#plan`,
-        cancel_url: `${appUrl}/admin/profile?checkout=cancel#plan`,
-        client_reference_id: String(admin.id),
-        metadata: { adminId: String(admin.id) },
-        subscription_data: {
-          metadata: { adminId: String(admin.id) },
-        },
-      });
+      let session;
+      try {
+        session = await createCheckoutSession(stripe, {
+          adminId: admin.id,
+          customerId,
+          priceId,
+          appUrl,
+        });
+      } catch (error) {
+        if (!admin.stripeCustomerId || !isMissingStripeCustomerError(error)) {
+          throw error;
+        }
+
+        console.warn(`Stripe customer not found. Recreating customer for admin ${admin.id}.`);
+        customerId = await createCustomerForAdmin(stripe, admin);
+        session = await createCheckoutSession(stripe, {
+          adminId: admin.id,
+          customerId,
+          priceId,
+          appUrl,
+        });
+      }
 
       await trackServerEvent(
         "checkout_started",
