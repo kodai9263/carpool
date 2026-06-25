@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AdminMeResponse } from "@/app/_types/response/adminResponse";
+import { BillingPortalResponse } from "@/app/_types/response/billingResponse";
 import { TransferFormValues } from "@/app/_types/admin";
 import { AlertTriangle, CheckCircle2, Mail, Send, ShieldCheck, Sparkles, Trash2, WalletCards } from "lucide-react";
 import { trackEvent } from "@/utils/analytics";
@@ -27,7 +28,8 @@ export default function ProfilePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isStartingCheckout, setIsStartingCheckout] = useState(false);
-  const checkoutToastShown = useRef(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const billingToastShown = useRef(false);
 
   const {
     register: registerTransfer,
@@ -86,18 +88,25 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    if (checkoutToastShown.current) return;
+    if (billingToastShown.current) return;
     if (typeof window === "undefined") return;
 
-    const checkout = new URLSearchParams(window.location.search).get("checkout");
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get("checkout");
+    const portal = params.get("portal");
     if (checkout === "success") {
-      checkoutToastShown.current = true;
+      billingToastShown.current = true;
       toast.success("決済が完了しました。Proプランを反映しています。");
       mutate();
     }
     if (checkout === "cancel") {
-      checkoutToastShown.current = true;
+      billingToastShown.current = true;
       toast("決済をキャンセルしました。");
+    }
+    if (portal === "return") {
+      billingToastShown.current = true;
+      toast.success("支払い管理画面から戻りました。");
+      mutate();
     }
   }, [mutate]);
 
@@ -121,6 +130,27 @@ export default function ProfilePage() {
       toast.error(message);
     } finally {
       setIsStartingCheckout(false);
+    }
+  };
+
+  const handleOpenCustomerPortal = async () => {
+    if (!token) return;
+
+    try {
+      setIsOpeningPortal(true);
+      trackEvent("billing_portal_clicked", { source: "profile_plan_card" });
+      const result = await api.post("/api/admin/billing/portal", {}, token) as BillingPortalResponse;
+
+      if (!result.url) {
+        throw new Error("Customer Portal URL is missing");
+      }
+
+      window.location.href = result.url;
+    } catch (e: unknown) {
+      const message = (e as { message?: string })?.message ?? "支払い管理画面を開けませんでした。";
+      toast.error(message);
+    } finally {
+      setIsOpeningPortal(false);
     }
   };
 
@@ -215,24 +245,36 @@ export default function ProfilePage() {
                     </>
                   )}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isPro) {
-                      router.push("/admin/teams/new");
-                      return;
-                    }
-                    handleStartCheckout();
-                  }}
-                  disabled={isStartingCheckout}
-                  className="app-button-secondary mt-4 w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
-                >
-                  {isPro
-                    ? "新しいチームを作成"
-                    : isStartingCheckout
-                      ? "決済ページを準備中..."
-                      : "Proに申し込む"}
-                </button>
+                <div className="mt-4 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isPro) {
+                        router.push("/admin/teams/new");
+                        return;
+                      }
+                      handleStartCheckout();
+                    }}
+                    disabled={isStartingCheckout}
+                    className="app-button-secondary w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
+                  >
+                    {isPro
+                      ? "新しいチームを作成"
+                      : isStartingCheckout
+                        ? "決済ページを準備中..."
+                        : "Proに申し込む"}
+                  </button>
+                  {isPro ? (
+                    <button
+                      type="button"
+                      onClick={handleOpenCustomerPortal}
+                      disabled={isOpeningPortal}
+                      className="app-button-secondary w-full border-amber-200 bg-amber-100 text-amber-900 hover:bg-amber-200"
+                    >
+                      {isOpeningPortal ? "支払い管理画面を準備中..." : "支払い・解約を管理"}
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
           </section>

@@ -8,3 +8,8 @@ export interface BillingStatusResponse {
   };
   autoAssign: AutoAssignBillingStatus;
 }
+
+export interface BillingPortalResponse {
+  status: "OK";
+  url: string;
+}
