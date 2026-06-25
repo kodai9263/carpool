@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Wand2 } from "lucide-react";
+import { WalletCards, Wand2 } from "lucide-react";
+import type { AutoAssignBillingStatus } from "@/utils/billingServer";
 
 export interface AutoAssignOptions {
   numberOfCars?: number;
@@ -13,11 +14,21 @@ interface Props {
   isAssigning: boolean;
   error: { message: string; minimumCars?: number } | null;
   defaultNumberOfCars?: number; // 配車可能な台数（初期値・上限として使用）
+  billingStatus?: AutoAssignBillingStatus;
+  onUpgradeClick: () => void;
 }
 
-export default function AutoAssignPanel({ onAssign, isAssigning, error, defaultNumberOfCars }: Props) {
+export default function AutoAssignPanel({
+  onAssign,
+  isAssigning,
+  error,
+  defaultNumberOfCars,
+  billingStatus,
+  onUpgradeClick,
+}: Props) {
   const [numberOfCarsInput, setNumberOfCarsInput] = useState<string>("");
   const [separateParentChild, setSeparateParentChild] = useState<boolean>(false);
+  const isLimitReached = Boolean(billingStatus && !billingStatus.canUseAutoAssign);
 
   // データ取得後に配車可能台数を初期値としてセット
   useEffect(() => {
@@ -59,6 +70,47 @@ export default function AutoAssignPanel({ onAssign, isAssigning, error, defaultN
         <span className="text-sm font-semibold text-teal-800">自動割り当て</span>
       </div>
 
+      {billingStatus && (
+        <div
+          className={`rounded-lg border p-3 text-sm ${
+            isLimitReached
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : "border-teal-100 bg-white/70 text-teal-900"
+          }`}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2">
+              <WalletCards size={17} className={isLimitReached ? "mt-0.5 shrink-0 text-amber-700" : "mt-0.5 shrink-0 text-teal-700"} />
+              <div>
+                {billingStatus.isPro ? (
+                  <p className="font-semibold">Proプランで自動割り当てを無制限に使えます。</p>
+                ) : billingStatus.isExempt ? (
+                  <p className="font-semibold">デモでは自動割り当てを制限なしで試せます。</p>
+                ) : (
+                  <>
+                    <p className="font-semibold">
+                      自動割り当てのお試し残り{billingStatus.remaining}回
+                    </p>
+                    <p className="mt-1 text-xs leading-5 opacity-80">
+                      Freeでは{billingStatus.freeLimit}回まで試せます。Proで無制限になります。
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+            {isLimitReached && (
+              <button
+                type="button"
+                onClick={onUpgradeClick}
+                className="app-button-secondary shrink-0 border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
+              >
+                Proプランを見る
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3">
         {/* 台数入力 */}
         <div className="flex items-center gap-3">
@@ -96,7 +148,7 @@ export default function AutoAssignPanel({ onAssign, isAssigning, error, defaultN
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isAssigning}
+        disabled={isAssigning || isLimitReached}
         className="app-button-primary w-full"
       >
         {isAssigning ? "割り当て中..." : "自動割り当てを実行"}

@@ -17,7 +17,11 @@ import { Footer } from "./_components/Footer";
 import { LpTracker, TrackedLink } from "./_components/LpTracker";
 import { FeaturesSection } from "./_components/FeaturesSection";
 import { prisma } from "@/lib/prisma";
-import { FREE_TEAM_LIMIT, PRO_ADDITIONAL_TEAM_PRICE_JPY } from "@/utils/billing";
+import {
+  AUTO_ASSIGN_FREE_TRIAL_LIMIT,
+  FREE_TEAM_LIMIT,
+  PRO_ADDITIONAL_TEAM_PRICE_JPY,
+} from "@/utils/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -49,22 +53,22 @@ const memberSteps = [
 
 const freeFeatures = [
   "1チームまで無料",
-  "配車作成・メンバー回答・自動アサインを利用可能",
+  `自動アサインは${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回までお試し`,
   "メンバーはアカウント登録なしで参加",
   "LINEに貼れる共有テキストをコピー",
 ];
 
 const proFeatures = [
   "複数チームの管理",
-  "チーム追加ごとのシンプルな料金",
+  "自動アサインを無制限で利用",
+  "月額のシンプルな料金",
   "今後の高度な運用機能を優先提供",
-  "既存の1チーム利用は無料のまま",
 ];
 
 const faqs = [
   {
     question: "無料でどこまで使えますか？",
-    answer: `まずは${FREE_TEAM_LIMIT}チームを無料で使えます。配車作成、メンバー回答、自動割り当てなど、基本機能は試せます。`,
+    answer: `まずは${FREE_TEAM_LIMIT}チームを無料で使えます。配車作成、メンバー回答、LINE共有、自動割り当て${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回までを試せます。`,
   },
   {
     question: "メンバーにも登録や支払いが必要ですか？",
@@ -72,7 +76,7 @@ const faqs = [
   },
   {
     question: "Proはどんな人向けですか？",
-    answer: "複数チームを管理するコーチ・保護者代表、学年ごとにチームを分けたい団体向けです。",
+    answer: "複数チームを管理したい方や、自動割り当てを継続的に使いたい配車係向けです。",
   },
   {
     question: "支払い開始後にすぐ使えなくなりますか？",
@@ -352,7 +356,7 @@ function PricingSection() {
           <h2 className="app-section-title">1チームは無料。必要になったらProへ。</h2>
           <p className="mt-3 text-sm leading-7 text-gray-500 md:text-base">
             個人の配車係が安心して使い始められるよう、まずは無料で運用できます。
-            複数チームの管理が必要になったタイミングでProを検討できます。
+            自動アサインを継続して使いたい、または複数チームの管理が必要になったタイミングでProを検討できます。
           </p>
         </div>
 
@@ -391,14 +395,14 @@ function PricingSection() {
                 <h3 className="text-xl font-bold text-gray-950">Pro</h3>
                 <p className="mt-1 text-sm text-gray-600">複数チームをまとめて管理したい方向け</p>
               </div>
-              <span className="app-status bg-white text-amber-800">準備中</span>
+              <span className="app-status bg-white text-amber-800">相談受付中</span>
             </div>
 
             <div className="mb-6">
               <span className="text-4xl font-bold tracking-normal text-gray-950">
                 ¥{PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}
               </span>
-              <span className="ml-2 text-sm font-semibold text-gray-600">/ 追加チーム・月</span>
+              <span className="ml-2 text-sm font-semibold text-gray-600">/ 月</span>
             </div>
 
             <PlanFeatureList features={proFeatures} />

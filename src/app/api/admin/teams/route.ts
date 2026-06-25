@@ -1,6 +1,7 @@
 import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/teamResponse"; 
 import { TeamFormValues } from "@/app/_types/team";
 import { prisma } from "@/lib/prisma";
+import { FREE_TEAM_LIMIT, isProPlan } from "@/utils/billing";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import bcrypt from "bcryptjs";
@@ -69,6 +70,35 @@ export const POST = (request: NextRequest) => {
       }
       if (!Number.isInteger(adminId)) {
         return NextResponse.json({ message: "IDが不正です" }, { status: 400});
+      }
+
+      const [admin, currentTeamCount] = await Promise.all([
+        prisma.admin.findUnique({
+          where: { id: adminId },
+          select: { billingPlan: true },
+        }),
+        prisma.team.count({ where: { adminId } }),
+      ]);
+
+      if (!isProPlan(admin?.billingPlan) && currentTeamCount >= FREE_TEAM_LIMIT) {
+        await trackServerEvent(
+          "team_limit_reached",
+          {
+            admin_id: adminId,
+            team_count: currentTeamCount,
+            free_limit: FREE_TEAM_LIMIT,
+            plan: admin?.billingPlan ?? "free",
+          },
+          { adminId, request },
+        );
+
+        return NextResponse.json(
+          {
+            message: "Freeプランで作成できるチームは1つまでです。複数チームはProプランで利用できます。",
+            code: "TEAM_LIMIT_REACHED",
+          },
+          { status: 402 },
+        );
       }
 
       const viewPinHash = await bcrypt.hash(pinValue, 10);

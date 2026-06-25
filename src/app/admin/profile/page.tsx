@@ -6,14 +6,19 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { api } from "@/utils/api";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AdminMeResponse } from "@/app/_types/response/adminResponse";
 import { TransferFormValues } from "@/app/_types/admin";
 import { AlertTriangle, CheckCircle2, Mail, Send, ShieldCheck, Sparkles, Trash2, WalletCards } from "lucide-react";
 import { trackEvent } from "@/utils/analytics";
-import { PRO_ADDITIONAL_TEAM_PRICE_JPY } from "@/utils/billing";
+import {
+  AUTO_ASSIGN_FREE_TRIAL_LIMIT,
+  getAutoAssignRemainingFreeUses,
+  isProPlan,
+  PRO_ADDITIONAL_TEAM_PRICE_JPY,
+} from "@/utils/billing";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -21,6 +26,8 @@ export default function ProfilePage() {
   const { data, isLoading, mutate } = useFetch<AdminMeResponse>('/api/admin/me');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isStartingCheckout, setIsStartingCheckout] = useState(false);
+  const checkoutToastShown = useRef(false);
 
   const {
     register: registerTransfer,
@@ -78,12 +85,62 @@ export default function ProfilePage() {
     }
   };
 
-  const handleUpgradeClick = () => {
-    trackEvent("upgrade_clicked", { source: "profile_plan_card" });
-    toast.success("Proプランへの関心を記録しました。準備ができ次第ご案内します。");
+  useEffect(() => {
+    if (checkoutToastShown.current) return;
+    if (typeof window === "undefined") return;
+
+    const checkout = new URLSearchParams(window.location.search).get("checkout");
+    if (checkout === "success") {
+      checkoutToastShown.current = true;
+      toast.success("決済が完了しました。Proプランを反映しています。");
+      mutate();
+    }
+    if (checkout === "cancel") {
+      checkoutToastShown.current = true;
+      toast("決済をキャンセルしました。");
+    }
+  }, [mutate]);
+
+  const handleStartCheckout = async () => {
+    if (!token) return;
+
+    try {
+      setIsStartingCheckout(true);
+      trackEvent("upgrade_clicked", { source: "profile_checkout" });
+      const result = await api.post("/api/admin/billing/checkout", {}, token) as {
+        url?: string;
+      };
+
+      if (!result.url) {
+        throw new Error("Checkout URL is missing");
+      }
+
+      window.location.href = result.url;
+    } catch (e: unknown) {
+      const message = (e as { message?: string })?.message ?? "決済ページを開けませんでした。";
+      toast.error(message);
+    } finally {
+      setIsStartingCheckout(false);
+    }
   };
 
   if (isLoading) return <LoadingSpinner />;
+
+  const admin = data?.admin;
+  const isPro = isProPlan(admin?.billingPlan);
+  const plan = isPro ? "Pro" : "Free";
+  const autoAssignTrialUsed = Math.max(admin?.autoAssignTrialUsed ?? 0, 0);
+  const autoAssignRemaining = getAutoAssignRemainingFreeUses(autoAssignTrialUsed);
+  const planFeatures = [
+    "配車作成・回答収集",
+    isPro
+      ? "自動割り当て無制限"
+      : `自動割り当て お試し残り${autoAssignRemaining}回 / ${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回`,
+    "LINE共有用テキストコピー",
+  ];
+  const planDescription = isPro
+    ? "Proプランが有効です。複数チーム管理と自動割り当て無制限を利用できます。"
+    : "1チームは無料で利用できます。自動割り当てを継続したい、または複数チームを管理したい場合はProを利用できます。";
 
   return (
     <div className="app-page min-h-screen px-4 py-8 md:px-8">
@@ -118,19 +175,21 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-teal-700">現在のプラン</p>
-                    <h2 className="mt-1 text-xl font-bold text-gray-950">Free</h2>
+                    <h2 className="mt-1 text-xl font-bold text-gray-950">{plan}</h2>
                     <p className="mt-2 text-sm leading-6 text-gray-600">
-                      1チームは無料で利用できます。複数チームの管理が必要になったらProを検討できます。
+                      {planDescription}
                     </p>
                   </div>
                 </div>
-                <span className="app-status bg-white text-teal-800">1チーム無料</span>
+                <span className="app-status shrink-0 whitespace-nowrap bg-white px-4 text-teal-800">
+                  {isPro ? "Pro利用中" : "Free"}
+                </span>
               </div>
             </div>
 
             <div className="grid gap-4 p-5 md:grid-cols-[1fr_0.9fr] md:p-6">
               <div className="space-y-3">
-                {["配車作成・回答収集", "自動割り当て", "LINE共有用テキストコピー"].map((feature) => (
+                {planFeatures.map((feature) => (
                   <div key={feature} className="flex items-center gap-3 text-sm font-medium text-gray-700">
                     <CheckCircle2 size={17} className="text-teal-700" />
                     <span>{feature}</span>
@@ -141,19 +200,38 @@ export default function ProfilePage() {
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <Sparkles size={18} className="text-amber-700" />
-                  <p className="text-sm font-bold text-amber-900">Proプラン</p>
+                  <p className="text-sm font-bold text-amber-900">
+                    {isPro ? "Pro機能が有効です" : "Proプラン"}
+                  </p>
                 </div>
                 <p className="text-sm leading-6 text-amber-900">
-                  複数チーム向けに、追加チームごと月額
-                  <span className="font-bold"> {PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円 </span>
-                  から準備中です。
+                  {isPro ? (
+                    "複数チーム管理と自動割り当て無制限をこのアカウントで利用できます。"
+                  ) : (
+                    <>
+                      複数チーム管理と自動割り当て無制限を月額
+                      <span className="font-bold"> {PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円 </span>
+                      で利用できます。
+                    </>
+                  )}
                 </p>
                 <button
                   type="button"
-                  onClick={handleUpgradeClick}
+                  onClick={() => {
+                    if (isPro) {
+                      router.push("/admin/teams/new");
+                      return;
+                    }
+                    handleStartCheckout();
+                  }}
+                  disabled={isStartingCheckout}
                   className="app-button-secondary mt-4 w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
                 >
-                  Proに興味があります
+                  {isPro
+                    ? "新しいチームを作成"
+                    : isStartingCheckout
+                      ? "決済ページを準備中..."
+                      : "Proに申し込む"}
                 </button>
               </div>
             </div>

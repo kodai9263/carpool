@@ -4,5 +4,8 @@ export interface AdminMeResponse {
     id: number;
     email: string;
     pendingTransferNewEmail: string | null;
+    billingPlan: string;
+    autoAssignTrialUsed: number;
+    stripeSubscriptionStatus: string | null;
   };
 }

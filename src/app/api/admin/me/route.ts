@@ -16,7 +16,14 @@ export const GET = (request: NextRequest) =>
     try {
       const admin = await prisma.admin.findUnique({
         where: { id: adminId },
-        select: { id: true, email: true, pendingTransferNewEmail: true },
+        select: {
+          id: true,
+          email: true,
+          pendingTransferNewEmail: true,
+          billingPlan: true,
+          autoAssignTrialUsed: true,
+          stripeSubscriptionStatus: true,
+        },
       });
       if (!admin) {
         return NextResponse.json({ message: "管理者が見つかりません"}, { status: 404 });
