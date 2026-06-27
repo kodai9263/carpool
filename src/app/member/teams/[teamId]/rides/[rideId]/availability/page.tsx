@@ -2,6 +2,7 @@
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { FormButton } from "@/app/_components/FormButton";
+import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
@@ -16,6 +17,29 @@ import { usePinFetcher } from "@/app/member/_hooks/usePinFetcher";
 import toast from "react-hot-toast";
 import { useState, useEffect, useMemo } from "react";
 import { AlertCircle } from "lucide-react";
+
+const availabilityGuideSteps = [
+  {
+    target: "member-availability-ride-info",
+    title: "まず予定を確認します",
+    body: "日付、行き先、集合場所を確認して、この配車に回答する内容か見てください。",
+  },
+  {
+    target: "member-availability-guardian-form",
+    title: "回答する保護者を選びます",
+    body: "保護者名を選んで、車を出せる場合は「配車可」、引率できる場合は「引率可」を選びます。必要に応じて人数やコメントも入れられます。",
+  },
+  {
+    target: "member-availability-child-status",
+    title: "子どもの参加状況を選びます",
+    body: "保護者を選ぶと、その家庭の子どもが表示されます。参加、自走、不参加のどれかを選んでください。",
+  },
+  {
+    target: "member-availability-submit",
+    title: "最後に回答を送信します",
+    body: "内容を確認したら送信します。送信すると管理者が回答状況を確認できるようになります。",
+  },
+] satisfies GuidedTourStep[];
 
 export default function Page() {
   const { teamId, rideId } = useParams<{ teamId: string; rideId: string }>();
@@ -222,20 +246,30 @@ export default function Page() {
     <div className="app-page">
       <div className="app-container max-w-3xl">
       <div className="app-card p-4 md:p-8">
-        <div className="mb-6">
-          <p className="mb-1 text-sm font-semibold text-teal-700">回答入力</p>
-          <h1 className="app-section-title">配車・引率可否</h1>
-          <p className="mt-2 text-sm leading-6 text-gray-500">
-            保護者ごとの配車・引率可否と、子どもの参加状況をまとめて送信できます。
-          </p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="mb-1 text-sm font-semibold text-teal-700">回答入力</p>
+            <h1 className="app-section-title">配車・引率可否</h1>
+            <p className="mt-2 text-sm leading-6 text-gray-500">
+              保護者ごとの配車・引率可否と、子どもの参加状況をまとめて送信できます。
+            </p>
+          </div>
+          <GuidedTour
+            storageKey="member-availability-guided-tour:v1"
+            steps={availabilityGuideSteps}
+            autoStart
+            className="app-button-secondary w-full shrink-0 sm:w-auto"
+          />
         </div>
 
         <div className="space-y-8">
-          <RideBasicInfo
-            date={ride.date}
-            destination={ride.destination}
-            meetingPlace={ride.meetingPlace}
-          />
+          <div data-guide="member-availability-ride-info">
+            <RideBasicInfo
+              date={ride.date}
+              destination={ride.destination}
+              meetingPlace={ride.meetingPlace}
+            />
+          </div>
 
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -245,30 +279,38 @@ export default function Page() {
                   <p>{errors.root.message}</p>
                 </div>
               )}
-              <AvailabilityFormList
-                guardians={guardians}
-                registeredGuardianIds={registeredGuardianIds}
-                existingDriverAvailabilities={existingDriverAvailabilities}
-                existingEscortAvailabilities={existingEscortAvailabilities}
-                register={register}
-                control={control}
-              />
+              <div data-guide="member-availability-guardian-form">
+                <AvailabilityFormList
+                  guardians={guardians}
+                  registeredGuardianIds={registeredGuardianIds}
+                  existingDriverAvailabilities={existingDriverAvailabilities}
+                  existingEscortAvailabilities={existingEscortAvailabilities}
+                  register={register}
+                  control={control}
+                />
+              </div>
 
-              <ChildAvailabilitySection
-                childList={visibleChildren}
-                notParticipatingIds={notParticipatingIds}
-                selfDrivingIds={selfDrivingIds}
-                onToggleNotParticipating={toggleNotParticipating}
-                onToggleSelfDriving={toggleSelfDriving}
-              />
+              {visibleChildren.length > 0 && (
+                <div data-guide="member-availability-child-status">
+                  <ChildAvailabilitySection
+                    childList={visibleChildren}
+                    notParticipatingIds={notParticipatingIds}
+                    selfDrivingIds={selfDrivingIds}
+                    onToggleNotParticipating={toggleNotParticipating}
+                    onToggleSelfDriving={toggleSelfDriving}
+                  />
+                </div>
+              )}
 
-              <FormButton
-                label="送信"
-                type="submit"
-                isSubmitting={isSubmitting}
-                loadingLabel="送信中..."
-                className="w-full py-3 text-base sm:max-w-[260px]"
-              />
+              <div data-guide="member-availability-submit" className="sm:max-w-[260px]">
+                <FormButton
+                  label="送信"
+                  type="submit"
+                  isSubmitting={isSubmitting}
+                  loadingLabel="送信中..."
+                  className="w-full py-3 text-base"
+                />
+              </div>
             </form>
           </FormProvider>
         </div>
