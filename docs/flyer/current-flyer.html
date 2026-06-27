@@ -42,9 +42,7 @@
         height: 297mm;
         margin: 0 auto;
         overflow: hidden;
-        background:
-          radial-gradient(circle at 78% 9%, rgba(240, 180, 81, 0.18), transparent 34mm),
-          linear-gradient(160deg, #f9fbf7 0%, var(--paper) 56%, #edf5ef 100%);
+        background: linear-gradient(160deg, #f9fbf7 0%, var(--paper) 56%, #edf5ef 100%);
         box-shadow: 0 20px 70px rgba(19, 58, 54, 0.18);
       }
 
@@ -71,17 +69,6 @@
         background:
           linear-gradient(135deg, rgba(19, 58, 54, 0.98), rgba(15, 94, 86, 0.96)),
           linear-gradient(135deg, #133a36, #0f766e);
-      }
-
-      .hero::after {
-        position: absolute;
-        right: -18mm;
-        bottom: -22mm;
-        width: 86mm;
-        height: 86mm;
-        border-radius: 50%;
-        content: "";
-        background: rgba(240, 180, 81, 0.16);
       }
 
       .brand {
@@ -374,25 +361,26 @@
       }
 
       .qr-wrap {
-        display: grid;
-        grid-template-columns: 27mm 1fr;
-        gap: 2.7mm;
+        display: flex;
+        flex-direction: column;
+        gap: 2.4mm;
         align-items: center;
-        padding: 2.4mm;
+        padding: 3.2mm;
         border-radius: 3mm;
         background: #f6faf7;
+        text-align: center;
       }
 
       .qr-wrap img {
-        width: 27mm;
-        height: 27mm;
+        width: 39mm;
+        height: 39mm;
         border-radius: 2mm;
         background: #ffffff;
       }
 
       .dm {
         color: var(--deep);
-        font-size: 4.3mm;
+        font-size: 4.5mm;
         line-height: 1.28;
         font-weight: 900;
       }
@@ -401,7 +389,7 @@
         display: block;
         margin-top: 1.5mm;
         color: var(--muted);
-        font-size: 2.35mm;
+        font-size: 2.45mm;
         line-height: 1.45;
         font-weight: 700;
       }
@@ -425,8 +413,8 @@
       }
 
       .price {
-        min-height: 23mm;
-        padding: 3mm;
+        min-height: 19mm;
+        padding: 2.5mm;
         border: 1px solid var(--line);
         border-radius: 3.6mm;
         background: rgba(255, 255, 255, 0.92);
@@ -441,7 +429,7 @@
         display: block;
         margin-bottom: 1mm;
         color: var(--deep);
-        font-size: 3.8mm;
+        font-size: 3.35mm;
         line-height: 1;
       }
 
@@ -452,25 +440,8 @@
         border-radius: 999px;
         color: #0f5e56;
         background: var(--mint);
-        font-size: 2.3mm;
+        font-size: 2.15mm;
         font-weight: 900;
-      }
-
-      .footer {
-        position: absolute;
-        right: 13mm;
-        bottom: 6mm;
-        left: 13mm;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: #6d7c77;
-        font-size: 2.65mm;
-        font-weight: 700;
-      }
-
-      .footer b {
-        color: var(--deep);
       }
 
       @media print {
@@ -625,9 +596,9 @@
             <div class="qr-wrap">
               <img src="qr-carpool.png" alt="CarpoolのQRコード" />
               <div class="dm">
-                まずは<br />DMで相談
+                QRコードから<br />すぐ確認
                 <small>
-                  Instagramで「配車」と送ってください。必要ならデモや使い方を案内します。
+                  スマホで読み取るだけ。デモも登録なしで確認できます。
                 </small>
               </div>
             </div>
@@ -649,17 +620,13 @@
           </section>
 
           <section class="price">
-            <span class="tag">Contact</span>
-            <strong>@arrow_room_repository</strong>
-            <p>メール: carpool.app.2026@gmail.com<br />デモは登録なしでも確認できます。</p>
+            <span class="tag">Demo</span>
+            <strong>登録なしで確認</strong>
+            <p>QRコードからデモを開き、配車作成からメンバー確認までの流れを見られます。</p>
           </section>
         </div>
       </section>
 
-      <footer class="footer">
-        <span><b>Carpool</b> | 少年野球・サッカーの配車管理アプリ</span>
-        <span>2026年5月版</span>
-      </footer>
     </main>
   </body>
 </html>
