@@ -22,6 +22,9 @@ interface Props {
   }[];
   childrenList: { id: number; name: string; currentGrade: number | null }[];
   childAvailabilities: { childId: number; availability: boolean }[];
+  driverSelectGuideTarget?: string;
+  assignmentGuideTarget?: string;
+  onDriverSelected?: () => void;
 }
 
 export default function RideDriverItem({
@@ -32,6 +35,9 @@ export default function RideDriverItem({
   availabilityDrivers,
   childrenList,
   childAvailabilities,
+  driverSelectGuideTarget,
+  assignmentGuideTarget,
+  onDriverSelected,
 }: Props) {
   const { control } = useFormContext<UpdateRideValues>();
   const drivers = useWatch({ control, name: "drivers" }) ?? [];
@@ -54,21 +60,25 @@ export default function RideDriverItem({
         separateDirections={separateDirections}
         availabilityDrivers={availabilityDrivers}
         onRemove={() => removeDriver(index)}
+        guideTarget={driverSelectGuideTarget}
+        onDriverSelected={onDriverSelected}
       />
 
-      <ChildAssignmentList
-        index={index}
-        type="driver"
-        childrenList={childrenList}
-        availabilityDrivers={availabilityDrivers}
-        childAvailabilities={childAvailabilities}
-      />
+      <div className="space-y-4" data-guide={assignmentGuideTarget}>
+        <ChildAssignmentList
+          index={index}
+          type="driver"
+          childrenList={childrenList}
+          availabilityDrivers={availabilityDrivers}
+          childAvailabilities={childAvailabilities}
+        />
 
-      <EscortSection
-        driverIndex={index}
-        direction={direction}
-        availabilityDrivers={availabilityDrivers}
-      />
+        <EscortSection
+          driverIndex={index}
+          direction={direction}
+          availabilityDrivers={availabilityDrivers}
+        />
+      </div>
 
       {isFull && (
         <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-700 font-medium">

@@ -51,17 +51,21 @@ export default function RideForm() {
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto flex max-w-xl flex-col space-y-6">
-        <RideBasicForm
-          date={date}
-          onDateChange={handleDateChange}
-          error={!!errors.date}
-        />
+        <div data-guide="admin-new-ride-basic">
+          <RideBasicForm
+            date={date}
+            onDateChange={handleDateChange}
+            error={!!errors.date}
+          />
+        </div>
 
-        <FormButton
-          label="登録"
-          loadingLabel="登録中..."
-          isSubmitting={isSubmitting}
-        />
+        <div data-guide="admin-new-ride-submit">
+          <FormButton
+            label="登録"
+            loadingLabel="登録中..."
+            isSubmitting={isSubmitting}
+          />
+        </div>
       </form>
     </FormProvider>
   );

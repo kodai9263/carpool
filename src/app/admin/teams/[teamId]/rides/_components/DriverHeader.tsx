@@ -20,6 +20,8 @@ interface Props {
   direction: "outbound" | "inbound";
   separateDirections: boolean;
   onRemove: () => void;
+  guideTarget?: string;
+  onDriverSelected?: () => void;
 }
 
 export default function DriverHeader({
@@ -29,6 +31,8 @@ export default function DriverHeader({
   direction,
   separateDirections,
   onRemove,
+  guideTarget,
+  onDriverSelected,
 }: Props) {
   const { control, register } = useFormContext<UpdateRideValues>();
   const selectRef = useRef<HTMLSelectElement>(null);
@@ -43,12 +47,16 @@ export default function DriverHeader({
   // 1. スクロールが下に行かないようにする
   // 2. 子供のセレクトが自動で開かないようにフォーカスを保持する
   const handleDriverChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = Number(e.target.value);
     // react-hook-formのonChangeを先に実行
     onChange(e);
     // フォーカスを一旦外してから戻すことで、子供のセレクトが開くのを防ぐ
     selectRef.current?.blur();
     requestAnimationFrame(() => {
       selectRef.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
+      if (selectedValue > 0) {
+        onDriverSelected?.();
+      }
     });
   };
 
@@ -84,7 +92,7 @@ export default function DriverHeader({
   if (!excluded) return null;
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1" data-guide={guideTarget}>
       {/* 削除ボタンとドライバー選択を横並び */}
       <div className="flex items-start gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">

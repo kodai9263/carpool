@@ -1,7 +1,7 @@
 'use client';
 
 import { UpdateRideValues } from "@/app/_types/ride";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FieldArrayWithId, useFormContext, useWatch } from "react-hook-form";
 import RideDriverItem from "./RideDriverItem";
 import { Plus } from "lucide-react";
@@ -22,6 +22,8 @@ interface Props {
   childAvailabilities: { childId: number; availability: boolean; selfDriving: boolean }[];
   removeDriver: (index: number) => void;
   appendDriver: (direction: "outbound" | "inbound") => void;
+  onDriverAdded?: () => void;
+  onDriverSelected?: () => void;
 };
 
 export default function RideDriverList({
@@ -32,8 +34,11 @@ export default function RideDriverList({
   childAvailabilities,
   removeDriver,
   appendDriver,
+  onDriverAdded,
+  onDriverSelected,
 }: Props) {
   const { control } = useFormContext<UpdateRideValues>();
+  const [focusedDriverIndex, setFocusedDriverIndex] = useState<number | null>(null);
 
   // フォームの現在の drivers 状態を監視
   const watchedDrivers = useWatch({ control, name: "drivers" });
@@ -61,7 +66,8 @@ export default function RideDriverList({
     label: string,
     indices: number[],
     candidates: typeof outboundCandidates,
-    direction: "outbound" | "inbound"
+    direction: "outbound" | "inbound",
+    guideTarget?: string,
   ) => (
     <div className="space-y-4">
       <h3 className="border-b border-gray-200 pb-2 text-base font-bold text-gray-700">
@@ -72,6 +78,7 @@ export default function RideDriverList({
           {indices.map((i) => {
             const field = drivers[i];
             if (!field) return null;
+            const isFocusedDriver = i === (focusedDriverIndex ?? indices[0]);
             return (
               <RideDriverItem
                 key={field.id}
@@ -82,19 +89,28 @@ export default function RideDriverList({
                 childrenList={childrenList}
                 childAvailabilities={childAvailabilities}
                 removeDriver={removeDriver}
+                driverSelectGuideTarget={isFocusedDriver ? "admin-ride-driver-select" : undefined}
+                assignmentGuideTarget={isFocusedDriver ? "admin-ride-driver-assignments" : undefined}
+                onDriverSelected={() => {
+                  setFocusedDriverIndex(i);
+                  onDriverSelected?.();
+                }}
               />
             );
           })}
         </div>
 
-        <div className="mt-2">
+        <div className="mt-2" data-guide={guideTarget}>
           {indices.length < candidates.length ? (
             <button
               type="button"
               onClick={() => {
+                const nextDriverIndex = drivers.length;
                 appendDriver(direction);
+                setFocusedDriverIndex(nextDriverIndex);
                 requestAnimationFrame(() => {
                   (document.activeElement as HTMLElement)?.blur();
+                  onDriverAdded?.();
                 });
               }}
               className="app-button-primary"
@@ -129,11 +145,11 @@ export default function RideDriverList({
     <div className="space-y-8">
       {separateDirections ? (
         <>
-          {renderSection("行き配車", outboundIndices, outboundCandidates, "outbound")}
+          {renderSection("行き配車", outboundIndices, outboundCandidates, "outbound", "admin-ride-manual-assign")}
           {renderSection("帰り配車", inboundIndices, inboundCandidates, "inbound")}
         </>
       ) : (
-        renderSection("配車", allDriverIndices, allDriverCandidates, "outbound")
+        renderSection("配車", allDriverIndices, allDriverCandidates, "outbound", "admin-ride-manual-assign")
       )}
     </div>
   );
