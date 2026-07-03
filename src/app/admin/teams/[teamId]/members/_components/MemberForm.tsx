@@ -62,8 +62,13 @@ export default function MemberForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-8">
       {/* 保護者フィールド */}
-      <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4">
-        <h2 className="text-base font-bold text-gray-950">保護者</h2>
+      <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4" data-guide="admin-new-member-guardians">
+        <div>
+          <h2 className="text-base font-bold text-gray-950">保護者</h2>
+          <p className="mt-1 text-sm leading-6 text-gray-500">
+            ドライバーと引率者を別々に選びたい場合は、「＋」で父・母などを分けて登録してください。
+          </p>
+        </div>
         {guardianFields.map((guardian, index) => (
           <div key={guardian.id}>
             <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
@@ -106,7 +111,7 @@ export default function MemberForm() {
       </div>
 
       {/* 子供フィールド */}
-      <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4">
+      <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4" data-guide="admin-new-member-children">
         <h2 className="text-base font-bold text-gray-950">子ども</h2>
         {childFields.map((child, index) => (
           <div key={child.id}>
@@ -161,7 +166,7 @@ export default function MemberForm() {
         </div>
       </div>
 
-      <div className="flex justify-center mt-8">
+      <div className="flex justify-center mt-8" data-guide="admin-new-member-submit">
         <FormButton
           label="登録"
           loadingLabel="登録中..."

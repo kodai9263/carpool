@@ -1,12 +1,19 @@
 "use client";
 
 import { HelpCircle, X } from "lucide-react";
-import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface GuidedTourStep {
   target: string;
   title: string;
   body: string;
+  primaryLabel?: string;
+  primaryAction?: "next" | "dismiss";
+}
+
+export interface GuidedTourFocusRequest {
+  target: string;
+  requestId: number;
 }
 
 interface GuidedTourProps {
@@ -15,6 +22,7 @@ interface GuidedTourProps {
   autoStart?: boolean;
   buttonLabel?: string;
   className?: string;
+  focusRequest?: GuidedTourFocusRequest | null;
 }
 
 interface TargetRect {
@@ -41,18 +49,32 @@ const getGuideTarget = (target: string) => {
   return document.querySelector<HTMLElement>(`[data-guide="${target}"]`);
 };
 
+const focusGuideTarget = (target: string) => {
+  const element = getGuideTarget(target);
+  if (!element) return;
+
+  const focusableTarget = element.matches("button, input, select, textarea, a[href], [tabindex]:not([tabindex='-1'])")
+    ? element
+    : element.querySelector<HTMLElement>("button, input, select, textarea, a[href], [tabindex]:not([tabindex='-1'])");
+
+  element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+  focusableTarget?.focus({ preventScroll: true });
+};
+
 export default function GuidedTour({
   storageKey,
   steps,
   autoStart = false,
   buttonLabel = "使い方",
   className = "app-button-secondary",
+  focusRequest = null,
 }: GuidedTourProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [viewport, setViewport] = useState<ViewportSize>({ width: 0, height: 0 });
+  const handledFocusRequestIdRef = useRef<number | null>(null);
 
   const findAvailableStepIndex = useCallback(
     (startIndex: number) => {
@@ -75,6 +97,31 @@ export default function GuidedTour({
     setIsOpen(true);
   }, [findAvailableStepIndex]);
 
+  const focusStepByTarget = useCallback(
+    (target: string) => {
+      const requestedStepIndex = steps.findIndex((step) => step.target === target);
+      if (requestedStepIndex === -1) return;
+
+      const openRequestedStep = () => {
+        if (!getGuideTarget(target)) return false;
+
+        setStepIndex(requestedStepIndex);
+        setIsOpen(true);
+        return true;
+      };
+
+      const tryOpenRequestedStep = (attempt = 0) => {
+        if (openRequestedStep()) return;
+        if (attempt >= 8) return;
+
+        window.setTimeout(() => tryOpenRequestedStep(attempt + 1), 120);
+      };
+
+      window.requestAnimationFrame(() => tryOpenRequestedStep());
+    },
+    [steps]
+  );
+
   const finishTour = useCallback(() => {
     try {
       window.localStorage.setItem(storageKey, "done");
@@ -85,6 +132,12 @@ export default function GuidedTour({
     setIsOpen(false);
     setTargetRect(null);
   }, [storageKey]);
+
+  const dismissTourToTarget = useCallback((target: string) => {
+    setIsOpen(false);
+    setTargetRect(null);
+    window.requestAnimationFrame(() => focusGuideTarget(target));
+  }, []);
 
   const measureTarget = useCallback(
     (shouldScroll = false) => {
@@ -139,6 +192,14 @@ export default function GuidedTour({
 
     startTour();
   }, [autoStart, isMounted, startTour, storageKey]);
+
+  useEffect(() => {
+    if (!focusRequest) return;
+    if (handledFocusRequestIdRef.current === focusRequest.requestId) return;
+
+    handledFocusRequestIdRef.current = focusRequest.requestId;
+    focusStepByTarget(focusRequest.target);
+  }, [focusRequest, focusStepByTarget]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -224,6 +285,15 @@ export default function GuidedTour({
     setStepIndex(nextAvailableStepIndex);
   };
 
+  const handlePrimaryAction = () => {
+    if (currentStep?.primaryAction === "dismiss") {
+      dismissTourToTarget(currentStep.target);
+      return;
+    }
+
+    goToNextStep();
+  };
+
   return (
     <>
       <button type="button" className={className} onClick={startTour}>
@@ -284,8 +354,8 @@ export default function GuidedTour({
                     戻る
                   </button>
                 )}
-                <button type="button" onClick={goToNextStep} className="app-button-primary min-h-10 px-4">
-                  {isLastStep ? "完了" : "次へ"}
+                <button type="button" onClick={handlePrimaryAction} className="app-button-primary min-h-10 px-4">
+                  {currentStep.primaryLabel ?? (isLastStep ? "完了" : "次へ")}
                 </button>
               </div>
             </div>

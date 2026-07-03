@@ -1,6 +1,7 @@
 'use client';
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
+import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Ride } from "@/app/_types/ride";
 import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
@@ -10,6 +11,19 @@ import { NewButton } from "../../_components/NewButton";
 import { Calendar, CalendarPlus, ChevronRight, MapPin, MapPinned } from "lucide-react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
+
+const rideListGuideSteps = [
+  {
+    target: "admin-ride-new",
+    title: "配車予定を作成します",
+    body: "日付、行き先、集合場所を登録すると、メンバーへの回答依頼を作れるようになります。",
+  },
+  {
+    target: "admin-ride-list",
+    title: "配車詳細へ進みます",
+    body: "配車予定を開くと、回答依頼のLINE共有、自動割り当て、決定後の案内コピーまで進めます。",
+  },
+] satisfies GuidedTourStep[];
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -35,19 +49,29 @@ export default function Page() {
   return (
     <div className="app-page">
       <div className="app-container max-w-3xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="mb-1 text-sm font-semibold text-teal-700">{teamData?.team.teamName}</p>
             <h1 className="app-section-title">配車一覧</h1>
             <p className="mt-2 text-sm text-gray-500">{rides.length}件の配車予定を表示中</p>
           </div>
-          <NewButton 
-            href={`/admin/teams/${teamId}/rides/new`}
-            trackLabel="ride_header"
-          />
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+            <GuidedTour
+              storageKey="admin-ride-list-guided-tour:v1"
+              steps={rideListGuideSteps}
+              autoStart
+              className="app-button-secondary w-full shrink-0 sm:w-auto"
+            />
+            <div data-guide="admin-ride-new" className="w-full sm:w-auto">
+              <NewButton
+                href={`/admin/teams/${teamId}/rides/new`}
+                trackLabel="ride_header"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="app-card divide-y divide-gray-100 overflow-hidden">
+        <div className="app-card divide-y divide-gray-100 overflow-hidden" data-guide="admin-ride-list">
           {rides.length === 0 && (
             <div className="app-empty-state">
               <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700">

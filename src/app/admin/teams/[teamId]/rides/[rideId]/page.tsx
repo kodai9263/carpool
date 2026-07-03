@@ -1,13 +1,14 @@
 "use client";
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
+import GuidedTour, { type GuidedTourFocusRequest, type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { UpdateRideValues } from "@/app/_types/ride";
 import { api } from "@/utils/api";
 import { trackEvent } from "@/utils/analytics";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import RideBasicForm from "../_components/RideBasicForm";
 import { createRideDateValidation } from "../_hooks/useRideDateValidation";
@@ -23,6 +24,53 @@ import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
 import AutoAssignPanel, { AutoAssignOptions } from "../_components/AutoAssignPanel";
 
 const GUEST_EMAIL = "guest@carpool.demo";
+
+const rideDetailGuideSteps = [
+  {
+    target: "admin-ride-basic",
+    title: "配車予定を確認します",
+    body: "日付、行き先、集合場所を確認します。変更した場合は最後に保存してください。",
+  },
+  {
+    target: "admin-ride-share-request",
+    title: "回答依頼をLINEに貼ります",
+    body: "回答期限を必要に応じて設定し、「入力依頼をコピー」を押すとURLとPIN入りの文面をLINEに貼れます。",
+  },
+  {
+    target: "admin-ride-auto-assign",
+    title: "回答が集まったら割り当てます",
+    body: "メンバーの回答が揃ったら、自動割り当てで配車案を作れます。必要なら手動で調整できます。",
+  },
+  {
+    target: "admin-ride-manual-assign",
+    title: "手動でもドライバーを追加できます",
+    body: "「ドライバー追加」を押すと、下に配車カードが追加されます。自動割り当て後に車を増やしたり、手動で直したい時に使います。",
+  },
+  {
+    target: "admin-ride-driver-select",
+    title: "まずドライバーを選びます",
+    body: "追加されたカードのプルダウンで担当ドライバーを選んでください。「選択する」を押すとガイドが閉じ、この欄を操作できます。",
+    primaryLabel: "選択する",
+    primaryAction: "dismiss",
+  },
+  {
+    target: "admin-ride-driver-assignments",
+    title: "乗せる人を選びます",
+    body: "ドライバーを選ぶと、座席数に合わせて乗せる子どもと引率者の欄が出ます。必要な人を選んで配車を調整してください。",
+    primaryLabel: "割り当てる",
+    primaryAction: "dismiss",
+  },
+  {
+    target: "admin-ride-share-final",
+    title: "決定後の案内を共有します",
+    body: "配車が決まったら、決定後の案内や配車内容をコピーしてLINEに共有します。",
+  },
+  {
+    target: "admin-ride-save",
+    title: "変更した内容を保存します",
+    body: "配車内容を調整したら、最後に更新して確定します。",
+  },
+] satisfies GuidedTourStep[];
 
 type AutoAssignResponse = {
   drivers: UpdateRideValues["drivers"];
@@ -92,6 +140,14 @@ export default function Page() {
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [autoAssignError, setAutoAssignError] = useState<{ message: string; minimumCars?: number } | null>(null);
+  const [guideFocusRequest, setGuideFocusRequest] = useState<GuidedTourFocusRequest | null>(null);
+
+  const requestGuideFocus = useCallback((target: string) => {
+    setGuideFocusRequest((current) => ({
+      target,
+      requestId: (current?.requestId ?? 0) + 1,
+    }));
+  }, []);
 
   useEffect(() => {
     if (data?.ride) {
@@ -349,12 +405,21 @@ PINコード: ${pin}
   return (
     <div className="app-page">
       <div className="app-container">
-        <div className="mb-6">
-          <p className="mb-1 text-sm font-semibold text-teal-700">配車情報</p>
-          <h1 className="app-section-title flex items-center gap-2">
-            <Car size={26} className="text-teal-700" />
-            配車詳細
-          </h1>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="mb-1 text-sm font-semibold text-teal-700">配車情報</p>
+            <h1 className="app-section-title flex items-center gap-2">
+              <Car size={26} className="text-teal-700" />
+              配車詳細
+            </h1>
+          </div>
+          <GuidedTour
+            storageKey="admin-ride-detail-guided-tour:v1"
+            steps={rideDetailGuideSteps}
+            autoStart
+            className="app-button-secondary w-full shrink-0 sm:w-auto"
+            focusRequest={guideFocusRequest}
+          />
         </div>
       <div className="app-card min-w-0 overflow-hidden p-4 md:p-8">
         <FormProvider {...methods}>
@@ -362,7 +427,7 @@ PINコード: ${pin}
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6 md:space-y-8 min-w-0"
           >
-            <div className="app-panel p-4 md:p-5">
+            <div className="app-panel p-4 md:p-5" data-guide="admin-ride-basic">
               <div className="mx-auto w-full max-w-md">
                 <RideBasicForm
                   date={date}
@@ -398,16 +463,18 @@ PINコード: ${pin}
             </div>
 
             {/* 自動割り当てパネル */}
-            <AutoAssignPanel
-              onAssign={handleAutoAssign}
-              isAssigning={isAutoAssigning}
-              error={autoAssignError}
-              defaultNumberOfCars={data?.ride?.availabilityDrivers.filter(
-                (d) => d.type === "driver" && d.availability === true
-              ).length}
-              billingStatus={billingData?.autoAssign}
-              onUpgradeClick={handleAutoAssignUpgradeClick}
-            />
+            <div data-guide="admin-ride-auto-assign">
+              <AutoAssignPanel
+                onAssign={handleAutoAssign}
+                isAssigning={isAutoAssigning}
+                error={autoAssignError}
+                defaultNumberOfCars={data?.ride?.availabilityDrivers.filter(
+                  (d) => d.type === "driver" && d.availability === true
+                ).length}
+                billingStatus={billingData?.autoAssign}
+                onUpgradeClick={handleAutoAssignUpgradeClick}
+              />
+            </div>
 
             <RideDriverList
               drivers={fields}
@@ -426,6 +493,8 @@ PINコード: ${pin}
                 })
               }
               removeDriver={remove}
+              onDriverAdded={() => requestGuideFocus("admin-ride-driver-select")}
+              onDriverSelected={() => requestGuideFocus("admin-ride-driver-assignments")}
             />
 
             {/* 自走参加者セクション */}
@@ -546,6 +615,7 @@ PINコード: ${pin}
                   <button
                     type="button"
                     onClick={copyShareText}
+                    data-guide="admin-ride-share-request"
                     className="app-button-primary min-h-[4.25rem] w-full flex-col items-start justify-start px-4 py-2.5 text-left md:min-h-[5rem] md:py-3"
                   >
                     <span className="text-xs font-semibold text-white/75">
@@ -561,6 +631,7 @@ PINコード: ${pin}
                   <button
                     type="button"
                     onClick={copyAssignmentText}
+                    data-guide="admin-ride-share-final"
                     className="app-button-secondary min-h-[4.25rem] w-full flex-col items-start justify-start px-4 py-2.5 text-left md:min-h-[5rem] md:py-3"
                   >
                     <span className="text-xs font-semibold text-gray-500">
@@ -592,11 +663,13 @@ PINコード: ${pin}
               </div>
             </div>
 
-            <UpdateDeleteButtons
-              onUpdate={handleSubmit(onSubmit)}
-              onDelete={handleDeleteRide}
-              isSubmitting={isSubmitting}
-            />
+            <div data-guide="admin-ride-save">
+              <UpdateDeleteButtons
+                onUpdate={handleSubmit(onSubmit)}
+                onDelete={handleDeleteRide}
+                isSubmitting={isSubmitting}
+              />
+            </div>
           </form>
         </FormProvider>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
+import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Member } from "@/app/_types/member";
@@ -10,6 +11,19 @@ import { ChevronRight, Search, User, UserPlus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
+
+const memberListGuideSteps = [
+  {
+    target: "admin-member-new",
+    title: "保護者と子どもを登録します",
+    body: "配車回答を集める前に、家族ごとの保護者名とお子さんを登録します。送迎・引率を別々の保護者が担当する場合は、同じ家庭でも父・母などを分けて登録しておくと選びやすくなります。",
+  },
+  {
+    target: "admin-member-list",
+    title: "登録内容を確認します",
+    body: "登録した家族はここに並びます。名前を押すと、保護者や子どもの情報をあとから編集できます。",
+  },
+] satisfies GuidedTourStep[];
 
 export default function Page() {
   const [page, setPage] = useState(1);
@@ -41,16 +55,26 @@ export default function Page() {
   return (
     <div className="app-page">
       <div className="app-container max-w-3xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="mb-1 text-sm font-semibold text-teal-700">{teamData?.team.teamName}</p>
             <h1 className="app-section-title">メンバー一覧</h1>
             <p className="mt-2 text-sm text-gray-500">{members.length}件の家族を表示中</p>
           </div>
-          <NewButton
-            href={`/admin/teams/${teamId}/members/new`}
-            trackLabel="member_header"
-          />
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+            <GuidedTour
+              storageKey="admin-member-list-guided-tour:v1"
+              steps={memberListGuideSteps}
+              autoStart
+              className="app-button-secondary w-full shrink-0 sm:w-auto"
+            />
+            <div data-guide="admin-member-new" className="w-full sm:w-auto">
+              <NewButton
+                href={`/admin/teams/${teamId}/members/new`}
+                trackLabel="member_header"
+              />
+            </div>
+          </div>
         </div>
 
         {/* 検索フォーム */}
@@ -66,7 +90,7 @@ export default function Page() {
           />
         </div>
 
-        <div className="app-card divide-y divide-gray-100 overflow-hidden">
+        <div className="app-card divide-y divide-gray-100 overflow-hidden" data-guide="admin-member-list">
           {members.length === 0 && (
             <div className="app-empty-state">
               <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700">

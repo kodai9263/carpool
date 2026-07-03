@@ -2,6 +2,7 @@
 
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Team } from "@/app/_types/team";
+import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
 import { TeamsListResponse } from "@/app/_types/response/teamResponse";
 import { CalendarPlus, CheckCircle2, ChevronRight, Sparkles, Users, WalletCards } from "lucide-react";
@@ -18,6 +19,22 @@ import {
   PRO_ADDITIONAL_TEAM_PRICE_JPY,
 } from "@/utils/billing";
 
+const createTeamListGuideSteps = (shouldBlockTeamCreation: boolean) =>
+  [
+    {
+      target: "admin-team-new",
+      title: shouldBlockTeamCreation ? "複数チームはプランを確認します" : "まずチームを作成します",
+      body: shouldBlockTeamCreation
+        ? "Freeでは1チームまで作成できます。複数チームを管理したい場合は、ここからプランを確認します。"
+        : "チーム名とPINを決めると、メンバー登録と配車作成を始められます。既にチームがある場合は次のステップに進みます。",
+    },
+    {
+      target: "admin-team-list",
+      title: "チーム詳細へ進みます",
+      body: "チームを選ぶと、メンバー登録や配車作成に進めます。普段の管理はここから始めます。",
+    },
+  ] satisfies GuidedTourStep[];
+
 export default function Page() {
   const [page, setPage] = useState(1);
   const router = useRouter();
@@ -27,16 +44,20 @@ export default function Page() {
   const { data, error, isLoading } = useFetch<TeamsListResponse>(url);
   const { data: billingData } = useFetch<BillingStatusResponse>("/api/admin/billing/status");
 
-  if (!data) return;
-  const teams = (data.teams || []) as Team[];
-  const totalPages = data.totalPages || 1;
-  const totalTeams = data.total || teams.length;
+  const teams = (data?.teams || []) as Team[];
+  const totalPages = data?.totalPages || 1;
+  const totalTeams = data?.total || teams.length;
   const isTeamLimitCandidate = isSecondTeamCandidate(totalTeams);
   const isPro = billingData?.billing.isPro === true;
   const shouldBlockTeamCreation = isTeamLimitCandidate && !isPro;
+  const teamListGuideSteps = useMemo(
+    () => createTeamListGuideSteps(shouldBlockTeamCreation),
+    [shouldBlockTeamCreation],
+  );
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <div>エラーが発生しました。</div>
+  if (!data) return <LoadingSpinner />
 
   // チームが0件の場合はオンボーディング画面を表示
   if (teams.length === 0) {
@@ -59,6 +80,14 @@ export default function Page() {
           <p className="mb-10 text-center text-sm text-gray-500">
             まずは無料の1チームで、次の配車を作ってみましょう
           </p>
+          <div className="mb-6 flex justify-center">
+            <GuidedTour
+              storageKey="admin-team-list-guided-tour:v1"
+              steps={teamListGuideSteps}
+              autoStart
+              className="app-button-secondary w-full sm:w-auto"
+            />
+          </div>
 
           {/* ステップ */}
           <div className="app-card mb-6 space-y-5 p-6">
@@ -88,7 +117,7 @@ export default function Page() {
           </div>
 
           {/* ボタン */}
-          <div className="flex justify-center">
+          <div className="flex justify-center" data-guide="admin-team-new">
             <NewButton href="/admin/teams/new" trackLabel="team_empty_onboarding" />
           </div>
         </div>
@@ -99,29 +128,39 @@ export default function Page() {
   return (
     <div className="app-page">
       <div className="app-container max-w-3xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="mb-1 text-sm font-semibold text-teal-700">チーム管理</p>
             <h1 className="app-section-title">チーム一覧</h1>
             <p className="mt-2 text-sm text-gray-500">{totalTeams}件のチームを管理中</p>
           </div>
-          {shouldBlockTeamCreation ? (
-            <button
-              type="button"
-              onClick={() => {
-                trackEvent("upgrade_clicked", { source: "team_list_team_limit" });
-                router.push("/admin/profile#plan");
-              }}
-              className="app-button-secondary min-h-11 shrink-0 border-amber-200 bg-white px-5 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-100"
-            >
-              プランを見る
-            </button>
-          ) : (
-            <NewButton
-              href="/admin/teams/new"
-              trackLabel={isTeamLimitCandidate ? "team_new_pro" : "team_new"}
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+            <GuidedTour
+              storageKey="admin-team-list-guided-tour:v1"
+              steps={teamListGuideSteps}
+              autoStart
+              className="app-button-secondary w-full shrink-0 sm:w-auto"
             />
-          )}
+            <div data-guide="admin-team-new" className="w-full sm:w-auto">
+              {shouldBlockTeamCreation ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackEvent("upgrade_clicked", { source: "team_list_team_limit" });
+                    router.push("/admin/profile#plan");
+                  }}
+                  className="app-button-secondary min-h-11 w-full shrink-0 border-amber-200 bg-white px-5 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-100 sm:w-auto"
+                >
+                  プランを見る
+                </button>
+              ) : (
+                <NewButton
+                  href="/admin/teams/new"
+                  trackLabel={isTeamLimitCandidate ? "team_new_pro" : "team_new"}
+                />
+              )}
+            </div>
+          </div>
         </div>
 
         {shouldBlockTeamCreation && (
@@ -152,7 +191,7 @@ export default function Page() {
           </div>
         )}
 
-        <div className="app-card divide-y divide-gray-100 overflow-hidden">
+        <div className="app-card divide-y divide-gray-100 overflow-hidden" data-guide="admin-team-list">
           {teams.map((team: Team) => {
             return (
               <div
