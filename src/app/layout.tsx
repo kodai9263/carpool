@@ -4,7 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { FeedbackWidget } from "./_components/FeedbackWidget";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://carpool-kappa.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://carpool-navy.vercel.app";
 
 export const metadata: Metadata = {
   title: "Carpool｜少年野球・サッカーの配車管理アプリ",
