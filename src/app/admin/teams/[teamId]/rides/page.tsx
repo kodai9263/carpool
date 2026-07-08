@@ -8,9 +8,10 @@ import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
-import { Calendar, CalendarPlus, ChevronRight, MapPin, MapPinned } from "lucide-react";
+import { Calendar, CalendarPlus, ChevronRight, Copy, MapPin, MapPinned } from "lucide-react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
+import { trackEvent } from "@/utils/analytics";
 
 const rideListGuideSteps = [
   {
@@ -131,6 +132,25 @@ export default function Page() {
                     </div>
                   )}
                 </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    trackEvent("ride_duplicate_clicked", {
+                      team_id: teamId,
+                      ride_id: ride.id,
+                    });
+                    const params = new URLSearchParams();
+                    if (ride.destination) params.set("destination", ride.destination);
+                    if (ride.meetingPlace) params.set("meetingPlace", ride.meetingPlace);
+                    router.push(`/admin/teams/${teamId}/rides/new?${params.toString()}`);
+                  }}
+                  className="app-button-secondary shrink-0 px-3 py-1.5 text-xs"
+                  title="この配車の行き先・集合場所を引き継いで新規作成"
+                >
+                  <Copy size={14} />
+                  複製
+                </button>
                 <ChevronRight size={18} className="text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-teal-700" />
               </div>
             )
