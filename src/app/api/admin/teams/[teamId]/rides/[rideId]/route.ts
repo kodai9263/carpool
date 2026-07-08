@@ -33,7 +33,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         },
       } as const;
 
-      const [ride, rawChildren, allDrivers] = await prisma.$transaction([
+      const [ride, rawChildren, allDrivers, guardians] = await prisma.$transaction([
         prisma.ride.findFirst({
           where: { id: rideId, teamId },
           select: {
@@ -79,6 +79,12 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         prisma.driver.findMany({
           where: { rideId },
           select: driverSelect,
+        }),
+        // 回答状況表示用にチームの全保護者を取得
+        prisma.guardian.findMany({
+          where: { member: { teamId } },
+          select: { id: true, name: true, memberId: true },
+          orderBy: { name: "asc" },
         }),
       ]);
 
@@ -151,6 +157,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           children,
           teamName: ride.team.teamName,
           pin: ride.team.pin,
+          guardians,
           childAvailabilities: ride.childAvailabilities,
         }
       } satisfies RideDetailResponse, { status: 200 });

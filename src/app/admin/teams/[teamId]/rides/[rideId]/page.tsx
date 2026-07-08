@@ -364,6 +364,34 @@ ${deadlineText}`;
     copyToClipboard(text, "入力依頼テキスト");
   };
 
+  // 未回答者への催促テキストをコピー
+  const copyReminderText = () => {
+    if (!data?.ride) return;
+
+    const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
+    const pin = data.ride.pin;
+
+    if (!pin) {
+      alert("PINコードが設定されていません。チームを再作成してください。");
+      return;
+    }
+
+    const dateLabel = formatRideDate(data.ride.date);
+    const destination = data.ride.destination ? ` ${data.ride.destination}` : "";
+    const dl = deadline ? new Date(deadline) : null;
+    const deadlineText = dl
+      ? `\n${dl.getMonth() + 1}月${dl.getDate()}日までにご回答をお願いします。`
+      : "";
+
+    const text = `【リマインド】${dateLabel}${destination}の車出し可否・お子さんの参加可否について、まだご回答いただいていない方はご入力をお願いします。
+${rideUrl}
+
+PINコード: ${pin}
+${deadlineText}`;
+
+    copyToClipboard(text, "催促テキスト");
+  };
+
   // 配車決定後の案内テキストをコピー
   const copyAssignmentText = () => {
     if (!data?.ride) return;
@@ -391,6 +419,15 @@ PINコード: ${pin}
 
     copyToClipboard(text, "配車割テキスト");
   };
+
+  // 回答状況の集計（全保護者のうち、可否を回答済みの人を除いた残りが未回答者）
+  const guardians = data?.ride?.guardians ?? [];
+  const answeredGuardianIds = new Set(
+    (data?.ride?.availabilityDrivers ?? []).map((ad) => ad.guardian.id)
+  );
+  const unansweredGuardians = guardians.filter(
+    (g) => !answeredGuardianIds.has(g.id)
+  );
 
   if (isLoading) return <LoadingSpinner />;
   if (error) {
@@ -600,6 +637,45 @@ PINコード: ${pin}
                   設定すると入力依頼テキストに「〇月〇日までにご回答をお願いします。」が追加されます
                 </p>
               </div>
+
+              {/* 回答状況 */}
+              {guardians.length > 0 && (
+                <div className="mb-4 rounded-lg border border-teal-200 bg-white p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-bold text-gray-950">回答状況</p>
+                    <p className="text-sm font-semibold text-teal-800">
+                      {guardians.length - unansweredGuardians.length} / {guardians.length} 人 回答済み
+                    </p>
+                  </div>
+                  {unansweredGuardians.length > 0 ? (
+                    <>
+                      <p className="mb-2 text-xs text-gray-500">未回答の保護者</p>
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {unansweredGuardians.map((g) => (
+                          <span
+                            key={g.id}
+                            className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900"
+                          >
+                            {g.name}
+                          </span>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={copyReminderText}
+                        className="app-button-secondary w-full"
+                      >
+                        <Share2 size={16} />
+                        {copied === "催促テキスト"
+                          ? "コピーしました！"
+                          : "催促テキストをコピー（LINE用）"}
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-teal-700">全員回答済みです 🎉</p>
+                  )}
+                </div>
+              )}
 
               {/* 共有用テキストコピーボタン */}
               <div className="mt-5 border-t border-teal-200/70 pt-5">
