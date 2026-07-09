@@ -1,5 +1,6 @@
 import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { Car } from "lucide-react";
+import { Suspense } from "react";
 import RideForm from "../_components/RideForm";
 
 const newRideGuideSteps = [
@@ -35,7 +36,9 @@ export default function Page() {
           />
         </div>
         <div className="app-card p-6 md:p-8">
-        <RideForm />
+        <Suspense>
+          <RideForm />
+        </Suspense>
         </div>
       </div>
     </div>
