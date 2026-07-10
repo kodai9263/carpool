@@ -4,6 +4,7 @@ export interface Ride {
   destination: string;
   meetingPlace?: string | null;
   isAssignmentComplete?: boolean;
+  responseCount?: number;
 }
 
 export interface RideFormValues {

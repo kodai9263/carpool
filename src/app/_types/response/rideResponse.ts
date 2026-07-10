@@ -1,10 +1,11 @@
 export interface RideListResponse {
   status: "OK";
-  rides: { id: number; date: Date, destination: string; meetingPlace?: string | null; isAssignmentComplete?: boolean }[];
+  rides: { id: number; date: Date, destination: string; meetingPlace?: string | null; isAssignmentComplete?: boolean; responseCount?: number }[];
   page: number;
   perPage: number;
   total: number;
   totalPages: number;
+  guardianCount?: number;
 }
 
 export interface CreateRideResponse {

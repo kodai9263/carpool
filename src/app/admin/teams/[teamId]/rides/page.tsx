@@ -42,6 +42,7 @@ export default function Page() {
   const rides = (data.rides || []) as Ride[];
   const totalPages = data.totalPages || 1;
   const delta = data.delta;
+  const guardianCount = (data as { guardianCount?: number }).guardianCount ?? 0;
 
   if (!teamId) return <LoadingSpinner />
   if (isLoading) return <LoadingSpinner />
@@ -112,6 +113,17 @@ export default function Page() {
                   ) : (
                     <span className="app-status bg-gray-100 text-gray-500">
                       未完了
+                    </span>
+                  )}
+                  {guardianCount > 0 && (
+                    <span
+                      className={`app-status ${
+                        (ride.responseCount ?? 0) >= guardianCount
+                          ? "bg-teal-100 text-teal-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      回答 {ride.responseCount ?? 0}/{guardianCount}
                     </span>
                   )}
                   </div>

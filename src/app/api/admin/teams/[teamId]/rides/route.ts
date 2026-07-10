@@ -22,12 +22,14 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       now.setHours(0, 0, 0, 0);
 
       // フェーズ1: カウント取得（ページ境界計算に必要）
-      const [total, futureCount, totalChildren] = await Promise.all([
+      const [total, futureCount, totalChildren, guardianCount] = await Promise.all([
         prisma.ride.count({ where: { teamId } }),
         // 未来ライド数（ページ境界計算に使用）
         prisma.ride.count({ where: { teamId, date: { gte: now } } }),
         // チームに属する全子供数を取得
         prisma.child.count({ where: { member: { teamId } } }),
+        // 回答状況バッジ用にチームの保護者総数を取得
+        prisma.guardian.count({ where: { member: { teamId } } }),
       ]);
 
       // ページ境界計算（未来: 昇順, 過去: 降順 の混合ソートをDBで処理するため）
@@ -77,6 +79,21 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
       const paginatedRides = [...futureRides, ...pastRides];
       const totalPages = Math.max(1, Math.ceil(total / perPage));
 
+      // 表示中の配車ごとの回答済み保護者数を取得
+      // 1人の保護者が配車・引率の2レコードを持つことがあるため、distinctで人数を数える
+      const rideIds = paginatedRides.map((r) => r.id);
+      const responses = rideIds.length > 0
+        ? await prisma.availabilityDriver.findMany({
+            where: { rideId: { in: rideIds } },
+            select: { rideId: true, guardianId: true },
+            distinct: ["rideId", "guardianId"],
+          })
+        : [];
+      const responseCountMap = new Map<number, number>();
+      for (const r of responses) {
+        responseCountMap.set(r.rideId, (responseCountMap.get(r.rideId) ?? 0) + 1);
+      }
+
       // 各配車に割り当て完了フラグを付与
       const rides = paginatedRides.map((ride) => {
         const notParticipatingCount = ride._count.childAvailabilities;
@@ -87,11 +104,12 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
           destination: ride.destination,
           meetingPlace: ride.meetingPlace,
           isAssignmentComplete: participatingCount > 0 && ride._count.rideAssignments >= participatingCount,
+          responseCount: responseCountMap.get(ride.id) ?? 0,
         };
       });
 
       return NextResponse.json(
-        { status: "OK", rides, page, perPage, total, totalPages } satisfies RideListResponse,
+        { status: "OK", rides, page, perPage, total, totalPages, guardianCount } satisfies RideListResponse,
         { status: 200 }
       );
     } catch (e: unknown) {
