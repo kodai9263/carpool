@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyMemberPin } from "@/utils/pinCache";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { calcCurrentGrade } from "@/utils/gradeUtils";
+import { isAnswerLocked } from "@/utils/deadlineLock";
 
 export const runtime = "nodejs";
 
@@ -48,6 +49,8 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
           date: true,
           destination: true,
           meetingPlace: true,
+          deadline: true,
+          lockAfterDeadline: true,
           separateDirections: true,
           availabilityDrivers: {
             select: {
@@ -145,6 +148,8 @@ export const GET = async (request: NextRequest, { params }: { params: { teamId: 
               })),
           })),
         })),
+        deadline: ride.deadline ? ride.deadline.toISOString() : null,
+        isAnswerLocked: isAnswerLocked(ride.deadline, ride.lockAfterDeadline),
         separateDirections: ride.separateDirections,
         availabilityDrivers: ride.availabilityDrivers,
         children: children.map((child) => ({

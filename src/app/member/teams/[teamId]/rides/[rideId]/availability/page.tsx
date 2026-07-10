@@ -242,6 +242,46 @@ export default function Page() {
 
   const ride = data.ride;
 
+  // 回答期限ロック中はフォームの代わりにお知らせを表示
+  if (ride.isAnswerLocked) {
+    const deadlineDate = ride.deadline ? new Date(ride.deadline) : null;
+    const deadlineLabel = deadlineDate
+      ? `（${deadlineDate.getMonth() + 1}月${deadlineDate.getDate()}日まで）`
+      : "";
+    return (
+      <div className="app-page">
+        <div className="app-container max-w-3xl">
+          <div className="app-card p-4 md:p-8">
+            <p className="mb-1 text-sm font-semibold text-teal-700">回答入力</p>
+            <h1 className="app-section-title mb-6">配車・引率可否</h1>
+            <RideBasicInfo
+              date={ride.date}
+              destination={ride.destination}
+              meetingPlace={ride.meetingPlace}
+            />
+            <div className="mt-6 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-amber-800">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold">回答の受付は締め切られました</p>
+                <p className="mt-1">
+                  回答期限{deadlineLabel}を過ぎたため、回答の入力・変更はできません。
+                  変更が必要な場合はチームの管理者にご連絡ください。
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push(`/member/teams/${teamId}/rides/${rideId}`)}
+              className="app-button-secondary mt-6 w-full sm:w-auto"
+            >
+              配車詳細に戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-page">
       <div className="app-container max-w-3xl">

@@ -3,6 +3,7 @@ import { verifyMemberPin } from "@/utils/pinCache";
 import { NextRequest, NextResponse } from "next/server";
 import { AvailabilityFormValues } from "@/app/_types/availability";
 import { AvailabilityResponse } from "@/app/_types/response/availabilityResponse";
+import { isAnswerLocked } from "@/utils/deadlineLock";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,19 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
   const verified = await verifyMemberPin(teamIdNum, pin);
   if (verified === null) return NextResponse.json({ message: "チームが見つかりません" }, { status: 404 });
   if (!verified) return NextResponse.json({ message: "配車閲覧コードが正しくありません" }, { status: 401 });
+
+  // 回答期限ロックのチェック
+  const ride = await prisma.ride.findFirst({
+    where: { id: rideIdNum, teamId: teamIdNum },
+    select: { deadline: true, lockAfterDeadline: true },
+  });
+  if (!ride) return NextResponse.json({ message: "配車が見つかりません" }, { status: 404 });
+  if (isAnswerLocked(ride.deadline, ride.lockAfterDeadline)) {
+    return NextResponse.json(
+      { message: "回答期限を過ぎているため回答できません。変更が必要な場合はチームの管理者にご連絡ください。" },
+      { status: 403 }
+    );
+  }
 
   try {
     const data = await prisma.$transaction(async (tx) => {
