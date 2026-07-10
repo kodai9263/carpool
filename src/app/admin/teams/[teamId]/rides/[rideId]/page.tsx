@@ -16,6 +16,7 @@ import RideDriverList from "../_components/RideDriverList";
 import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 import { formatRideExportText } from "@/utils/rideExport";
+import { isAnswerLocked } from "@/utils/deadlineLock";
 import { Car, Copy, Share2 } from "lucide-react";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
@@ -137,6 +138,7 @@ export default function Page() {
   const isDeleting = useRef(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [deadline, setDeadline] = useState("");
+  const [lockAfterDeadline, setLockAfterDeadline] = useState(false);
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [autoAssignError, setAutoAssignError] = useState<{ message: string; minimumCars?: number } | null>(null);
@@ -177,6 +179,7 @@ export default function Page() {
         const dd = String(d.getDate()).padStart(2, "0");
         setDeadline(`${yyyy}-${mm}-${dd}`);
       }
+      setLockAfterDeadline(data.ride.lockAfterDeadline ?? false);
     }
   }, [data, reset]);
 
@@ -302,10 +305,11 @@ export default function Page() {
     try {
       await api.patch(
         `/api/admin/teams/${teamId}/rides/${rideId}`,
-        { deadline: deadline || null },
+        { deadline: deadline || null, lockAfterDeadline },
         token,
       );
       toast.success("回答期限を保存しました。");
+      await mutate();
     } catch (e) {
       console.error(e);
       alert("回答期限の保存に失敗しました。");
@@ -419,6 +423,12 @@ PINコード: ${pin}
 
     copyToClipboard(text, "配車割テキスト");
   };
+
+  // 保存済みの設定に基づく現在のロック状態
+  const answerLocked = isAnswerLocked(
+    data?.ride?.deadline,
+    data?.ride?.lockAfterDeadline
+  );
 
   // 回答状況の集計（全保護者のうち、可否を回答済みの人を除いた残りが未回答者）
   const guardians = data?.ride?.guardians ?? [];
@@ -636,6 +646,25 @@ PINコード: ${pin}
                 <p className="text-xs text-gray-500 mt-1">
                   設定すると入力依頼テキストに「〇月〇日までにご回答をお願いします。」が追加されます
                 </p>
+                <label className="mt-3 flex items-start gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={lockAfterDeadline}
+                    onChange={(e) => setLockAfterDeadline(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-teal-600"
+                  />
+                  <span className="text-sm text-gray-700">
+                    期限を過ぎたら回答をロックする
+                    <span className="block text-xs text-gray-500">
+                      期限日の翌日からメンバーは回答・変更ができなくなります（チェックを外して「設定」を押すと解除）
+                    </span>
+                  </span>
+                </label>
+                {answerLocked && (
+                  <p className="mt-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                    🔒 現在ロック中です。メンバーは回答できません。解除するにはチェックを外して「設定」を押してください。
+                  </p>
+                )}
               </div>
 
               {/* 回答状況 */}

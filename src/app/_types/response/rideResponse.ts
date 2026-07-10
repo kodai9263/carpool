@@ -22,6 +22,8 @@ export interface RideDetailResponse {
     destination: string;
     meetingPlace?: string | null;
     deadline?: string | null;
+    lockAfterDeadline?: boolean;
+    isAnswerLocked?: boolean;
     separateDirections?: boolean;
     team?: {
       viewPinHash: string;
