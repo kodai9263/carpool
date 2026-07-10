@@ -4,7 +4,7 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
 import { TeamsListResponse } from "@/app/_types/response/teamResponse";
-import { FREE_TEAM_LIMIT, PRO_ADDITIONAL_TEAM_PRICE_JPY } from "@/utils/billing";
+import { FREE_TEAM_LIMIT, PRO_MONTHLY_PRICE_JPY, PRO_YEARLY_PRICE_JPY } from "@/utils/billing";
 import { trackEvent } from "@/utils/analytics";
 import { Users, WalletCards } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -41,8 +41,8 @@ export default function Page() {
                   Freeでは1チームまで作成できます
                 </h1>
                 <p className="mt-3 text-sm leading-6 text-amber-900">
-                  複数チームの管理と自動割り当て無制限は、Proプラン（月額
-                  {PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
+                  複数チームの管理と自動割り当て無制限は、Proプラン（年
+                  {PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円 / 月{PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
                 </p>
               </div>
             </div>

@@ -1,6 +1,9 @@
 export const FREE_TEAM_LIMIT = 1;
 export const AUTO_ASSIGN_FREE_TRIAL_LIMIT = 3;
-export const PRO_ADDITIONAL_TEAM_PRICE_JPY = 500;
+export const PRO_MONTHLY_PRICE_JPY = 300;
+export const PRO_YEARLY_PRICE_JPY = 3000;
+
+export type BillingInterval = "month" | "year";
 
 export const PLAN_LABELS = {
   free: "Free",

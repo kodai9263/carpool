@@ -16,7 +16,8 @@ import {
   AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   FREE_TEAM_LIMIT,
   isSecondTeamCandidate,
-  PRO_ADDITIONAL_TEAM_PRICE_JPY,
+  PRO_MONTHLY_PRICE_JPY,
+  PRO_YEARLY_PRICE_JPY,
 } from "@/utils/billing";
 
 const createTeamListGuideSteps = (shouldBlockTeamCreation: boolean) =>
@@ -173,7 +174,7 @@ export default function Page() {
                 <div>
                   <p className="text-sm font-bold text-amber-900">Freeでは1チームまで作成できます</p>
                   <p className="mt-1 text-xs leading-5 text-amber-800">
-                    複数チームと自動割り当て無制限は、Proプラン（月額{PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
+                    複数チームと自動割り当て無制限は、Proプラン（年{PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円 / 月{PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
                   </p>
                 </div>
               </div>

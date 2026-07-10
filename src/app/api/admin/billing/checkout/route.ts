@@ -78,6 +78,10 @@ function createCheckoutSession(
 export const POST = (request: NextRequest) =>
   withAuth(request, async (adminId) => {
     try {
+      // 支払い間隔（月払い/年払い）をリクエストから取得（未指定は月払い）
+      const body = await request.json().catch(() => null) as { interval?: string } | null;
+      const interval = body?.interval === "year" ? "year" : "month";
+
       const admin = await prisma.admin.findUnique({
         where: { id: adminId },
         select: {
@@ -100,7 +104,7 @@ export const POST = (request: NextRequest) =>
       }
 
       const stripe = getStripeClient();
-      const priceId = getStripeProPriceId();
+      const priceId = getStripeProPriceId(interval);
       const appUrl = getAppUrl(request);
 
       let customerId = admin.stripeCustomerId;
@@ -137,6 +141,7 @@ export const POST = (request: NextRequest) =>
           admin_id: admin.id,
           plan: "pro",
           price_id: priceId,
+          interval,
         },
         { adminId, request },
       );

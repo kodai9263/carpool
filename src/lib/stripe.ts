@@ -15,10 +15,11 @@ export function getStripeClient() {
   return stripeClient;
 }
 
-export function getStripeProPriceId() {
-  const priceId = process.env.STRIPE_PRO_PRICE_ID;
+export function getStripeProPriceId(interval: "month" | "year" = "month") {
+  const envName = interval === "year" ? "STRIPE_PRO_YEARLY_PRICE_ID" : "STRIPE_PRO_PRICE_ID";
+  const priceId = process.env[envName];
   if (!priceId) {
-    throw new Error("STRIPE_PRO_PRICE_ID is not configured");
+    throw new Error(`${envName} is not configured`);
   }
 
   return priceId;
