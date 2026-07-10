@@ -6,6 +6,10 @@
 .pnp.js
 .yarn/install-state.gz
 
+# expo (モバイルアプリ)
+apps/mobile/node_modules/
+apps/mobile/.expo/
+
 # testing
 /coverage
 
