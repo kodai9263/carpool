@@ -20,7 +20,8 @@ import { prisma } from "@/lib/prisma";
 import {
   AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   FREE_TEAM_LIMIT,
-  PRO_ADDITIONAL_TEAM_PRICE_JPY,
+  PRO_MONTHLY_PRICE_JPY,
+  PRO_YEARLY_PRICE_JPY,
 } from "@/utils/billing";
 
 export const dynamic = "force-dynamic";
@@ -59,10 +60,10 @@ const freeFeatures = [
 ];
 
 const proFeatures = [
-  "複数チームの管理",
   "自動アサインを無制限で利用",
-  "月額のシンプルな料金",
-  "今後の高度な運用機能を優先提供",
+  "複数チームの管理",
+  "未回答者へのLINEリマインド通知（近日追加）",
+  "車出し回数の集計（近日追加）",
 ];
 
 const faqs = [
@@ -393,16 +394,19 @@ function PricingSection() {
                   <WalletCards size={22} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-950">Pro</h3>
-                <p className="mt-1 text-sm text-gray-600">複数チームをまとめて管理したい方向け</p>
+                <p className="mt-1 text-sm text-gray-600">配車調整の手間をもっと減らしたい方向け</p>
               </div>
               <span className="app-status bg-white text-amber-800">相談受付中</span>
             </div>
 
             <div className="mb-6">
               <span className="text-4xl font-bold tracking-normal text-gray-950">
-                ¥{PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}
+                ¥{PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}
               </span>
-              <span className="ml-2 text-sm font-semibold text-gray-600">/ 月</span>
+              <span className="ml-2 text-sm font-semibold text-gray-600">/ 年</span>
+              <p className="mt-1 text-xs text-gray-500">
+                月あたり{Math.round(PRO_YEARLY_PRICE_JPY / 12)}円。月払い（{PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円/月）も選べます
+              </p>
             </div>
 
             <PlanFeatureList features={proFeatures} />

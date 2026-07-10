@@ -18,7 +18,9 @@ import {
   AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   getAutoAssignRemainingFreeUses,
   isProPlan,
-  PRO_ADDITIONAL_TEAM_PRICE_JPY,
+  PRO_MONTHLY_PRICE_JPY,
+  PRO_YEARLY_PRICE_JPY,
+  type BillingInterval,
 } from "@/utils/billing";
 
 export default function ProfilePage() {
@@ -110,13 +112,13 @@ export default function ProfilePage() {
     }
   }, [mutate]);
 
-  const handleStartCheckout = async () => {
+  const handleStartCheckout = async (interval: BillingInterval) => {
     if (!token) return;
 
     try {
       setIsStartingCheckout(true);
-      trackEvent("upgrade_clicked", { source: "profile_checkout" });
-      const result = await api.post("/api/admin/billing/checkout", {}, token) as {
+      trackEvent("upgrade_clicked", { source: "profile_checkout", interval });
+      const result = await api.post("/api/admin/billing/checkout", { interval }, token) as {
         url?: string;
       };
 
@@ -162,15 +164,16 @@ export default function ProfilePage() {
   const autoAssignTrialUsed = Math.max(admin?.autoAssignTrialUsed ?? 0, 0);
   const autoAssignRemaining = getAutoAssignRemainingFreeUses(autoAssignTrialUsed);
   const planFeatures = [
-    "配車作成・回答収集",
+    "配車作成・回答収集（無制限）",
     isPro
       ? "自動割り当て無制限"
       : `自動割り当て お試し残り${autoAssignRemaining}回 / ${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回`,
-    "LINE共有用テキストコピー",
+    "回答状況の確認・催促テキスト",
+    "回答期限ロック",
   ];
   const planDescription = isPro
-    ? "Proプランが有効です。複数チーム管理と自動割り当て無制限を利用できます。"
-    : "1チームは無料で利用できます。自動割り当てを継続したい、または複数チームを管理したい場合はProを利用できます。";
+    ? "Proプランが有効です。自動割り当て無制限と複数チーム管理を利用できます。"
+    : "基本機能はずっと無料で使えます。配車調整の手間をさらに減らしたい方はProをどうぞ。";
 
   return (
     <div className="app-page min-h-screen px-4 py-8 md:px-8">
@@ -234,46 +237,82 @@ export default function ProfilePage() {
                     {isPro ? "Pro機能が有効です" : "Proプラン"}
                   </p>
                 </div>
-                <p className="text-sm leading-6 text-amber-900">
+                {isPro ? (
+                  <p className="text-sm leading-6 text-amber-900">
+                    自動割り当て無制限と複数チーム管理をこのアカウントで利用できます。
+                  </p>
+                ) : (
+                  <>
+                    <ul className="space-y-1.5 text-sm leading-6 text-amber-900">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
+                        自動割り当てが無制限に
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
+                        複数チームの管理
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
+                        <span>
+                          未回答者へのLINEリマインド通知
+                          <span className="ml-1 rounded bg-amber-200/70 px-1.5 py-0.5 text-[10px] font-bold">近日追加</span>
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
+                        <span>
+                          車出し回数の集計（公平性の見える化）
+                          <span className="ml-1 rounded bg-amber-200/70 px-1.5 py-0.5 text-[10px] font-bold">近日追加</span>
+                        </span>
+                      </li>
+                    </ul>
+                  </>
+                )}
+                <div className="mt-4 space-y-2">
                   {isPro ? (
-                    "複数チーム管理と自動割り当て無制限をこのアカウントで利用できます。"
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => router.push("/admin/teams/new")}
+                        className="app-button-secondary w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
+                      >
+                        新しいチームを作成
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleOpenCustomerPortal}
+                        disabled={isOpeningPortal}
+                        className="app-button-secondary w-full border-amber-200 bg-amber-100 text-amber-900 hover:bg-amber-200"
+                      >
+                        {isOpeningPortal ? "支払い管理画面を準備中..." : "支払い・解約を管理"}
+                      </button>
+                    </>
                   ) : (
                     <>
-                      複数チーム管理と自動割り当て無制限を月額
-                      <span className="font-bold"> {PRO_ADDITIONAL_TEAM_PRICE_JPY.toLocaleString("ja-JP")}円 </span>
-                      で利用できます。
+                      <button
+                        type="button"
+                        onClick={() => handleStartCheckout("year")}
+                        disabled={isStartingCheckout}
+                        className="app-button-primary w-full"
+                      >
+                        {isStartingCheckout
+                          ? "決済ページを準備中..."
+                          : `年払いで申し込む ${PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円/年`}
+                      </button>
+                      <p className="text-center text-xs text-amber-800">
+                        月あたり{Math.round(PRO_YEARLY_PRICE_JPY / 12)}円。チームの年度会計にもなじみます
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleStartCheckout("month")}
+                        disabled={isStartingCheckout}
+                        className="app-button-secondary w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
+                      >
+                        月払いで申し込む {PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円/月
+                      </button>
                     </>
                   )}
-                </p>
-                <div className="mt-4 space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isPro) {
-                        router.push("/admin/teams/new");
-                        return;
-                      }
-                      handleStartCheckout();
-                    }}
-                    disabled={isStartingCheckout}
-                    className="app-button-secondary w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
-                  >
-                    {isPro
-                      ? "新しいチームを作成"
-                      : isStartingCheckout
-                        ? "決済ページを準備中..."
-                        : "Proに申し込む"}
-                  </button>
-                  {isPro ? (
-                    <button
-                      type="button"
-                      onClick={handleOpenCustomerPortal}
-                      disabled={isOpeningPortal}
-                      className="app-button-secondary w-full border-amber-200 bg-amber-100 text-amber-900 hover:bg-amber-200"
-                    >
-                      {isOpeningPortal ? "支払い管理画面を準備中..." : "支払い・解約を管理"}
-                    </button>
-                  ) : null}
                 </div>
               </div>
             </div>
