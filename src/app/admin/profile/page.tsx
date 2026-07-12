@@ -242,32 +242,16 @@ export default function ProfilePage() {
                     自動割り当て無制限と複数チーム管理をこのアカウントで利用できます。
                   </p>
                 ) : (
-                  <>
-                    <ul className="space-y-1.5 text-sm leading-6 text-amber-900">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
-                        自動割り当てが無制限に
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
-                        複数チームの管理
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
-                        <span>
-                          未回答者へのLINEリマインド通知
-                          <span className="ml-1 rounded bg-amber-200/70 px-1.5 py-0.5 text-[10px] font-bold">近日追加</span>
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 size={15} className="mt-1 shrink-0" />
-                        <span>
-                          車出し回数の集計（公平性の見える化）
-                          <span className="ml-1 rounded bg-amber-200/70 px-1.5 py-0.5 text-[10px] font-bold">近日追加</span>
-                        </span>
-                      </li>
-                    </ul>
-                  </>
+                  <ul className="space-y-1.5 text-sm leading-6 text-amber-900">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 size={15} className="mt-1 shrink-0" />
+                      自動割り当てが無制限に
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 size={15} className="mt-1 shrink-0" />
+                      複数チームの管理
+                    </li>
+                  </ul>
                 )}
                 <div className="mt-4 space-y-2">
                   {isPro ? (
