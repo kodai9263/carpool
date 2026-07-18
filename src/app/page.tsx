@@ -80,7 +80,7 @@ const faqs = [
   },
   {
     question: "支払い開始後にすぐ使えなくなりますか？",
-    answer: "既存の1チーム利用を急に止める想定はありません。まず無料範囲を明確にし、必要になったタイミングでProを選べる形にします。",
+    answer: "いいえ。1チームまでの無料利用はそのまま続けられます。Proが必要になったら、登録後のプロフィール画面からいつでも申し込み・解約できます。",
   },
 ];
 
@@ -395,7 +395,7 @@ function PricingSection() {
                 <h3 className="text-xl font-bold text-gray-950">Pro</h3>
                 <p className="mt-1 text-sm text-gray-600">配車調整の手間をもっと減らしたい方向け</p>
               </div>
-              <span className="app-status bg-white text-amber-800">相談受付中</span>
+              <span className="app-status bg-white text-amber-800">年払いがお得</span>
             </div>
 
             <div className="mb-6">
@@ -411,13 +411,16 @@ function PricingSection() {
             <PlanFeatureList features={proFeatures} />
 
             <TrackedLink
-              href="mailto:carpool.app.2026@gmail.com?subject=Carpool%20Pro%E3%83%97%E3%83%A9%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"
+              href="/signup"
               trackLabel="upgrade_lp_pricing"
               className="app-button-secondary mt-6 w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
             >
-              Pro利用を相談する
+              無料で始めてアップグレード
               <CreditCard size={17} />
             </TrackedLink>
+            <p className="mt-2 text-center text-xs text-gray-500">
+              登録後、プロフィール画面からいつでもProに申し込めます
+            </p>
           </div>
         </div>
       </div>
