@@ -157,12 +157,12 @@ export default async function Home() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <TrackedLink href="#section-monitor" trackLabel="contact_hero_scroll" className="app-button-primary min-h-12 px-7 text-base">
-                DMで相談する
+              <TrackedLink href="/login?guest=true" trackLabel="demo_hero" className="app-button-primary min-h-12 px-7 text-base">
+                登録なしで30秒デモ
                 <ArrowRight size={18} />
               </TrackedLink>
-              <TrackedLink href="/login?guest=true" trackLabel="demo_hero" className="app-button-secondary min-h-12 border-gray-200 bg-white/90 px-7 text-base shadow-sm">
-                デモを見る
+              <TrackedLink href="/signup" trackLabel="signup_hero" className="app-button-secondary min-h-12 border-gray-200 bg-white/90 px-7 text-base shadow-sm">
+                無料で始める
               </TrackedLink>
             </div>
 

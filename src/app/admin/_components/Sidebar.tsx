@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { AddToHomeScreenButton } from "@/app/_components/AddToHomeScreenButton";
+import { trackEvent } from "@/utils/analytics";
 
 const GUEST_EMAIL = "guest@carpool.demo";
 
@@ -45,7 +46,11 @@ export const Sidebar: React.FC = () => {
         <div className="fixed top-0 left-0 right-0 z-50 bg-amber-400 text-amber-900 text-sm font-medium flex items-center justify-center gap-3 py-2 px-4">
           <span>デモ利用中</span>
           <span className="hidden sm:inline">—</span>
-          <Link href="/signup" className="underline underline-offset-2 hover:text-amber-950 transition-colors">
+          <Link
+            href="/signup"
+            onClick={() => trackEvent("demo_signup_clicked", { source: "guest_banner" })}
+            className="underline underline-offset-2 hover:text-amber-950 transition-colors"
+          >
             自分のチームを無料で作る
           </Link>
         </div>

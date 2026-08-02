@@ -9,6 +9,8 @@ import { FormButton } from "../_components/FormButton";
 import { useCallback, useEffect, useState } from "react";
 import { LoadingSpinner } from "../_components/LoadingSpinner";
 import { AlertCircle, ArrowLeft, Car, LockKeyhole, Mail } from "lucide-react";
+import { GuestDemoEntry, resolveGuestDemoEntry } from "@/utils/demoEntry";
+import { trackEvent } from "@/utils/analytics";
 
 export default function Page() {
   const {
@@ -55,7 +57,7 @@ export default function Page() {
 
   const handleGuestLogin = useCallback(async () => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: "guest@carpool.demo",
         password: "guest123456",
       });
@@ -67,7 +69,24 @@ export default function Page() {
         console.error(error.message);
         setIsGuestLoading(false);
       } else {
-        router.replace("/admin/teams");
+        let entry: GuestDemoEntry = { path: "/admin/teams" };
+
+        try {
+          if (data.session?.access_token) {
+            entry = await resolveGuestDemoEntry(data.session.access_token);
+          }
+        } catch (entryError) {
+          console.error("デモの開始画面を取得できませんでした。", entryError);
+        }
+
+        if ("rideId" in entry && entry.rideId) {
+          trackEvent("demo_opened", {
+            team_id: entry.teamId,
+            ride_id: entry.rideId,
+          });
+        }
+
+        router.replace(entry.path);
       }
     } catch (e: unknown) {
       const message =
