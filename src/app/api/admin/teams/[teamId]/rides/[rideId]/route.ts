@@ -3,6 +3,10 @@ import { UpdateRideValues } from "@/app/_types/ride";
 import { calcCurrentGrade, isGraduated } from "@/utils/gradeUtils";
 import { prisma } from "@/lib/prisma";
 import { withAdminTeamRide } from "@/utils/withAuth";
+import {
+  createDirectionalDriverIdMap,
+  getDirectionalDriverId,
+} from "@/utils/directionalDriverIdMap";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -216,15 +220,19 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               type: "driver",
               direction: d.direction ?? "outbound",
             })),
-            select: { id: true, availabilityDriverId: true },
+            select: { id: true, availabilityDriverId: true, direction: true },
           });
 
-          // availabilityDriverId → driver.id のマップ
-          const driverIdMap = new Map(createdDrivers.map((d) => [d.availabilityDriverId, d.id]));
+          // 同じ号車を行き・帰りで使う場合も区別してdriver.idを取得する
+          const driverIdMap = createDirectionalDriverIdMap(createdDrivers);
 
           // 3. ドライバーの子供割当を一括作成（N回 → 1クエリ）
           const allDriverAssignments = driversToSave.flatMap((d) => {
-            const driverId = driverIdMap.get(d.availabilityDriverId)!;
+            const driverId = getDirectionalDriverId(
+              driverIdMap,
+              d.availabilityDriverId,
+              d.direction,
+            );
             return d.rideAssignments
               .filter((ra) => ra.childId && ra.childId !== 0)
               .map((ra) => ({ rideId: rideIdNum, driverId, childId: ra.childId }));
@@ -235,7 +243,11 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
 
           // 4. 引率者を一括作成しIDを取得（E回 → 1クエリ）
           const allEscortData = driversToSave.flatMap((d) => {
-            const linkedDriverId = driverIdMap.get(d.availabilityDriverId)!;
+            const linkedDriverId = getDirectionalDriverId(
+              driverIdMap,
+              d.availabilityDriverId,
+              d.direction,
+            );
             return (d.escorts ?? [])
               .filter((e) => e.availabilityDriverId && e.availabilityDriverId !== 0)
               .map((e) => ({
@@ -247,13 +259,13 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               }));
           });
 
-          const escortIdMap = new Map<number, number>();
+          let escortIdMap = new Map<string, number>();
           if (allEscortData.length > 0) {
             const createdEscorts = await tx.driver.createManyAndReturn({
               data: allEscortData,
-              select: { id: true, availabilityDriverId: true },
+              select: { id: true, availabilityDriverId: true, direction: true },
             });
-            for (const e of createdEscorts) escortIdMap.set(e.availabilityDriverId, e.id);
+            escortIdMap = createDirectionalDriverIdMap(createdEscorts);
           }
 
           // 5. 引率者の子供割当を一括作成（E回 → 1クエリ）
@@ -261,7 +273,11 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             (d.escorts ?? [])
               .filter((e) => e.availabilityDriverId && e.availabilityDriverId !== 0)
               .flatMap((e) => {
-                const escortId = escortIdMap.get(e.availabilityDriverId)!;
+                const escortId = getDirectionalDriverId(
+                  escortIdMap,
+                  e.availabilityDriverId,
+                  e.direction,
+                );
                 return e.rideAssignments
                   .filter((ra) => ra.childId && ra.childId !== 0)
                   .map((ra) => ({ rideId: rideIdNum, driverId: escortId, childId: ra.childId }));
