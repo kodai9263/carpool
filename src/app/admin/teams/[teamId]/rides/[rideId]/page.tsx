@@ -151,7 +151,27 @@ export default function Page() {
   const [draftRestored, setDraftRestored] = useState(false);
   const [assignmentSummary, setAssignmentSummary] = useState<{ children: number; cars: number } | null>(null);
   const initializedForm = useRef<string | null>(null);
+  const scrolledAction = useRef<string | null>(null);
+  const [autoStartGuide, setAutoStartGuide] = useState(false);
   const draftKey = session?.user.id ? rideCheckoutDraftKey(session.user.id, teamId, rideId) : null;
+
+  useEffect(() => {
+    if (isLoading || !data?.ride) return;
+    const target = window.location.hash.slice(1);
+    const isAction = ["auto-assign", "share-request", "answer-deadline"].includes(target);
+    setAutoStartGuide(!isAction);
+    const key = `${teamId}:${rideId}:${target}`;
+    if (!isAction || scrolledAction.current === key) return;
+    // 初回遷移時は読込中にアンカーがないため、フォーム描画後に案内先へ移動する。
+    const frame = requestAnimationFrame(() => {
+      const element = document.getElementById(target);
+      if (!element) return;
+      element.scrollIntoView({ block: "center" });
+      element.focus({ preventScroll: true });
+      scrolledAction.current = key;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [data?.ride, isLoading, teamId, rideId]);
 
   const refreshBilling = useCallback(async () => {
     await mutateBilling();
@@ -531,7 +551,7 @@ PINコード: ${pin}
           <GuidedTour
             storageKey="admin-ride-detail-guided-tour:v1"
             steps={rideDetailGuideSteps}
-            autoStart
+            autoStart={autoStartGuide}
             className="app-button-secondary w-full shrink-0 sm:w-auto"
             focusRequest={guideFocusRequest}
           />
@@ -593,7 +613,7 @@ PINコード: ${pin}
             </div>
 
             {/* 自動割り当てパネル */}
-            <div data-guide="admin-ride-auto-assign">
+            <div id="auto-assign" tabIndex={-1} className="scroll-mt-20" data-guide="admin-ride-auto-assign">
               <AutoAssignPanel
                 onAssign={handleAutoAssign}
                 isAssigning={isAutoAssigning}
@@ -710,7 +730,7 @@ PINコード: ${pin}
               </div>
 
               {/* 回答期限 */}
-              <div className="mb-4">
+              <div id="answer-deadline" tabIndex={-1} className="mb-4 scroll-mt-20">
                 <label className="block text-sm font-medium mb-2 text-gray-700">
                   回答期限（任意）
                 </label>
@@ -807,6 +827,7 @@ PINコード: ${pin}
                   <button
                     type="button"
                     onClick={copyShareText}
+                    id="share-request"
                     data-guide="admin-ride-share-request"
                     className="app-button-primary min-h-[4.25rem] w-full flex-col items-start justify-start px-4 py-2.5 text-left md:min-h-[5rem] md:py-3"
                   >

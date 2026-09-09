@@ -56,3 +56,27 @@ test("復帰後の期限保存も下書きへ反映し、次の再読込で古�
   await waitFor(() => expect(api.patch).toHaveBeenCalled());
   await waitFor(() => expect(parseRideCheckoutDraft(sessionStorage.getItem(key))?.deadline).toBe("2030-09-13"));
 });
+
+test("初回案内のリンクは読込後に目的のボタンへ移動し、再取得では繰り返さない", async () => {
+  window.history.replaceState(null, "", "/admin/teams/1/rides/2#share-request");
+  const scroll = jest.fn();
+  const original = HTMLElement.prototype.scrollIntoView;
+  HTMLElement.prototype.scrollIntoView = scroll;
+  let loading = true;
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({
+    data: url.includes("billing") ? undefined : loading ? undefined : { ride },
+    mutate: jest.fn(), isLoading: !url.includes("billing") && loading,
+  }));
+  try {
+    const { rerender } = render(<Page />);
+    expect(scroll).not.toHaveBeenCalled();
+    loading = false;
+    rerender(<Page />);
+    await waitFor(() => expect(scroll).toHaveBeenCalledTimes(1));
+    expect(document.activeElement?.id).toBe("share-request");
+    rerender(<Page />);
+    expect(scroll).toHaveBeenCalledTimes(1);
+  } finally {
+    HTMLElement.prototype.scrollIntoView = original;
+  }
+});
