@@ -1,15 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { getStripeClient } from "@/lib/stripe";
-import { isProPlan } from "@/utils/billing";
+import { billingReturnUrl, resolveBillingReturnPath } from "@/utils/billingCheckout";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-function getAppUrl(request: NextRequest) {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin).replace(/\/$/, "");
-}
 
 export const POST = (request: NextRequest) =>
   withAuth(request, async (adminId) => {
@@ -27,25 +24,26 @@ export const POST = (request: NextRequest) =>
         return NextResponse.json({ message: "管理者が見つかりません" }, { status: 404 });
       }
 
-      if (!isProPlan(admin.billingPlan) || !admin.stripeCustomerId) {
+      if (!admin.stripeCustomerId) {
         return NextResponse.json(
-          { message: "Proプランの支払い情報が見つかりません" },
+          { message: "支払い情報が見つかりません" },
           { status: 400 },
         );
       }
 
       const stripe = getStripeClient();
-      const appUrl = getAppUrl(request);
+      const body = await request.json().catch(() => null);
+      const returnPath = await resolveBillingReturnPath(adminId, body?.returnPath);
       const session = await stripe.billingPortal.sessions.create({
         customer: admin.stripeCustomerId,
-        return_url: `${appUrl}/admin/profile?portal=return#plan`,
+        return_url: billingReturnUrl(request, returnPath, "portal=return"),
       });
 
       await trackServerEvent(
         "billing_portal_opened",
         {
           admin_id: admin.id,
-          plan: "pro",
+          plan: admin.billingPlan,
         },
         { adminId, request },
       );

@@ -7,5 +7,6 @@ export interface AdminMeResponse {
     billingPlan: string;
     autoAssignTrialUsed: number;
     stripeSubscriptionStatus: string | null;
+    hasBillingCustomer?: boolean;
   };
 }

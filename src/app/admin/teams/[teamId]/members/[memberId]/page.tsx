@@ -3,7 +3,7 @@
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { MemberFormValues } from "@/app/_types/member";
+import { MemberFormValues } from "@/app/_types/Member";
 import { MemberDetailResponse } from "@/app/_types/response/memberResponse";
 import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { api } from "@/utils/api";

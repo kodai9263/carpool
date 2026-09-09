@@ -1,6 +1,7 @@
 import { CreateRideResponse, RideListResponse } from "@/app/_types/response/rideResponse";
 import { RideFormValues } from "@/app/_types/ride"; 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuthTeam } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
@@ -50,9 +51,9 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
             childAvailabilities: { where: { OR: [{ availability: false }, { selfDriving: true }] } },
           },
         },
-      } as const;
+      } satisfies Prisma.RideSelect;
 
-      type RideRow = Awaited<ReturnType<typeof prisma.ride.findMany<{ select: typeof rideSelect }>>>[number];
+      type RideRow = Prisma.RideGetPayload<{ select: typeof rideSelect }>;
 
       // フェーズ2: 必要分だけDBから取得
       const [futureRides, pastRides] = await Promise.all([

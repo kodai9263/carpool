@@ -3,7 +3,7 @@
 import { FormButton } from "@/app/_components/FormButton";
 import { FormInput } from "@/app/_components/FormInput";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { TeamFormValues } from "@/app/_types/team";
+import { TeamFormValues } from "@/app/_types/Team";
 import { api } from "@/utils/api";
 import { Building2, Key, KeyRound, Users } from "lucide-react";
 import { useRouter } from "next/navigation";

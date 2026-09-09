@@ -4,6 +4,7 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { useFetch } from "@/app/_hooks/useFetch";
 import { Ride } from "@/app/_types/ride";
+import { RideListResponse } from "@/app/_types/response/rideResponse";
 import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -35,14 +36,14 @@ export default function Page() {
     return `/api/admin/teams/${teamId}/rides?page=${page}`;
   }, [teamId, page]);
 
-  const { data, error, isLoading } = useFetch(url);
+  const { data, error, isLoading } = useFetch<Omit<RideListResponse, "rides"> & { rides: Ride[]; delta?: number }>(url);
   const { data: teamData } = useFetch<TeamDetailResponse>(`/api/admin/teams/${teamId}`);
 
   if (!data) return
-  const rides = (data.rides || []) as Ride[];
+  const rides = (data.rides || []);
   const totalPages = data.totalPages || 1;
   const delta = data.delta;
-  const guardianCount = (data as { guardianCount?: number }).guardianCount ?? 0;
+  const guardianCount = data.guardianCount ?? 0;
 
   if (!teamId) return <LoadingSpinner />
   if (isLoading) return <LoadingSpinner />

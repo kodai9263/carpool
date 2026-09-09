@@ -6,7 +6,8 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { api } from "@/utils/api";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { BillingReturnNotice } from "@/app/admin/_components/BillingReturnNotice";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AdminMeResponse } from "@/app/_types/response/adminResponse";
@@ -31,7 +32,8 @@ export default function ProfilePage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [isStartingCheckout, setIsStartingCheckout] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
-  const billingToastShown = useRef(false);
+  const checkoutBusy = useRef(false);
+  const [isPaymentPending, setIsPaymentPending] = useState(false);
 
   const {
     register: registerTransfer,
@@ -89,36 +91,14 @@ export default function ProfilePage() {
     }
   };
 
-  useEffect(() => {
-    if (billingToastShown.current) return;
-    if (typeof window === "undefined") return;
-
-    const params = new URLSearchParams(window.location.search);
-    const checkout = params.get("checkout");
-    const portal = params.get("portal");
-    if (checkout === "success") {
-      billingToastShown.current = true;
-      toast.success("決済が完了しました。Proプランを反映しています。");
-      mutate();
-    }
-    if (checkout === "cancel") {
-      billingToastShown.current = true;
-      toast("決済をキャンセルしました。");
-    }
-    if (portal === "return") {
-      billingToastShown.current = true;
-      toast.success("支払い管理画面から戻りました。");
-      mutate();
-    }
-  }, [mutate]);
-
   const handleStartCheckout = async (interval: BillingInterval) => {
-    if (!token) return;
+    if (!token || checkoutBusy.current || isPaymentPending) return;
+    checkoutBusy.current = true;
 
     try {
       setIsStartingCheckout(true);
       trackEvent("upgrade_clicked", { source: "profile_checkout", interval });
-      const result = await api.post("/api/admin/billing/checkout", { interval }, token) as {
+      const result = await api.post("/api/admin/billing/checkout", { interval, returnPath: "/admin/profile", source: "profile_checkout" }, token) as {
         url?: string;
       };
 
@@ -131,6 +111,7 @@ export default function ProfilePage() {
       const message = (e as { message?: string })?.message ?? "決済ページを開けませんでした。";
       toast.error(message);
     } finally {
+      checkoutBusy.current = false;
       setIsStartingCheckout(false);
     }
   };
@@ -141,7 +122,7 @@ export default function ProfilePage() {
     try {
       setIsOpeningPortal(true);
       trackEvent("billing_portal_clicked", { source: "profile_plan_card" });
-      const result = await api.post("/api/admin/billing/portal", {}, token) as BillingPortalResponse;
+      const result = await api.post("/api/admin/billing/portal", { returnPath: "/admin/profile" }, token) as BillingPortalResponse;
 
       if (!result.url) {
         throw new Error("Customer Portal URL is missing");
@@ -186,6 +167,7 @@ export default function ProfilePage() {
           </p>
         </div>
 
+        <BillingReturnNotice token={token} onConfirmed={() => mutate()} onPendingChange={setIsPaymentPending} />
         <div className="space-y-5">
           <section className="app-card overflow-hidden">
             <div className="flex items-start gap-4 p-5 md:p-6">
@@ -276,27 +258,26 @@ export default function ProfilePage() {
                     <>
                       <button
                         type="button"
-                        onClick={() => handleStartCheckout("year")}
-                        disabled={isStartingCheckout}
+                        onClick={() => handleStartCheckout("month")}
+                        disabled={isStartingCheckout || isPaymentPending || !token}
                         className="app-button-primary w-full"
                       >
                         {isStartingCheckout
                           ? "決済ページを準備中..."
-                          : `年払いで申し込む ${PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円/年`}
+                          : `月${PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円でProを始める`}
                       </button>
-                      <p className="text-center text-xs text-amber-800">
-                        月あたり{Math.round(PRO_YEARLY_PRICE_JPY / 12)}円。チームの年度会計にもなじみます
-                      </p>
                       <button
                         type="button"
-                        onClick={() => handleStartCheckout("month")}
-                        disabled={isStartingCheckout}
+                        onClick={() => handleStartCheckout("year")}
+                        disabled={isStartingCheckout || isPaymentPending || !token}
                         className="app-button-secondary w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
                       >
-                        月払いで申し込む {PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円/月
+                        年払い {PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円/年
                       </button>
                     </>
                   )}
+                  {!isPro && <p className="text-xs leading-5 text-amber-900">月払い・年払いともに自動更新です。「支払い・解約を管理」から解約できます。お支払い総額は決済画面でご確認ください。</p>}
+                  {!isPro && admin?.hasBillingCustomer && <button type="button" onClick={handleOpenCustomerPortal} disabled={isOpeningPortal} className="app-button-secondary w-full">{isOpeningPortal ? "準備中..." : "支払い・解約を管理"}</button>}
                 </div>
               </div>
             </div>
