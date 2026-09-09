@@ -1,4 +1,4 @@
-import { MemberFormValues } from "@/app/_types/member"; 
+import { MemberFormValues } from "@/app/_types/Member";
 import { MemberDetailResponse, UpdateMemberResponse } from "@/app/_types/response/memberResponse";
 import { getCurrentSchoolYear } from "@/utils/gradeUtils";
 import { withAdminTeamMember } from "@/utils/withAuth";

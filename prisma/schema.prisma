@@ -189,3 +189,16 @@ model Feedback {
   admin      Admin?   @relation(fields: [adminId], references: [id])
   createdAt  DateTime @default(now())
 }
+
+// Checkoutで確定した契約の一次記録。GA送信の成否とは独立して保持する。
+model BillingConversion {
+  id             Int      @id @default(autoincrement())
+  subscriptionId String   @unique
+  checkoutId     String   @unique
+  adminId        Int
+  interval       String?
+  source         String
+  value          Int
+  currency       String
+  createdAt      DateTime @default(now())
+}

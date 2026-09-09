@@ -1,5 +1,5 @@
 import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/teamResponse"; 
-import { TeamFormValues } from "@/app/_types/team";
+import { TeamFormValues } from "@/app/_types/Team";
 import { prisma } from "@/lib/prisma";
 import { FREE_TEAM_LIMIT, isProPlan } from "@/utils/billing";
 import { trackServerEvent } from "@/utils/serverAnalytics";

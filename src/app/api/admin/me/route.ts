@@ -23,12 +23,14 @@ export const GET = (request: NextRequest) =>
           billingPlan: true,
           autoAssignTrialUsed: true,
           stripeSubscriptionStatus: true,
+          stripeCustomerId: true,
         },
       });
       if (!admin) {
         return NextResponse.json({ message: "管理者が見つかりません"}, { status: 404 });
       }
-      return NextResponse.json({ status: "OK", admin }, { status: 200 });
+      const { stripeCustomerId, ...publicAdmin } = admin;
+      return NextResponse.json({ status: "OK", admin: { ...publicAdmin, hasBillingCustomer: Boolean(stripeCustomerId) } }, { status: 200 });
     } catch {
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }

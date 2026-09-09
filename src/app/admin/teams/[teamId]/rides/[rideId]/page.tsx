@@ -23,6 +23,9 @@ import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
 import toast from "react-hot-toast";
 import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
 import AutoAssignPanel, { AutoAssignOptions } from "../_components/AutoAssignPanel";
+import { UpgradeDialog } from "@/app/admin/_components/UpgradeDialog";
+import { BillingReturnNotice } from "@/app/admin/_components/BillingReturnNotice";
+import { parseRideCheckoutDraft, rideCheckoutDraftKey, serializeRideCheckoutDraft } from "@/utils/rideCheckoutDraft";
 
 const GUEST_EMAIL = "guest@carpool.demo";
 
@@ -143,6 +146,16 @@ export default function Page() {
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [autoAssignError, setAutoAssignError] = useState<{ message: string; minimumCars?: number } | null>(null);
   const [guideFocusRequest, setGuideFocusRequest] = useState<GuidedTourFocusRequest | null>(null);
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+  const [isPaymentPending, setIsPaymentPending] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [assignmentSummary, setAssignmentSummary] = useState<{ children: number; cars: number } | null>(null);
+  const initializedForm = useRef<string | null>(null);
+  const draftKey = session?.user.id ? rideCheckoutDraftKey(session.user.id, teamId, rideId) : null;
+
+  const refreshBilling = useCallback(async () => {
+    await mutateBilling();
+  }, [mutateBilling]);
 
   const requestGuideFocus = useCallback((target: string) => {
     setGuideFocusRequest((current) => ({
@@ -152,7 +165,10 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (data?.ride) {
+    if (data?.ride && draftKey && initializedForm.current !== draftKey) {
+      initializedForm.current = draftKey;
+      setDraftRestored(false);
+      setAssignmentSummary(null);
       const formValues = convertRideDetailToFormValues(data.ride);
       // childId → currentGradeのMap生成
       const childrenMap = new Map(
@@ -169,6 +185,24 @@ export default function Page() {
             return gradeB - gradeA;
           }),
       }));
+      // 再取得で編集中のフォームを上書きしない。決済復帰時は同じ管理者の下書きを優先する。
+      const query = new URLSearchParams(window.location.search);
+      if (query.has("checkout") || query.get("portal") === "return") {
+        try {
+          const draft = parseRideCheckoutDraft(sessionStorage.getItem(draftKey));
+          if (draft) {
+            prevSeparateDirections.current = draft.values.separateDirections;
+            reset(draft.values);
+            setDeadline(draft.deadline);
+            setLockAfterDeadline(draft.lockAfterDeadline);
+            setDraftRestored(true);
+            return;
+          }
+        } catch {
+          toast.error("決済前の入力を復元できませんでした。保存済みの配車を表示します。");
+        }
+      }
+      prevSeparateDirections.current = formValues.separateDirections;
       reset(formValues);
 
       // 回答期限の初期化
@@ -178,10 +212,12 @@ export default function Page() {
         const mm = String(d.getMonth() + 1).padStart(2, "0");
         const dd = String(d.getDate()).padStart(2, "0");
         setDeadline(`${yyyy}-${mm}-${dd}`);
+      } else {
+        setDeadline("");
       }
       setLockAfterDeadline(data.ride.lockAfterDeadline ?? false);
     }
-  }, [data, reset]);
+  }, [data, reset, draftKey]);
 
   const onSubmit = async (data: UpdateRideValues) => {
     if (!validateDate()) return;
@@ -201,6 +237,15 @@ export default function Page() {
         token,
       );
       toast.success("配車詳細を更新しました。");
+      reset(payload);
+      setAssignmentSummary(null);
+      setDraftRestored(false);
+      // 回答期限には別の保存ボタンがあるため、その未保存値も下書きに残す。
+      if (draftKey) {
+        try {
+          sessionStorage.setItem(draftKey, serializeRideCheckoutDraft({ values: payload, deadline, lockAfterDeadline }));
+        } catch { /* 保存済みの配車はサーバーから復元できる */ }
+      }
       await mutate();
     } catch (e: unknown) {
       console.error(e);
@@ -237,6 +282,13 @@ export default function Page() {
           }),
       }));
       reset({ ...methods.getValues(), drivers: processedDrivers });
+      setAssignmentSummary({
+        children: new Set(processedDrivers.flatMap((driver) => [
+          ...driver.rideAssignments.map((row) => row.childId),
+          ...driver.escorts.flatMap((escort) => escort.rideAssignments.map((row) => row.childId)),
+        ]).filter((id) => id > 0)).size,
+        cars: new Set(processedDrivers.map((driver) => driver.availabilityDriverId)).size,
+      });
       toast.success("自動割り当て完了。保存ボタンで確定してください。");
       await mutateBilling();
     } catch (e: unknown) {
@@ -268,8 +320,19 @@ export default function Page() {
   };
 
   const handleAutoAssignUpgradeClick = () => {
-    trackEvent("upgrade_clicked", { source: "auto_assign_limit" });
-    router.push("/admin/profile#plan");
+    trackEvent("upgrade_offer_clicked", { source: "ride_auto_assign", ride_id: rideId });
+    setIsUpgradeOpen(true);
+  };
+
+  const preserveCheckoutDraft = async () => {
+    if (!draftKey || !token) throw new Error("ログイン状態を確認してください。");
+    try {
+      const serialized = serializeRideCheckoutDraft({ values: methods.getValues(), deadline, lockAfterDeadline });
+      sessionStorage.setItem(draftKey, serialized);
+      if (sessionStorage.getItem(draftKey) !== serialized) throw new Error("保存の確認に失敗");
+    } catch {
+      throw new Error("入力内容を一時保存できませんでした。配車を更新してからもう一度お試しください。");
+    }
   };
 
   // 配車内容のテキストエクスポート（LINE共有用）
@@ -309,6 +372,11 @@ export default function Page() {
         token,
       );
       toast.success("回答期限を保存しました。");
+      if (draftKey) {
+        try {
+          sessionStorage.setItem(draftKey, serializeRideCheckoutDraft({ values: methods.getValues(), deadline, lockAfterDeadline }));
+        } catch { /* 保存済みの期限はサーバーから復元できる */ }
+      }
       await mutate();
     } catch (e) {
       console.error(e);
@@ -468,6 +536,21 @@ PINコード: ${pin}
             focusRequest={guideFocusRequest}
           />
         </div>
+      <BillingReturnNotice token={token} onConfirmed={refreshBilling} onPendingChange={setIsPaymentPending} />
+      {draftRestored && (
+        <p role="status" className="mb-4 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-6 text-teal-900">
+          決済前の入力を復元しました。配車は画面下の「更新」、回答期限は「設定」で保存できます。
+        </p>
+      )}
+      <UpgradeDialog
+        open={isUpgradeOpen}
+        onClose={() => setIsUpgradeOpen(false)}
+        onBeforeCheckout={preserveCheckoutDraft}
+        returnPath={`/admin/teams/${teamId}/rides/${rideId}`}
+        source="ride_auto_assign"
+        token={token}
+        isPaymentPending={isPaymentPending}
+      />
       <div className="app-card min-w-0 overflow-hidden p-4 md:p-8">
         <FormProvider {...methods}>
           <form
@@ -520,6 +603,10 @@ PINコード: ${pin}
                 ).length}
                 billingStatus={billingData?.autoAssign}
                 onUpgradeClick={handleAutoAssignUpgradeClick}
+                onRequestAnswers={copyShareText}
+                isPaymentPending={isPaymentPending}
+                analyticsKey={isGuestUser ? undefined : rideId}
+                assignmentSummary={assignmentSummary}
               />
             </div>
 

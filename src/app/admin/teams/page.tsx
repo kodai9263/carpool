@@ -1,7 +1,7 @@
 'use client';
 
 import { useFetch } from "@/app/_hooks/useFetch";
-import { Team } from "@/app/_types/team";
+import { Team } from "@/app/_types/Team";
 import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
 import { TeamsListResponse } from "@/app/_types/response/teamResponse";

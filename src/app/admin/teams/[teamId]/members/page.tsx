@@ -4,7 +4,7 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { useFetch } from "@/app/_hooks/useFetch";
-import { Member } from "@/app/_types/member";
+import { Member } from "@/app/_types/Member";
 import { MemberListResponse } from "@/app/_types/response/memberResponse";
 import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { ChevronRight, Search, User, UserPlus } from "lucide-react";

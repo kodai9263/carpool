@@ -21,7 +21,7 @@ interface Props {
     comment: string | null;
   }[];
   childrenList: { id: number; name: string; currentGrade: number | null }[];
-  childAvailabilities: { childId: number; availability: boolean }[];
+  childAvailabilities: { childId: number; availability: boolean; selfDriving: boolean }[];
   driverSelectGuideTarget?: string;
   assignmentGuideTarget?: string;
   onDriverSelected?: () => void;

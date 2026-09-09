@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { WalletCards, Wand2 } from "lucide-react";
 import type { AutoAssignBillingStatus } from "@/utils/billingServer";
+import { PRO_MONTHLY_PRICE_JPY } from "@/utils/billing";
+import { trackEvent } from "@/utils/analytics";
 
 export interface AutoAssignOptions {
   numberOfCars?: number;
@@ -16,6 +18,10 @@ interface Props {
   defaultNumberOfCars?: number; // 配車可能な台数（初期値・上限として使用）
   billingStatus?: AutoAssignBillingStatus;
   onUpgradeClick: () => void;
+  onRequestAnswers?: () => void;
+  isPaymentPending?: boolean;
+  analyticsKey?: string;
+  assignmentSummary?: { children: number; cars: number } | null;
 }
 
 export default function AutoAssignPanel({
@@ -25,10 +31,33 @@ export default function AutoAssignPanel({
   defaultNumberOfCars,
   billingStatus,
   onUpgradeClick,
+  onRequestAnswers,
+  isPaymentPending = false,
+  analyticsKey,
+  assignmentSummary,
 }: Props) {
   const [numberOfCarsInput, setNumberOfCarsInput] = useState<string>("");
   const [separateParentChild, setSeparateParentChild] = useState<boolean>(false);
   const isLimitReached = Boolean(billingStatus && !billingStatus.canUseAutoAssign);
+  const hasDrivers = (defaultNumberOfCars ?? 0) > 0;
+  const isFree = Boolean(billingStatus && !billingStatus.isPro && !billingStatus.isExempt);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const seen = useRef(new Set<string>());
+
+  useEffect(() => {
+    if (!isFree || !analyticsKey || !panelRef.current || typeof IntersectionObserver === "undefined") return;
+    const state = isLimitReached ? "limit" : "trial";
+    const key = `${analyticsKey}:${state}`;
+    if (seen.current.has(key)) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      seen.current.add(key);
+      trackEvent("auto_assign_offer_viewed", { source: "ride_auto_assign", offer_state: state, ride_id: analyticsKey });
+      observer.disconnect();
+    }, { threshold: 0.25 });
+    observer.observe(panelRef.current);
+    return () => observer.disconnect();
+  }, [isFree, isLimitReached, analyticsKey]);
 
   // データ取得後に配車可能台数を初期値としてセット
   useEffect(() => {
@@ -51,6 +80,7 @@ export default function AutoAssignPanel({
   };
 
   const handleSubmit = async () => {
+    if (isAssigning || isLimitReached || !hasDrivers || !billingStatus) return;
     const numberOfCars =
       numberOfCarsInput !== "" && !isNaN(Number(numberOfCarsInput))
         ? Number(numberOfCarsInput)
@@ -59,16 +89,39 @@ export default function AutoAssignPanel({
   };
 
   const handleRetryWithMinimum = async (minimumCars: number) => {
+    if (isAssigning || isLimitReached || !hasDrivers || !billingStatus) return;
     setNumberOfCarsInput(String(minimumCars));
     await onAssign({ numberOfCars: minimumCars, separateParentChild });
   };
 
   return (
-    <div className="space-y-4 rounded-xl border border-teal-200 bg-teal-50/80 p-4">
+    <div ref={panelRef} className="space-y-4 rounded-xl border border-teal-200 bg-teal-50/80 p-4">
       <div className="flex items-center gap-2">
         <Wand2 size={18} className="text-teal-700" />
         <span className="text-sm font-semibold text-teal-800">自動割り当て</span>
       </div>
+
+      <p className="text-sm leading-6 text-teal-950">
+        誰をどの車に乗せるか、配車案をまとめて作れます。作成後に手動で調整できます。
+      </p>
+
+      {!hasDrivers && (
+        <div className="rounded-lg bg-white p-3 text-sm text-gray-700">
+          <p>まずは車を出せる保護者の回答を集めましょう。</p>
+          {onRequestAnswers && (
+            <button type="button" onClick={onRequestAnswers} className="app-button-secondary mt-3 w-full">
+              回答依頼をコピー（LINE用）
+            </button>
+          )}
+        </div>
+      )}
+
+      {assignmentSummary && (
+        <div role="status" className="rounded-lg border border-teal-200 bg-white p-3 text-sm text-teal-950">
+          <p className="font-semibold">{assignmentSummary.children}人・{assignmentSummary.cars}台の配車案を作成しました</p>
+          <p className="mt-1 leading-6">下の割り当てを確認し、画面下の「更新」で確定してください。</p>
+        </div>
+      )}
 
       {billingStatus && (
         <div
@@ -92,26 +145,27 @@ export default function AutoAssignPanel({
                       自動割り当てのお試し残り{billingStatus.remaining}回
                     </p>
                     <p className="mt-1 text-xs leading-5 opacity-80">
-                      Freeでは{billingStatus.freeLimit}回まで試せます。Proで無制限になります。
+                      Freeでは{billingStatus.freeLimit}回まで。再計算も1回として数えます。Proなら月{PRO_MONTHLY_PRICE_JPY}円で何度でも調整できます。
                     </p>
                   </>
                 )}
               </div>
             </div>
-            {isLimitReached && (
+            {isFree && (
               <button
                 type="button"
                 onClick={onUpgradeClick}
-                className="app-button-secondary shrink-0 border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
+                disabled={isPaymentPending || isAssigning}
+                className={`${isLimitReached ? "app-button-primary" : "app-button-secondary"} shrink-0`}
               >
-                Proプランを見る
+                {isPaymentPending ? "契約状況を確認中" : `月${PRO_MONTHLY_PRICE_JPY}円で続ける`}
               </button>
             )}
           </div>
         </div>
       )}
 
-      <div className="space-y-3">
+      <fieldset disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus} className="space-y-3 disabled:opacity-60">
         {/* 台数入力 */}
         <div className="flex items-center gap-3">
           <label className="text-sm text-gray-700 w-16 shrink-0">台数</label>
@@ -142,16 +196,16 @@ export default function AutoAssignPanel({
             <span className="text-sm text-gray-700">親子を別々の車にする</span>
           </label>
         </div>
-      </div>
+      </fieldset>
 
       {/* 実行ボタン */}
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isAssigning || isLimitReached}
+        disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus}
         className="app-button-primary w-full"
       >
-        {isAssigning ? "割り当て中..." : "自動割り当てを実行"}
+        {isAssigning ? "配車案を作成中..." : !billingStatus ? "プランを確認中..." : isFree && !isLimitReached ? "無料で配車案を作る" : "自動割り当てを実行"}
       </button>
 
       {/* エラー表示（消えないインライン） */}
@@ -162,7 +216,7 @@ export default function AutoAssignPanel({
             <button
               type="button"
               onClick={() => handleRetryWithMinimum(error.minimumCars!)}
-              disabled={isAssigning}
+              disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus}
               className="text-xs font-medium text-red-700 underline hover:text-red-900 disabled:opacity-50"
             >
               {error.minimumCars}台で実行する
