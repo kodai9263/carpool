@@ -10,6 +10,7 @@ import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import { useMemo, useState } from "react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { NewButton } from "./_components/NewButton";
+import GettingStartedCard from "./_components/GettingStartedCard";
 import { useRouter } from "next/navigation";
 import { trackEvent } from "@/utils/analytics";
 import {
@@ -163,6 +164,8 @@ export default function Page() {
             </div>
           </div>
         </div>
+
+        {totalTeams === 1 && teams[0] && <GettingStartedCard teamId={String(teams[0].id)} />}
 
         {shouldBlockTeamCreation && (
           <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">

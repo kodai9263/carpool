@@ -11,6 +11,7 @@ import { ChevronRight, Search, User, UserPlus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
+import GettingStartedCard from "../../_components/GettingStartedCard";
 
 const memberListGuideSteps = [
   {
@@ -78,6 +79,7 @@ export default function Page() {
         </div>
 
         {/* 検索フォーム */}
+        <GettingStartedCard teamId={teamId} afterRegistration />
         <div className="relative mb-4">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input

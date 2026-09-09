@@ -13,6 +13,8 @@ import { UpdateDeleteButtons } from "../_components/UpdateDeleteButtons";
 import { EditInput } from "../_components/EditInput";
 import { Building2, Users } from "lucide-react";
 import toast from "react-hot-toast";
+import GettingStartedCard from "../_components/GettingStartedCard";
+import Link from "next/link";
 
 export default function Page() {
   const  { 
@@ -103,6 +105,11 @@ export default function Page() {
           <p className="mb-1 text-sm font-semibold text-teal-700">チーム情報</p>
           <h1 className="app-section-title">チーム詳細</h1>
         </div>
+        <GettingStartedCard teamId={teamId} />
+        <nav aria-label="チームの管理" className="mb-6 grid grid-cols-2 gap-3">
+          <Link href={`/admin/teams/${teamId}/members`} className="app-button-secondary text-center">家族・メンバー</Link>
+          <Link href={`/admin/teams/${teamId}/rides`} className="app-button-secondary text-center">配車一覧</Link>
+        </nav>
         <div className="app-card p-6 md:p-8">
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
