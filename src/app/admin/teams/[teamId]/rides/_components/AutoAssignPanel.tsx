@@ -97,14 +97,15 @@ export default function AutoAssignPanel({
 
   return (
     <div ref={panelRef} className="space-y-4 rounded-xl border border-teal-200 bg-teal-50/80 p-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Wand2 size={18} className="text-teal-700" />
         <span className="text-sm font-semibold text-teal-800">自動割り当て</span>
+        {billingStatus && !isFree && (
+          <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-teal-700">
+            {billingStatus.isPro ? "Pro・回数制限なし" : "デモ・回数制限なし"}
+          </span>
+        )}
       </div>
-
-      <p className="text-sm leading-6 text-teal-950">
-        誰をどの車に乗せるか、配車案をまとめて作れます。作成後に手動で調整できます。
-      </p>
 
       {!hasDrivers && (
         <div className="rounded-lg bg-white p-3 text-sm text-gray-700">
@@ -124,7 +125,7 @@ export default function AutoAssignPanel({
         </div>
       )}
 
-      {billingStatus && (
+      {billingStatus && isFree && (
         <div
           className={`rounded-lg border p-3 text-sm ${
             isLimitReached
@@ -136,20 +137,12 @@ export default function AutoAssignPanel({
             <div className="flex items-start gap-2">
               <WalletCards size={17} className={isLimitReached ? "mt-0.5 shrink-0 text-amber-700" : "mt-0.5 shrink-0 text-teal-700"} />
               <div>
-                {billingStatus.isPro ? (
-                  <p className="font-semibold">Proプランで自動割り当てを無制限に使えます。</p>
-                ) : billingStatus.isExempt ? (
-                  <p className="font-semibold">デモでは自動割り当てを制限なしで試せます。</p>
-                ) : (
-                  <>
-                    <p className="font-semibold">
-                      自動割り当てのお試し残り{billingStatus.remaining}回
-                    </p>
-                    <p className="mt-1 text-xs leading-5 opacity-80">
-                      Freeでは{billingStatus.freeLimit}回まで。再計算も1回として数えます。Proなら月{PRO_MONTHLY_PRICE_JPY}円で何度でも調整できます。
-                    </p>
-                  </>
-                )}
+                <p className="font-semibold">
+                  お試し残り{billingStatus.remaining}回
+                </p>
+                <p className="mt-1 text-xs leading-5 opacity-80">
+                  無料は{billingStatus.freeLimit}回まで。再計算も1回として数えます。
+                </p>
               </div>
             </div>
             {isFree && (

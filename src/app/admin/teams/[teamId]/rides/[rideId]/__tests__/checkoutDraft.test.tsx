@@ -139,3 +139,33 @@ test("期限確認のリンクは折りたたみを開いてから目的箇所�
     HTMLElement.prototype.scrollIntoView = original;
   }
 });
+
+
+test("予定を閉じても編集値を保持し、要約に未保存の変更を表示する", () => {
+  const { container } = render(<Page />);
+  const details = container.querySelector('[data-guide="admin-ride-basic"]')!;
+  expect(details).not.toHaveAttribute("open");
+  fireEvent.click(within(details as HTMLElement).getByText("編集"));
+  fireEvent.change(screen.getByLabelText("行き先"), { target: { value: "変更した球場" } });
+  fireEvent.click(within(details as HTMLElement).getByText("閉じる"));
+  expect(details).not.toHaveAttribute("open");
+  expect(details.querySelector("summary")).toHaveTextContent("変更した球場");
+  expect(details.querySelector("summary")).toHaveTextContent("未保存の変更あり");
+  expect(api.put).not.toHaveBeenCalled();
+  fireEvent.click(within(details as HTMLElement).getByText("編集"));
+  expect(screen.getByLabelText("行き先")).toHaveValue("変更した球場");
+});
+
+test("日付の入力エラーでは閉じた予定欄を開く", async () => {
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({
+    data: url.includes("billing") ? undefined : { ride },
+    mutate: jest.fn(), isLoading: false,
+  }));
+  sessionStorage.setItem(key, serializeRideCheckoutDraft({ ...draft, values: { ...draft.values, date: null } }));
+  const { container } = render(<Page />);
+  const details = container.querySelector('[data-guide="admin-ride-basic"]')!;
+  expect(details).not.toHaveAttribute("open");
+  fireEvent.click(screen.getByRole("button", { name: "変更を更新" }));
+  await waitFor(() => expect(details).toHaveAttribute("open"));
+  expect(api.put).not.toHaveBeenCalled();
+});

@@ -8,6 +8,8 @@ test("無料枠が残る間も価格を表示し、購入前に体験できる",
   const upgrade = jest.fn();
   render(<AutoAssignPanel onAssign={jest.fn()} onUpgradeClick={upgrade} isAssigning={false} error={null} defaultNumberOfCars={2} billingStatus={free} />);
   expect(screen.getByRole("button", { name: "無料で配車案を作る" })).toBeEnabled();
+  expect(screen.getByText("お試し残り3回")).toBeInTheDocument();
+  expect(screen.getByText("無料は3回まで。再計算も1回として数えます。")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "月300円で続ける" }));
   expect(upgrade).toHaveBeenCalledTimes(1);
 });
@@ -30,7 +32,9 @@ test("Proとデモには購入ボタンを出さない", () => {
   const props = { onAssign: jest.fn(), onUpgradeClick: jest.fn(), isAssigning: false, error: null, defaultNumberOfCars: 2 };
   const { rerender } = render(<AutoAssignPanel {...props} billingStatus={{ ...free, plan: "pro", isPro: true }} />);
   expect(screen.queryByRole("button", { name: "月300円で続ける" })).not.toBeInTheDocument();
+  expect(screen.getByText("Pro・回数制限なし")).toBeInTheDocument();
   rerender(<AutoAssignPanel {...props} billingStatus={{ ...free, isExempt: true }} />);
+  expect(screen.getByText("デモ・回数制限なし")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "月300円で続ける" })).not.toBeInTheDocument();
 });
 

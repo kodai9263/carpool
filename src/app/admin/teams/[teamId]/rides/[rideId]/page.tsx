@@ -108,6 +108,15 @@ export default function Page() {
   const { validateDate, handleDateChange } = createRideDateValidation(methods);
 
   const date = watch("date");
+  const destination = watch("destination");
+  const meetingPlace = watch("meetingPlace");
+  const basicDetails = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    if ((errors.date || errors.destination || errors.meetingPlace) && basicDetails.current) {
+      basicDetails.current.open = true;
+    }
+  }, [errors.date, errors.destination, errors.meetingPlace]);
   const separateDirections = watch("separateDirections");
 
   const { fields, append, remove } = useFieldArray({
@@ -135,6 +144,11 @@ export default function Page() {
   const { data, error, isLoading, mutate } = useFetch<RideDetailResponse>(
     `/api/admin/teams/${teamId}/rides/${rideId}`,
   );
+  const basicChanged = Boolean(data?.ride && (
+    date?.getTime() !== new Date(data.ride.date).getTime() ||
+    (destination ?? "") !== (data.ride.destination ?? "") ||
+    (meetingPlace ?? "") !== (data.ride.meetingPlace ?? "")
+  ));
   const { data: billingData, mutate: mutateBilling } = useFetch<BillingStatusResponse>(
     "/api/admin/billing/status",
   );
@@ -587,15 +601,30 @@ PINコード: ${pin}
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-6 md:space-y-8 min-w-0"
           >
-            <div className="app-panel p-4 md:p-5" data-guide="admin-ride-basic">
-              <div className="mx-auto w-full max-w-md">
+            <details ref={basicDetails} className="app-panel group p-4 md:p-5" data-guide="admin-ride-basic">
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                <span className="min-w-0 break-words">
+                  <span className="block font-semibold text-gray-950">
+                    {date && !Number.isNaN(date.getTime()) ? formatRideDate(date.toISOString()) : "日付未設定"}
+                    {" · "}{destination || "行き先未設定"}
+                  </span>
+                  <span className="mt-1 block text-sm text-gray-600">集合: {meetingPlace || "未設定"}</span>
+                  {basicChanged && <span className="mt-1 block text-xs font-medium text-amber-800">未保存の変更あり</span>}
+                </span>
+                <span className="shrink-0 text-sm font-medium text-teal-800">
+                  <span className="group-open:hidden">編集</span>
+                  <span className="hidden group-open:inline">閉じる</span>
+                </span>
+              </summary>
+              <div className="mx-auto mt-4 w-full max-w-md border-t border-gray-200 pt-4">
                 <RideBasicForm
                   date={date}
                   onDateChange={handleDateChange}
                   error={!!errors.date}
                 />
+                <p className="mt-3 text-xs text-gray-600">変更は画面下の「変更を更新」で保存します。</p>
               </div>
-            </div>
+            </details>
 
             {/* 参加者・欠席者一覧ボタン */}
             <div className="flex justify-center">
