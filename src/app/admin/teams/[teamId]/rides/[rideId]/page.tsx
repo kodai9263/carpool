@@ -13,7 +13,7 @@ import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import RideBasicForm from "../_components/RideBasicForm";
 import { createRideDateValidation } from "../_hooks/useRideDateValidation";
 import RideDriverList from "../_components/RideDriverList";
-import { UpdateDeleteButtons } from "../../../_components/UpdateDeleteButtons";
+import { RideShareDialog } from "../_components/RideShareDialog";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 import { formatRideExportText } from "@/utils/rideExport";
 import { isAnswerLocked } from "@/utils/deadlineLock";
@@ -37,8 +37,8 @@ const rideDetailGuideSteps = [
   },
   {
     target: "admin-ride-share-request",
-    title: "回答依頼をLINEに貼ります",
-    body: "回答期限を必要に応じて設定し、「入力依頼をコピー」を押すとURLとPIN入りの文面をLINEに貼れます。",
+    title: "回答を依頼します",
+    body: "「回答を依頼」から文面を確認し、LINEまたはコピーで共有できます。期限は共有の詳細から設定できます。",
   },
   {
     target: "admin-ride-auto-assign",
@@ -67,7 +67,7 @@ const rideDetailGuideSteps = [
   {
     target: "admin-ride-share-final",
     title: "決定後の案内を共有します",
-    body: "配車が決まったら、決定後の案内や配車内容をコピーしてLINEに共有します。",
+    body: "配車を保存したら、「配車決定を連絡」からメンバーへ案内できます。",
   },
   {
     target: "admin-ride-save",
@@ -139,6 +139,7 @@ export default function Page() {
     "/api/admin/billing/status",
   );
   const isDeleting = useRef(false);
+  const [sharePreview, setSharePreview] = useState<{ title: string; text: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [deadline, setDeadline] = useState("");
   const [lockAfterDeadline, setLockAfterDeadline] = useState(false);
@@ -166,6 +167,11 @@ export default function Page() {
     const frame = requestAnimationFrame(() => {
       const element = document.getElementById(target);
       if (!element) return;
+      let ancestor = element.parentElement;
+      while (ancestor) {
+        if (ancestor instanceof HTMLDetailsElement) ancestor.open = true;
+        ancestor = ancestor.parentElement;
+      }
       element.scrollIntoView({ block: "center" });
       element.focus({ preventScroll: true });
       scrolledAction.current = key;
@@ -424,20 +430,20 @@ export default function Page() {
     }
   };
 
-  // 配車可否の入力依頼テキストをコピー
-  const copyShareText = () => {
+  // 保存済みの内容で回答依頼のプレビューを開く
+  const openRequestShare = () => {
     if (!data?.ride) return;
 
-    const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
+    const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}/availability`;
     const pin = data.ride.pin;
 
     if (!pin) {
-      alert("PINコードが設定されていません。チームを再作成してください。");
+      alert("PINコードを確認できません。チーム設定を確認してください。");
       return;
     }
 
     const dateLabel = formatRideDate(data.ride.date);
-    const dl = deadline ? new Date(deadline) : null;
+    const dl = data.ride.deadline ? new Date(data.ride.deadline) : null;
     const deadlineText = dl
       ? `\n${dl.getMonth() + 1}月${dl.getDate()}日までにご回答をお願いします。`
       : "";
@@ -453,24 +459,24 @@ ${rideUrl}
 PINコード: ${pin}
 ${deadlineText}`;
 
-    copyToClipboard(text, "入力依頼テキスト");
+    setSharePreview({ title: "回答を依頼", text });
   };
 
-  // 未回答者への催促テキストをコピー
-  const copyReminderText = () => {
+  // 未回答者への再依頼のプレビューを開く
+  const openReminderShare = () => {
     if (!data?.ride) return;
 
-    const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
+    const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}/availability`;
     const pin = data.ride.pin;
 
     if (!pin) {
-      alert("PINコードが設定されていません。チームを再作成してください。");
+      alert("PINコードを確認できません。チーム設定を確認してください。");
       return;
     }
 
     const dateLabel = formatRideDate(data.ride.date);
     const destination = data.ride.destination ? ` ${data.ride.destination}` : "";
-    const dl = deadline ? new Date(deadline) : null;
+    const dl = data.ride.deadline ? new Date(data.ride.deadline) : null;
     const deadlineText = dl
       ? `\n${dl.getMonth() + 1}月${dl.getDate()}日までにご回答をお願いします。`
       : "";
@@ -481,18 +487,18 @@ ${rideUrl}
 PINコード: ${pin}
 ${deadlineText}`;
 
-    copyToClipboard(text, "催促テキスト");
+    setSharePreview({ title: "未回答の方に再依頼", text });
   };
 
-  // 配車決定後の案内テキストをコピー
-  const copyAssignmentText = () => {
+  // 配車決定後の案内のプレビューを開く
+  const openAssignmentShare = () => {
     if (!data?.ride) return;
 
     const rideUrl = `${window.location.origin}/member/teams/${teamId}/rides/${rideId}`;
     const pin = data.ride.pin;
 
     if (!pin) {
-      alert("PINコードが設定されていません。チームを再作成してください。");
+      alert("PINコードを確認できません。チーム設定を確認してください。");
       return;
     }
 
@@ -509,7 +515,7 @@ PINコード: ${pin}
 
 よろしくお願いします。`;
 
-    copyToClipboard(text, "配車割テキスト");
+    setSharePreview({ title: "配車決定を連絡", text });
   };
 
   // 保存済みの設定に基づく現在のロック状態
@@ -572,6 +578,10 @@ PINコード: ${pin}
         isPaymentPending={isPaymentPending}
       />
       <div className="app-card min-w-0 overflow-hidden p-4 md:p-8">
+        <RideShareDialog open={sharePreview !== null} title={sharePreview?.title ?? "共有"} text={sharePreview?.text ?? ""} onClose={() => setSharePreview(null)} onCopy={async (text) => {
+          await navigator.clipboard.writeText(text);
+          if (shouldTrackShareCopy) trackEvent("share_text_copied", { team_id: teamId, ride_id: rideId, copy_type: sharePreview?.title ?? "共有" });
+        }} />
         <FormProvider {...methods}>
           <form
             onSubmit={handleSubmit(onSubmit)}
@@ -594,6 +604,8 @@ PINコード: ${pin}
               />
             </div>
 
+            <details className="rounded-lg border border-gray-200 p-3">
+              <summary className="cursor-pointer text-sm font-medium text-gray-700">行き帰りの配車設定{separateDirections ? "（別々に配車）" : "（共通）"}</summary>
             {/* 行き帰り別配車モード切替 */}
             <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
               <label className="flex items-center gap-3 cursor-pointer select-none">
@@ -612,6 +624,8 @@ PINコード: ${pin}
               </label>
             </div>
 
+            </details>
+
             {/* 自動割り当てパネル */}
             <div id="auto-assign" tabIndex={-1} className="scroll-mt-20" data-guide="admin-ride-auto-assign">
               <AutoAssignPanel
@@ -623,7 +637,7 @@ PINコード: ${pin}
                 ).length}
                 billingStatus={billingData?.autoAssign}
                 onUpgradeClick={handleAutoAssignUpgradeClick}
-                onRequestAnswers={copyShareText}
+                onRequestAnswers={openRequestShare}
                 isPaymentPending={isPaymentPending}
                 analyticsKey={isGuestUser ? undefined : rideId}
                 assignmentSummary={assignmentSummary}
@@ -675,13 +689,55 @@ PINコード: ${pin}
               );
             })()}
 
-            {/* メンバー共有セクション */}
-            <div className="mt-8 rounded-xl border border-teal-200 bg-teal-50/80 p-4 md:p-6">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-950">
-                <Share2 size={20} className="text-teal-700" />
-                メンバー共有用
-              </h3>
+            <section className="mt-8 rounded-xl border border-teal-200 bg-teal-50/80 p-4 md:p-6" aria-label="メンバーへの連絡">
+              <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-gray-950"><Share2 size={20} />メンバーへの連絡</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button type="button" id="share-request" data-guide="admin-ride-share-request" onClick={openRequestShare} className="app-button-primary w-full">回答を依頼</button>
+                <button type="button" data-guide="admin-ride-share-final" onClick={openAssignmentShare} className="app-button-secondary w-full">配車決定を連絡</button>
+              </div>
+              <p className="my-3 text-xs text-gray-600">保存済みの内容を共有します。変更したら先に更新してください。</p>
+              {data?.ride.deadline && <p className="mb-3 text-sm text-gray-700">回答期限: {formatRideDate(data.ride.deadline)}{answerLocked ? "（回答ロック中）" : ""}</p>}
+              {/* 回答状況 */}
+              {guardians.length > 0 && (
+                <div className="mb-4 rounded-lg border border-teal-200 bg-white p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-bold text-gray-950">回答状況</p>
+                    <p className="text-sm font-semibold text-teal-800">
+                      {guardians.length - unansweredGuardians.length} / {guardians.length} 人 回答済み
+                    </p>
+                  </div>
+                  {unansweredGuardians.length > 0 ? (
+                    <details>
+                      <summary className="cursor-pointer text-sm font-medium text-teal-800">未回答の方を確認・再依頼</summary>
+                      <p className="mb-2 text-xs text-gray-500">未回答の保護者</p>
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {unansweredGuardians.map((g) => (
+                          <span
+                            key={g.id}
+                            className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900"
+                          >
+                            {g.name}
+                          </span>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={openReminderShare}
+                        className="app-button-secondary w-full"
+                      >
+                        <Share2 size={16} />
+                        未回答の方に再依頼
+                      </button>
+                    </details>
+                  ) : (
+                    <p className="text-sm text-teal-700">全員回答済みです 🎉</p>
+                  )}
+                </div>
+              )}
 
+              <details className="border-t border-teal-200 pt-3">
+                <summary className="cursor-pointer text-sm font-medium text-teal-800">共有の詳細・期限設定</summary>
+                <div className="mt-4">
               {/* ゲストユーザーの場合のみPINコードを表示 */}
               {isGuestUser && (
                 <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4">
@@ -774,114 +830,17 @@ PINコード: ${pin}
                 )}
               </div>
 
-              {/* 回答状況 */}
-              {guardians.length > 0 && (
-                <div className="mb-4 rounded-lg border border-teal-200 bg-white p-4">
-                  <div className="mb-2 flex items-center justify-between">
-                    <p className="text-sm font-bold text-gray-950">回答状況</p>
-                    <p className="text-sm font-semibold text-teal-800">
-                      {guardians.length - unansweredGuardians.length} / {guardians.length} 人 回答済み
-                    </p>
-                  </div>
-                  {unansweredGuardians.length > 0 ? (
-                    <>
-                      <p className="mb-2 text-xs text-gray-500">未回答の保護者</p>
-                      <div className="mb-3 flex flex-wrap gap-2">
-                        {unansweredGuardians.map((g) => (
-                          <span
-                            key={g.id}
-                            className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm text-amber-900"
-                          >
-                            {g.name}
-                          </span>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={copyReminderText}
-                        className="app-button-secondary w-full"
-                      >
-                        <Share2 size={16} />
-                        {copied === "催促テキスト"
-                          ? "コピーしました！"
-                          : "催促テキストをコピー（LINE用）"}
-                      </button>
-                    </>
-                  ) : (
-                    <p className="text-sm text-teal-700">全員回答済みです 🎉</p>
-                  )}
+                  <button type="button" onClick={copyDetailText} className="app-button-secondary w-full"><Copy size={16} />{copied === "配車内容テキスト" ? "コピーしました！" : "配車内容をコピー"}</button>
                 </div>
-              )}
-
-              {/* 共有用テキストコピーボタン */}
-              <div className="mt-5 border-t border-teal-200/70 pt-5">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold text-gray-950">
-                    共有テキストをコピー
-                  </p>
-                  <p className="shrink-0 text-xs font-medium text-teal-800">
-                    LINE共有用
-                  </p>
-                </div>
-                <div className="grid gap-3 md:grid-cols-3">
-                  <button
-                    type="button"
-                    onClick={copyShareText}
-                    id="share-request"
-                    data-guide="admin-ride-share-request"
-                    className="app-button-primary min-h-[4.25rem] w-full flex-col items-start justify-start px-4 py-2.5 text-left md:min-h-[5rem] md:py-3"
-                  >
-                    <span className="text-xs font-semibold text-white/75">
-                      1. 依頼
-                    </span>
-                    <span className="flex items-center gap-2 text-sm">
-                      <Share2 size={18} />
-                      {copied === "入力依頼テキスト"
-                        ? "コピーしました！"
-                        : "入力依頼をコピー"}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={copyAssignmentText}
-                    data-guide="admin-ride-share-final"
-                    className="app-button-secondary min-h-[4.25rem] w-full flex-col items-start justify-start px-4 py-2.5 text-left md:min-h-[5rem] md:py-3"
-                  >
-                    <span className="text-xs font-semibold text-gray-500">
-                      2. 決定後
-                    </span>
-                    <span className="flex items-center gap-2 text-sm text-gray-800">
-                      <Share2 size={18} />
-                      {copied === "配車割テキスト"
-                        ? "コピーしました！"
-                        : "決定後の案内をコピー"}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={copyDetailText}
-                    className="app-button-secondary min-h-[4.25rem] w-full flex-col items-start justify-start border-teal-200 bg-white px-4 py-2.5 text-left text-teal-900 hover:bg-teal-50 md:min-h-[5rem] md:py-3"
-                  >
-                    <span className="text-xs font-semibold text-teal-700">
-                      配車内容
-                    </span>
-                    <span className="flex items-center gap-2 text-sm">
-                      <Copy size={18} />
-                      {copied === "配車内容テキスト"
-                        ? "コピーしました！"
-                        : "配車内容をコピー"}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
+              </details>
+            </section>
 
             <div data-guide="admin-ride-save">
-              <UpdateDeleteButtons
-                onUpdate={handleSubmit(onSubmit)}
-                onDelete={handleDeleteRide}
-                isSubmitting={isSubmitting}
-              />
+              <button type="submit" disabled={isSubmitting} className="app-button-primary mt-6 w-full">{isSubmitting ? "更新中..." : "変更を更新"}</button>
+              <details className="mt-4 text-sm text-gray-600">
+                <summary className="cursor-pointer">その他の操作</summary>
+                <button type="button" onClick={handleDeleteRide} disabled={isSubmitting} className="app-button-secondary mt-3 text-red-700">この配車を削除</button>
+              </details>
             </div>
           </form>
         </FormProvider>

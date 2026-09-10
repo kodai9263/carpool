@@ -15,7 +15,7 @@ export function getGettingStartedAction(teamId: string, data: GettingStartedResp
   if (!data.childCount) return { step: 0, title: "乗車する子どもを登録しましょう", body: "登録した家族を開き、配車する子どもを追加してください。", label: "家族一覧を開く", href: `${base}/members` };
   if (!data.ride) return { step: 1, title: "次の配車日程を作りましょう", body: "日付と行き先を決めると、保護者へ回答を依頼できます。", label: "配車日程を作る", href: `${base}/rides/new` };
   if (!data.ride.driverCount && data.ride.isAnswerLocked) return { step: 2, title: "回答期限を見直しましょう", body: "回答がロックされています。配車画面で期限を延ばすかロックを解除してから、保護者へ回答を依頼してください。", label: "回答期限を確認する", href: `${base}/rides/${data.ride.id}#answer-deadline` };
-  if (!data.ride.driverCount) return { step: 2, title: "保護者に回答を依頼しましょう", body: "配車画面の「入力依頼をコピー」から、LINEで保護者へ案内できます。", label: "回答依頼へ進む", href: `${base}/rides/${data.ride.id}#share-request` };
+  if (!data.ride.driverCount) return { step: 2, title: "保護者に回答を依頼しましょう", body: "配車画面の「回答を依頼」から、LINEやコピーで保護者へ案内できます。", label: "回答依頼へ進む", href: `${base}/rides/${data.ride.id}#share-request` };
   return { step: 3, title: "自動割り当てを試してみましょう", body: "車を出せる保護者の回答が届いています。台数などの条件を確認して配車案を作り、手動で調整できます。", label: "配車案を作る", href: `${base}/rides/${data.ride.id}#auto-assign` };
 }
 

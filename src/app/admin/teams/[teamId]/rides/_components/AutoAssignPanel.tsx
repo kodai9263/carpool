@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { WalletCards, Wand2 } from "lucide-react";
 import type { AutoAssignBillingStatus } from "@/utils/billingServer";
 import { PRO_MONTHLY_PRICE_JPY } from "@/utils/billing";
@@ -36,6 +36,7 @@ export default function AutoAssignPanel({
   analyticsKey,
   assignmentSummary,
 }: Props) {
+  const numberOfCarsId = useId();
   const [numberOfCarsInput, setNumberOfCarsInput] = useState<string>("");
   const [separateParentChild, setSeparateParentChild] = useState<boolean>(false);
   const isLimitReached = Boolean(billingStatus && !billingStatus.canUseAutoAssign);
@@ -110,7 +111,7 @@ export default function AutoAssignPanel({
           <p>まずは車を出せる保護者の回答を集めましょう。</p>
           {onRequestAnswers && (
             <button type="button" onClick={onRequestAnswers} className="app-button-secondary mt-3 w-full">
-              回答依頼をコピー（LINE用）
+              回答を依頼
             </button>
           )}
         </div>
@@ -165,38 +166,48 @@ export default function AutoAssignPanel({
         </div>
       )}
 
-      <fieldset disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus} className="space-y-3 disabled:opacity-60">
-        {/* 台数入力 */}
-        <div className="flex items-center gap-3">
-          <label className="text-sm text-gray-700 w-16 shrink-0">台数</label>
-          <input
-            type="number"
-            min={1}
-            max={defaultNumberOfCars}
-            value={numberOfCarsInput}
-            onChange={handleNumberOfCarsChange}
-            placeholder="自動計算"
-            className="app-input w-28 py-2 text-sm"
-          />
-          <span className="text-xs text-gray-500">
-            空欄で自動計算（最大{defaultNumberOfCars ?? "-"}台）
+      <details className="rounded-lg border border-teal-100 bg-white/70">
+        <summary className="cursor-pointer px-3 py-3 text-sm text-teal-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
+          <span className="font-semibold">配車の条件</span>
+          <span className="ml-2 text-xs text-gray-600">
+            {numberOfCarsInput === "" ? "台数は自動計算" : `${numberOfCarsInput}台`}
+            {" ・ "}{separateParentChild ? "親子は別々の車" : "親子の指定なし"}
           </span>
-        </div>
-
-        {/* 親子分乗 */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-700 w-16 shrink-0">親子</span>
-          <label className="flex items-center gap-2 cursor-pointer">
+        </summary>
+        <fieldset disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus} className="space-y-3 px-3 pb-3 disabled:opacity-60">
+          {/* 台数入力 */}
+          <div className="flex items-center gap-3">
+            <label htmlFor={numberOfCarsId} className="text-sm text-gray-700 w-16 shrink-0">台数</label>
             <input
-              type="checkbox"
-              checked={separateParentChild}
-              onChange={(e) => setSeparateParentChild(e.target.checked)}
-              className="accent-teal-600 w-4 h-4"
+              id={numberOfCarsId}
+              type="number"
+              min={1}
+              max={defaultNumberOfCars}
+              value={numberOfCarsInput}
+              onChange={handleNumberOfCarsChange}
+              placeholder="自動計算"
+              className="app-input w-28 py-2 text-sm"
             />
-            <span className="text-sm text-gray-700">親子を別々の車にする</span>
-          </label>
-        </div>
-      </fieldset>
+            <span className="text-xs text-gray-500">
+              空欄で自動計算（最大{defaultNumberOfCars ?? "-"}台）
+            </span>
+          </div>
+
+          {/* 親子分乗 */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-700 w-16 shrink-0">親子</span>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={separateParentChild}
+                onChange={(e) => setSeparateParentChild(e.target.checked)}
+                className="accent-teal-600 w-4 h-4"
+              />
+              <span className="text-sm text-gray-700">親子を別々の車にする</span>
+            </label>
+          </div>
+        </fieldset>
+      </details>
 
       {/* 実行ボタン */}
       <button

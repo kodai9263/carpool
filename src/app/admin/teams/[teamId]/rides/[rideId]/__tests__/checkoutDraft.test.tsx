@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useFormContext } from "react-hook-form";
 import Page from "../page";
 import { useFetch } from "@/app/_hooks/useFetch";
@@ -29,6 +29,8 @@ const ride = { id: 2, date: "2030-09-15T00:00:00Z", destination: "保存済み",
 
 beforeEach(() => {
   jest.clearAllMocks();
+  HTMLDialogElement.prototype.showModal = jest.fn(function (this: HTMLDialogElement) { this.open = true; });
+  HTMLDialogElement.prototype.close = jest.fn(function (this: HTMLDialogElement) { this.open = false; });
   sessionStorage.clear();
   window.history.replaceState(null, "", "/admin/teams/1/rides/2?checkout=cancel");
   (useFetch as jest.Mock).mockImplementation((url: string) => ({
@@ -42,6 +44,7 @@ test("決済キャンセル後に未保存入力を戻し、バックグラウ�
   sessionStorage.setItem(key, serializeRideCheckoutDraft(draft));
   const { rerender } = render(<Page />);
   expect(screen.getByLabelText("行き先")).toHaveValue("決済前の行き先");
+  fireEvent.click(screen.getByText(/行き帰りの配車設定/));
   expect(screen.getByRole("checkbox", { name: "行き帰りを別々に配車する" })).toBeChecked();
   fireEvent.change(screen.getByLabelText("行き先"), { target: { value: "復帰後の修正" } });
   rerender(<Page />);
@@ -51,6 +54,7 @@ test("決済キャンセル後に未保存入力を戻し、バックグラウ�
 test("復帰後の期限保存も下書きへ反映し、次の再読込で古い期限に戻らない", async () => {
   sessionStorage.setItem(key, serializeRideCheckoutDraft(draft));
   const { container } = render(<Page />);
+  fireEvent.click(screen.getByText("共有の詳細・期限設定"));
   fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: "2030-09-13" } });
   fireEvent.click(screen.getByRole("button", { name: "設定" }));
   await waitFor(() => expect(api.patch).toHaveBeenCalled());
@@ -76,6 +80,61 @@ test("初回案内のリンクは読込後に目的のボタンへ移動し、�
     expect(document.activeElement?.id).toBe("share-request");
     rerender(<Page />);
     expect(scroll).toHaveBeenCalledTimes(1);
+  } finally {
+    HTMLElement.prototype.scrollIntoView = original;
+  }
+});
+
+
+test("回答依頼は保存済み期限とPINを含む回答画面のURLを表示し、編集中の値を保存しない", () => {
+  const savedRide = { ...ride, deadline: "2030-09-10T00:00:00Z", pin: "1234" };
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({
+    data: url.includes("billing") ? undefined : { ride: savedRide },
+    mutate: jest.fn(), isLoading: false,
+  }));
+  const { container } = render(<Page />);
+  fireEvent.change(screen.getByLabelText("行き先"), { target: { value: "未保存の行き先" } });
+  fireEvent.click(screen.getByText("共有の詳細・期限設定"));
+  fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: "2030-09-13" } });
+  fireEvent.click(within(screen.getByRole("region", { name: "メンバーへの連絡" })).getByRole("button", { name: "回答を依頼" }));
+  const text = screen.getByLabelText("共有する文面").textContent!;
+  expect(text).toContain("/member/teams/1/rides/2/availability");
+  expect(text).toContain("PINコード: 1234");
+  expect(text).toContain("9月10日まで");
+  expect(text).not.toContain("9月13日まで");
+  expect(text).toContain("保存済み");
+  expect(text).not.toContain("未保存の行き先");
+  expect(api.put).not.toHaveBeenCalled();
+  expect(api.patch).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "閉じる" }));
+  expect(screen.getByLabelText("行き先")).toHaveValue("未保存の行き先");
+});
+
+test("決定連絡は配車確認画面へ案内し、プレビューだけで更新を実行しない", () => {
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({
+    data: url.includes("billing") ? undefined : { ride: { ...ride, pin: "1234" } },
+    mutate: jest.fn(), isLoading: false,
+  }));
+  render(<Page />);
+  fireEvent.click(screen.getByRole("button", { name: "配車決定を連絡" }));
+  const text = screen.getByLabelText("共有する文面").textContent!;
+  expect(text).toContain("/member/teams/1/rides/2");
+  expect(text).not.toContain("/availability");
+  expect(api.put).not.toHaveBeenCalled();
+  expect(api.patch).not.toHaveBeenCalled();
+});
+
+test("期限確認のリンクは折りたたみを開いてから目的箇所へ移動する", async () => {
+  window.history.replaceState(null, "", "/admin/teams/1/rides/2#answer-deadline");
+  const original = HTMLElement.prototype.scrollIntoView;
+  const scroll = jest.fn(function (this: HTMLElement) {
+    expect(this.closest("details")).toHaveAttribute("open");
+  });
+  HTMLElement.prototype.scrollIntoView = scroll;
+  try {
+    render(<Page />);
+    await waitFor(() => expect(scroll).toHaveBeenCalledTimes(1));
+    expect(document.activeElement?.id).toBe("answer-deadline");
   } finally {
     HTMLElement.prototype.scrollIntoView = original;
   }

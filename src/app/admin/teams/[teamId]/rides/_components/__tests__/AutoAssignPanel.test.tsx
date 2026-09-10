@@ -16,7 +16,7 @@ test("車出し可能な回答がなければ回答依頼を案内し、無料�
   const request = jest.fn();
   render(<AutoAssignPanel onAssign={jest.fn()} onUpgradeClick={jest.fn()} onRequestAnswers={request} isAssigning={false} error={null} defaultNumberOfCars={0} billingStatus={free} />);
   expect(screen.getByRole("button", { name: "無料で配車案を作る" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("button", { name: "回答依頼をコピー（LINE用）" }));
+  fireEvent.click(screen.getByRole("button", { name: "回答を依頼" }));
   expect(request).toHaveBeenCalledTimes(1);
 });
 
@@ -32,4 +32,21 @@ test("Proとデモには購入ボタンを出さない", () => {
   expect(screen.queryByRole("button", { name: "月300円で続ける" })).not.toBeInTheDocument();
   rerender(<AutoAssignPanel {...props} billingStatus={{ ...free, isExempt: true }} />);
   expect(screen.queryByRole("button", { name: "月300円で続ける" })).not.toBeInTheDocument();
+});
+
+
+test("条件は折り畳み、変更した内容を要約と配車作成に反映する", () => {
+  const assign = jest.fn().mockResolvedValue(undefined);
+  render(<AutoAssignPanel onAssign={assign} onUpgradeClick={jest.fn()} isAssigning={false} error={null} defaultNumberOfCars={3} billingStatus={free} />);
+  const details = screen.getByText("配車の条件").closest("details");
+  expect(details).not.toHaveAttribute("open");
+  expect(screen.getByText("3台 ・ 親子の指定なし")).toBeInTheDocument();
+  fireEvent.click(screen.getByText("配車の条件"));
+  fireEvent.change(screen.getByLabelText("台数"), { target: { value: "2" } });
+  fireEvent.click(screen.getByLabelText("親子を別々の車にする"));
+  expect(screen.getByText("2台 ・ 親子は別々の車")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "無料で配車案を作る" }));
+  expect(assign).toHaveBeenCalledWith({ numberOfCars: 2, separateParentChild: true });
+  fireEvent.change(screen.getByLabelText("台数"), { target: { value: "" } });
+  expect(screen.getByText("台数は自動計算 ・ 親子は別々の車")).toBeInTheDocument();
 });
