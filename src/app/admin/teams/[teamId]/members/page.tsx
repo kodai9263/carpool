@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-
 import { LoadingSpinner } from "@/app/_components/LoadingSpinner";
 import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import PaginationNav from "@/app/_components/PaginationNav";
@@ -71,7 +69,6 @@ export default function Page() {
               autoStart
               className="app-button-secondary w-full shrink-0 sm:w-auto"
             />
-            <Link href={`/admin/teams/${teamId}/members/bulk`} className="app-button-secondary w-full sm:w-auto">まとめて登録</Link>
             <div data-guide="admin-member-new" className="w-full sm:w-auto">
               <NewButton
                 href={`/admin/teams/${teamId}/members/new`}
