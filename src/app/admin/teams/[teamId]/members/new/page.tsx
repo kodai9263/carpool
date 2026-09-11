@@ -1,4 +1,3 @@
-import Link from "next/link";
 import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { UserPlus } from "lucide-react";
 import MemberForm from "../_components/MemberForm";
@@ -21,7 +20,7 @@ const newMemberGuideSteps = [
   },
 ] satisfies GuidedTourStep[];
 
-export default function Page({ params }: { params: { teamId: string } }) {
+export default function Page() {
   return (
     <div className="app-page">
       <div className="app-container max-w-xl">
@@ -40,7 +39,6 @@ export default function Page({ params }: { params: { teamId: string } }) {
             className="app-button-secondary w-full shrink-0 sm:w-auto"
           />
         </div>
-        <Link href={`/admin/teams/${params.teamId}/members/bulk`} className="app-button-secondary mb-4 w-full">複数の家族をまとめて登録</Link>
         <div className="app-card p-6 md:p-8">
         <MemberForm />
         </div>
