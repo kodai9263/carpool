@@ -88,7 +88,7 @@ export const Sidebar: React.FC = () => {
                 className={isActive(`/admin/teams/${teamId}/members`) ? activeNavItemClass : navItemClass}
               >
                 <User size={18} />
-                <span>メンバー</span>
+                <span>家族・メンバー</span>
               </Link>
               <Link
                 href={`/admin/teams/${teamId}/rides`}
@@ -153,7 +153,7 @@ export const Sidebar: React.FC = () => {
                 href={`/admin/teams/${teamId}/members`}
                 className={isActive(`/admin/teams/${teamId}/members`) ? activeMobileNavItemClass : mobileNavItemClass}
               >
-                <User size={22} /><span>メンバー</span>
+                <User size={22} /><span>家族・メンバー</span>
               </Link>
             </>
           )}

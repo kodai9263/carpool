@@ -9,7 +9,6 @@ jest.mock("@/lib/prisma", () => ({ prisma: {
   member: { count: jest.fn() },
   child: { count: jest.fn() },
   ride: { findFirst: jest.fn() },
-  admin: { findUniqueOrThrow: jest.fn() },
 } }));
 const request = () => new NextRequest("https://app.example/api/admin/teams/2/getting-started");
 const context = { params: { teamId: "2" } };
@@ -21,9 +20,8 @@ beforeEach(() => {
   (prisma.member.count as jest.Mock).mockResolvedValue(4);
   (prisma.child.count as jest.Mock).mockResolvedValue(6);
   (prisma.ride.findFirst as jest.Mock).mockResolvedValue({
-    id: 12, date: new Date("2026-09-10T00:00:00.000Z"), destination: "体育館", _count: { availabilityDrivers: 2 },
+    id: 12, date: new Date("2026-09-10T00:00:00.000Z"), destination: "体育館", _count: { availabilityDrivers: 2, rideAssignments: 0 },
   });
-  (prisma.admin.findUniqueOrThrow as jest.Mock).mockResolvedValue({ autoAssignTrialUsed: 0, billingPlan: "free" });
 });
 afterEach(() => jest.useRealTimers());
 
@@ -32,8 +30,7 @@ test("所有権確認を通過したチームだけ取得し、必要な件数�
   expect(getAuthAdminIdWithTeam).toHaveBeenCalledWith(expect.any(NextRequest), 2);
   expect(prisma.member.count).toHaveBeenCalledWith({ where: { teamId: 2 } });
   expect(prisma.child.count).toHaveBeenCalledWith({ where: { member: { teamId: 2 } } });
-  expect(prisma.admin.findUniqueOrThrow).toHaveBeenCalledWith({ where: { id: 9 }, select: { autoAssignTrialUsed: true, billingPlan: true } });
-  expect(await response.json()).toEqual({ memberCount: 4, childCount: 6, ride: { id: 12, date: "2026-09-10T00:00:00.000Z", destination: "体育館", driverCount: 2, isAnswerLocked: false }, hasTriedAutoAssign: false });
+  expect(await response.json()).toEqual({ memberCount: 4, childCount: 6, ride: { id: 12, date: "2026-09-10T00:00:00.000Z", destination: "体育館", driverCount: 2, isAnswerLocked: false, hasSavedAssignments: false } });
 });
 
 test("他人のチームは認証ラッパーが拒否し、状況を読み取らない", async () => {
@@ -65,16 +62,17 @@ test.each([
 test("候補数は自動割当本体と同じ運転可の回答だけ数える", async () => {
   await GET(request(), context);
   expect(prisma.ride.findFirst).toHaveBeenCalledWith(expect.objectContaining({ select: expect.objectContaining({
-    _count: { select: { availabilityDrivers: { where: { teamId: 2, type: "driver", availability: true } } } },
+    _count: { select: { rideAssignments: true, availabilityDrivers: { where: { teamId: 2, type: "driver", availability: true } } } },
   }) }));
 });
 
-test.each([
-  [0, "free", false], [1, "free", true], [0, "pro", true], [0, "PRO", false],
-])("試用回数%s・プラン%sの既存ルールを使う", async (autoAssignTrialUsed, billingPlan, expected) => {
-  (prisma.admin.findUniqueOrThrow as jest.Mock).mockResolvedValue({ autoAssignTrialUsed, billingPlan });
+test.each([[0, false], [1, true], [12, true]])("保存済み割当%s件を試用回数やプランに依存せず返す", async (count, expected) => {
+  (prisma.ride.findFirst as jest.Mock).mockResolvedValue({
+    id: 12, date: new Date("2026-09-10T00:00:00.000Z"), destination: "体育館",
+    _count: { availabilityDrivers: 2, rideAssignments: count },
+  });
   const response = await GET(request(), context);
-  expect((await response.json()).hasTriedAutoAssign).toBe(expected);
+  expect((await response.json()).ride.hasSavedAssignments).toBe(expected);
 });
 
 test("まだ配車がなければnullを返す", async () => {
@@ -84,7 +82,7 @@ test("まだ配車がなければnullを返す", async () => {
 });
 
 test("DB障害を未着手の正常応答にしない", async () => {
-  (prisma.admin.findUniqueOrThrow as jest.Mock).mockRejectedValue(new Error("missing admin"));
+  (prisma.ride.findFirst as jest.Mock).mockRejectedValue(new Error("connection failed"));
   const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   try {
     const response = await GET(request(), context);
@@ -100,7 +98,7 @@ test.each([[true, true], [false, false]])("未来配車でも回答期限切れ�
   (prisma.ride.findFirst as jest.Mock).mockResolvedValue({
     id: 12, date: new Date("2026-09-12T00:00:00.000Z"), destination: "体育館",
     deadline: new Date("2026-09-09T00:00:00.000Z"), lockAfterDeadline,
-    _count: { availabilityDrivers: 0 },
+    _count: { availabilityDrivers: 0, rideAssignments: 0 },
   });
   const response = await GET(request(), context);
   expect((await response.json()).ride.isAnswerLocked).toBe(expected);

@@ -7,6 +7,6 @@ export interface GettingStartedResponse {
     destination: string;
     driverCount: number;
     isAnswerLocked: boolean;
+    hasSavedAssignments: boolean;
   } | null;
-  hasTriedAutoAssign: boolean;
 }

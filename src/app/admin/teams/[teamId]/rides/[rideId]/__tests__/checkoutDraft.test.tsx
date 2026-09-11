@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import toast from "react-hot-toast";
+import { trackEvent } from "@/utils/analytics";
 import { useFormContext } from "react-hook-form";
 import Page from "../page";
 import { useFetch } from "@/app/_hooks/useFetch";
@@ -9,7 +11,8 @@ import { rideCheckoutDraftKey, serializeRideCheckoutDraft, parseRideCheckoutDraf
 jest.mock("next/navigation", () => ({ useParams: () => ({ teamId: "1", rideId: "2" }), useRouter: () => ({ push: jest.fn(), replace: jest.fn() }), notFound: jest.fn() }));
 jest.mock("@/app/_hooks/useSupabaseSession", () => ({ useSupabaseSession: () => ({ token: "token", session: { user: { id: "owner", email: "test@example.com" } } }) }));
 jest.mock("@/app/_hooks/useFetch", () => ({ useFetch: jest.fn() }));
-jest.mock("@/utils/api", () => ({ api: { put: jest.fn(), patch: jest.fn() } }));
+jest.mock("@/utils/api", () => ({ api: { put: jest.fn(), patch: jest.fn(), post: jest.fn() } }));
+jest.mock("react-hot-toast", () => ({ __esModule: true, default: { success: jest.fn(), error: jest.fn() } }));
 jest.mock("@/utils/analytics", () => ({ trackEvent: jest.fn() }));
 jest.mock("@/app/_components/GuidedTour", () => ({ __esModule: true, default: () => null }));
 jest.mock("../../_components/RideDriverList", () => ({ __esModule: true, default: () => null }));
@@ -168,4 +171,85 @@ test("日付の入力エラーでは閉じた予定欄を開く", async () => {
   fireEvent.click(screen.getByRole("button", { name: "変更を更新" }));
   await waitFor(() => expect(details).toHaveAttribute("open"));
   expect(api.put).not.toHaveBeenCalled();
+});
+
+
+const assignedDraft = {
+  ...draft,
+  values: { ...draft.values, drivers: [{ availabilityDriverId: 7, type: "driver", direction: "outbound" as const, seats: 2, rideAssignments: [{ childId: 3 }], escorts: [] }] },
+};
+
+test("保存と再取得を待ってから最新の内容の連絡を案内し、再編集で案内を隠す", async () => {
+  sessionStorage.setItem(key, serializeRideCheckoutDraft(assignedDraft));
+  let currentRide = { ...ride, pin: "1234", drivers: [{ rideAssignments: [{ child: { id: 3 } }], escorts: [] }] };
+  let finishRefresh!: (value: { ride: typeof currentRide }) => void;
+  const refresh = jest.fn(() => new Promise<{ ride: typeof currentRide }>((resolve) => { finishRefresh = resolve; }));
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({ data: url.includes("billing") ? undefined : { ride: currentRide }, mutate: refresh, isLoading: false }));
+  (api.put as jest.Mock).mockResolvedValue({});
+  render(<Page />);
+  fireEvent.click(screen.getByRole("button", { name: "変更を更新" }));
+  await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  expect(screen.queryByRole("button", { name: "連絡する文面を確認" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "配車決定を連絡" })).toBeDisabled();
+  currentRide = { ...currentRide, destination: "決済前の行き先" };
+  finishRefresh({ ride: currentRide });
+  await waitFor(() => expect(screen.getByRole("button", { name: "連絡する文面を確認" })).toBeInTheDocument());
+  fireEvent.click(screen.getByRole("button", { name: "連絡する文面を確認" }));
+  expect(screen.getByLabelText("共有する文面")).toHaveTextContent("決済前の行き先");
+  expect(trackEvent).toHaveBeenCalledWith("ride_saved", { team_id: "1", ride_id: "2" });
+  expect(trackEvent).not.toHaveBeenCalledWith("share_text_copied", expect.anything());
+  fireEvent.click(screen.getByRole("button", { name: "閉じる" }));
+  fireEvent.change(screen.getByLabelText("行き先"), { target: { value: "再編集" } });
+  expect(screen.queryByRole("button", { name: "連絡する文面を確認" })).not.toBeInTheDocument();
+});
+
+test("保存後の再取得失敗を保存失敗と扱わず、古い内容の決定連絡を止める", async () => {
+  sessionStorage.setItem(key, serializeRideCheckoutDraft(assignedDraft));
+  const refresh = jest.fn().mockRejectedValue(new Error("fetch failed"));
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({ data: url.includes("billing") ? undefined : { ride }, mutate: refresh, isLoading: false }));
+  (api.put as jest.Mock).mockResolvedValue({});
+  render(<Page />);
+  fireEvent.click(screen.getByRole("button", { name: "変更を更新" }));
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("配車の保存は完了しました")));
+  expect(screen.queryByRole("button", { name: "連絡する文面を確認" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "配車決定を連絡" })).toBeDisabled();
+  expect(api.put).toHaveBeenCalledTimes(1);
+});
+
+test("保存失敗時は共有案内も保存イベントも出さない", async () => {
+  sessionStorage.setItem(key, serializeRideCheckoutDraft(assignedDraft));
+  (api.put as jest.Mock).mockRejectedValue(new Error("save failed"));
+  const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    render(<Page />);
+    fireEvent.click(screen.getByRole("button", { name: "変更を更新" }));
+    await waitFor(() => expect(alertSpy).toHaveBeenCalled());
+    expect(screen.queryByRole("button", { name: "連絡する文面を確認" })).not.toBeInTheDocument();
+    expect(trackEvent).not.toHaveBeenCalledWith("ride_saved", expect.anything());
+  } finally { alertSpy.mockRestore(); errorSpy.mockRestore(); }
+});
+
+test.each(["share-final", "ride-save"])("案内先 #%s は読込後にフォーカスを移す", async (target) => {
+  window.history.replaceState(null, "", `/admin/teams/1/rides/2#${target}`);
+  const original = HTMLElement.prototype.scrollIntoView;
+  HTMLElement.prototype.scrollIntoView = jest.fn();
+  try {
+    render(<Page />);
+    await waitFor(() => expect(document.activeElement?.id).toBe(target));
+  } finally { HTMLElement.prototype.scrollIntoView = original; }
+});
+
+
+test("送信した割当が保存結果にない場合は、共有案内を表示しない", async () => {
+  sessionStorage.setItem(key, serializeRideCheckoutDraft(assignedDraft));
+  const refresh = jest.fn().mockResolvedValue({ ride });
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({ data: url.includes("billing") ? undefined : { ride }, mutate: refresh, isLoading: false }));
+  (api.put as jest.Mock).mockResolvedValue({});
+  render(<Page />);
+  fireEvent.click(screen.getByRole("button", { name: "変更を更新" }));
+  await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(screen.getByRole("button", { name: "変更を更新" })).toBeEnabled());
+  expect(screen.queryByRole("button", { name: "連絡する文面を確認" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "配車決定を連絡" })).toBeEnabled();
 });

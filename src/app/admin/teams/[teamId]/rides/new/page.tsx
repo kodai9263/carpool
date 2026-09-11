@@ -2,6 +2,7 @@ import GuidedTour, { type GuidedTourStep } from "@/app/_components/GuidedTour";
 import { Car } from "lucide-react";
 import { Suspense } from "react";
 import RideForm from "../_components/RideForm";
+import GettingStartedCard from "../../../_components/GettingStartedCard";
 
 const newRideGuideSteps = [
   {
@@ -16,7 +17,7 @@ const newRideGuideSteps = [
   },
 ] satisfies GuidedTourStep[];
 
-export default function Page() {
+export default function Page({ params }: { params: { teamId: string } }) {
   return (
     <div className="app-page">
       <div className="app-container max-w-xl">
@@ -35,6 +36,7 @@ export default function Page() {
             className="app-button-secondary w-full shrink-0 sm:w-auto"
           />
         </div>
+        <GettingStartedCard teamId={params.teamId} familyRegistrationOnly />
         <div className="app-card p-6 md:p-8">
         <Suspense>
           <RideForm />

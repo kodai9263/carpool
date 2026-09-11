@@ -1,6 +1,5 @@
 import type { GettingStartedResponse } from "@/app/_types/response/gettingStartedResponse";
 import { prisma } from "@/lib/prisma";
-import { isProPlan } from "@/utils/billing";
 import { isAnswerLocked } from "@/utils/deadlineLock";
 import { withAuthTeam } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,13 +7,13 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =>
-  withAuthTeam(request, async ({ adminId, teamId }) => {
+  withAuthTeam(request, async ({ teamId }) => {
     try {
       // 実行サーバーのタイムゾーンに依存せず、日本時間の今日の午前0時を求める。
       const jstOffset = 9 * 60 * 60 * 1000;
       const dayLength = 24 * 60 * 60 * 1000;
       const today = new Date(Math.floor((Date.now() + jstOffset) / dayLength) * dayLength - jstOffset);
-      const [memberCount, childCount, ride, admin] = await Promise.all([
+      const [memberCount, childCount, ride] = await Promise.all([
         prisma.member.count({ where: { teamId } }),
         prisma.child.count({ where: { member: { teamId } } }),
         prisma.ride.findFirst({
@@ -28,15 +27,12 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
             lockAfterDeadline: true,
             _count: {
               select: {
+                rideAssignments: true,
                 // 自動割り当てAPIと同じ条件で運転候補の回答を数える。
                 availabilityDrivers: { where: { teamId, type: "driver", availability: true } },
               },
             },
           },
-        }),
-        prisma.admin.findUniqueOrThrow({
-          where: { id: adminId },
-          select: { autoAssignTrialUsed: true, billingPlan: true },
         }),
       ]);
       return NextResponse.json({
@@ -48,8 +44,8 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
           destination: ride.destination,
           driverCount: ride._count.availabilityDrivers,
           isAnswerLocked: isAnswerLocked(ride.deadline, ride.lockAfterDeadline),
+          hasSavedAssignments: ride._count.rideAssignments > 0,
         } : null,
-        hasTriedAutoAssign: admin.autoAssignTrialUsed > 0 || isProPlan(admin.billingPlan),
       } satisfies GettingStartedResponse);
     } catch (error) {
       console.error("初回利用状況の取得に失敗しました:", error);
