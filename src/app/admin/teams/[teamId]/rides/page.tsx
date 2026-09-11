@@ -24,7 +24,7 @@ const rideListGuideSteps = [
   {
     target: "admin-ride-list",
     title: "配車詳細へ進みます",
-    body: "配車予定を開くと、回答依頼のLINE共有、自動割り当て、決定後の案内コピーまで進めます。",
+    body: "配車予定を開くと、回答依頼のLINE共有、ドライバーと乗せる人の割り当て、決定後の案内コピーまで進めます。",
   },
 ] satisfies GuidedTourStep[];
 

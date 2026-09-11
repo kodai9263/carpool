@@ -73,7 +73,7 @@ export function BillingReturnNotice({ token, onConfirmed, onPendingChange }: Pro
           if (cancelled) return;
           clearTimeout(deadline);
           callbacks.current.onPendingChange?.(false);
-          setMessage("Proプランが有効になりました。自動割り当てを利用できます。");
+          setMessage("Proプランが有効になりました。");
           trackEvent("checkout_confirmed", { source: "billing_return" });
           return;
         }

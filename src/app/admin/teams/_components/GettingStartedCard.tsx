@@ -18,7 +18,7 @@ export function getGettingStartedAction(teamId: string, data: GettingStartedResp
   if (data.ride.hasSavedAssignments) return { step: 4, title: "配車を確認して連絡しましょう", body: "乗せ忘れや行き帰りの割り当てを確認し、変更があれば保存してから「配車決定を連絡」で保護者へ案内してください。", label: "配車を確認して連絡する", href: `${base}/rides/${data.ride.id}#share-final` };
   if (!data.ride.driverCount && data.ride.isAnswerLocked) return { step: 2, title: "回答期限を見直しましょう", body: "回答がロックされています。配車画面で期限を延ばすかロックを解除してから、保護者へ回答を依頼してください。", label: "回答期限を確認する", href: `${base}/rides/${data.ride.id}#answer-deadline` };
   if (!data.ride.driverCount) return { step: 2, title: "保護者に回答を依頼しましょう", body: "配車画面の「回答を依頼」から、LINEやコピーで保護者へ案内できます。", label: "回答依頼へ進む", href: `${base}/rides/${data.ride.id}#share-request` };
-  return { step: 3, title: "配車を割り当てて保存しましょう", body: "車を出せる保護者の回答が届いています。自動または手動で割り当て、内容を確認したら「変更を更新」で保存してください。", label: "配車を割り当てる", href: `${base}/rides/${data.ride.id}#auto-assign` };
+  return { step: 3, title: "配車を割り当てて保存しましょう", body: "車を出せる保護者の回答が届いています。ドライバーと乗せる人を選び、内容を確認したら「変更を更新」で保存してください。", label: "配車を割り当てる", href: `${base}/rides/${data.ride.id}#manual-assign` };
 }
 
 export function GettingStartedContent({ teamId, data }: { teamId: string; data: GettingStartedResponse }) {
@@ -57,7 +57,6 @@ export function GettingStartedContent({ teamId, data }: { teamId: string; data: 
       <Link href={action.href} className="app-button-primary mt-4 flex w-full items-center justify-center gap-2 sm:w-fit" onClick={() => trackEvent("getting_started_clicked", { team_id: teamId, step: action.step })}>
         {action.label}<ArrowRight size={16} aria-hidden="true" />
       </Link>
-      <p className="mt-3 text-xs leading-5 text-gray-500">無料のお試し回数は、配車画面で確認できます。日程や回答を開くだけでは回数を消費しません。</p>
     </section>
   );
 }

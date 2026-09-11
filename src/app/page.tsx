@@ -18,7 +18,6 @@ import { LpTracker, TrackedLink } from "./_components/LpTracker";
 import { FeaturesSection } from "./_components/FeaturesSection";
 import { prisma } from "@/lib/prisma";
 import {
-  AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   FREE_TEAM_LIMIT,
   PRO_MONTHLY_PRICE_JPY,
   PRO_YEARLY_PRICE_JPY,
@@ -35,7 +34,7 @@ const problems = [
 
 const benefits = [
   { icon: ClipboardList, title: "回答を集める", desc: "保護者の配車可否と子どもの参加可否を一画面で確認。" },
-  { icon: Sparkles, title: "自動で割り当て", desc: "座席数に合わせて、子どもをドライバーへ自動アサイン。" },
+  { icon: Car, title: "配車を調整", desc: "回答と座席数を確認し、子どもを車ごとに割り当て。" },
   { icon: CalendarCheck, title: "当日も確認", desc: "参加者・欠席者をその場で見られるので調整が早い。" },
 ];
 
@@ -43,7 +42,7 @@ const adminSteps = [
   { n: "1", title: "チームを作成", desc: "チームID・チーム名・PINコードを登録します。" },
   { n: "2", title: "メンバーを登録", desc: "保護者名と子どもの名前・学年を登録します。" },
   { n: "3", title: "配車日程を作成", desc: "日付・行き先・集合場所を登録し、回答期限を設定できます。" },
-  { n: "4", title: "配車を確定", desc: "回答を確認し、自動割り当てや手動調整で配車を保存します。" },
+  { n: "4", title: "配車を確定", desc: "回答を確認し、車ごとに割り当てて配車を保存します。" },
 ];
 
 const memberSteps = [
@@ -54,13 +53,12 @@ const memberSteps = [
 
 const freeFeatures = [
   "1チームまで無料",
-  `自動アサインは${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回までお試し`,
+  "配車作成・回答収集・乗車の割り当て",
   "メンバーはアカウント登録なしで参加",
   "LINEに貼れる共有テキストをコピー",
 ];
 
 const proFeatures = [
-  "自動アサインを無制限で利用",
   "複数チームの管理",
   "年払いなら月あたり250円",
 ];
@@ -68,7 +66,7 @@ const proFeatures = [
 const faqs = [
   {
     question: "無料でどこまで使えますか？",
-    answer: `まずは${FREE_TEAM_LIMIT}チームを無料で使えます。配車作成、メンバー回答、LINE共有、自動割り当て${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回までを試せます。`,
+    answer: `まずは${FREE_TEAM_LIMIT}チームを無料で使えます。配車作成、メンバー回答、乗車の割り当て、LINE共有を利用できます。`,
   },
   {
     question: "メンバーにも登録や支払いが必要ですか？",
@@ -76,7 +74,7 @@ const faqs = [
   },
   {
     question: "Proはどんな人向けですか？",
-    answer: "複数チームを管理したい方や、自動割り当てを継続的に使いたい配車係向けです。",
+    answer: "複数チームを管理したい配車係向けです。",
   },
   {
     question: "支払い開始後にすぐ使えなくなりますか？",
@@ -153,7 +151,7 @@ export default async function Home() {
               迷わず進める。
             </h1>
             <p className="mt-5 max-w-xl text-base leading-8 text-gray-600 md:text-lg">
-              LINEやExcelでのやり取りを減らし、配車可否の収集から自動アサイン、当日の出欠確認までをひとつのアプリで完結します。
+              LINEやExcelでのやり取りを減らし、配車可否の収集から乗車の割り当て、当日の出欠確認までをひとつのアプリで完結します。
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -353,10 +351,10 @@ function PricingSection() {
       <div className="app-container">
         <div className="mb-10 max-w-2xl">
           <p className="mb-2 text-sm font-semibold text-teal-700">料金</p>
-          <h2 className="app-section-title">1チームは無料。必要になったらProへ。</h2>
+          <h2 className="app-section-title">1チームは無料。複数チームの管理はProで。</h2>
           <p className="mt-3 text-sm leading-7 text-gray-500 md:text-base">
             個人の配車係が安心して使い始められるよう、まずは無料で運用できます。
-            自動アサインを継続して使いたい、または複数チームの管理が必要になったタイミングでProを検討できます。
+            複数チームの管理が必要になったタイミングでProを検討できます。
           </p>
         </div>
 
@@ -368,7 +366,7 @@ function PricingSection() {
                   <ShieldCheck size={22} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-950">Free</h3>
-                <p className="mt-1 text-sm text-gray-500">まずは配車係1人で試したい方向け</p>
+                <p className="mt-1 text-sm text-gray-500">1チームの配車を管理したい方向け</p>
               </div>
               <span className="app-status bg-teal-50 text-teal-800">おすすめ</span>
             </div>
@@ -393,7 +391,7 @@ function PricingSection() {
                   <WalletCards size={22} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-950">Pro</h3>
-                <p className="mt-1 text-sm text-gray-600">配車調整の手間をもっと減らしたい方向け</p>
+                <p className="mt-1 text-sm text-gray-600">複数チームを管理したい方向け</p>
               </div>
               <span className="app-status bg-white text-amber-800">年払いがお得</span>
             </div>
