@@ -9,6 +9,7 @@ import { TeamDetailResponse } from "@/app/_types/response/teamResponse";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NewButton } from "../../_components/NewButton";
+import GettingStartedCard from "../../_components/GettingStartedCard";
 import { Calendar, CalendarPlus, ChevronRight, Copy, MapPin, MapPinned } from "lucide-react";
 import PaginationNav from "@/app/_components/PaginationNav";
 import { formatDate } from "@/utils/formatDate";
@@ -73,6 +74,8 @@ export default function Page() {
             </div>
           </div>
         </div>
+
+        <GettingStartedCard teamId={teamId} familyRegistrationOnly />
 
         <div className="app-card divide-y divide-gray-100 overflow-hidden" data-guide="admin-ride-list">
           {rides.length === 0 && (

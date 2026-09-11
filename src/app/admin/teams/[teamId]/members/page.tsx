@@ -61,7 +61,7 @@ export default function Page() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="mb-1 text-sm font-semibold text-teal-700">{teamData?.team.teamName}</p>
-            <h1 className="app-section-title">メンバー一覧</h1>
+            <h1 className="app-section-title">家族・メンバー一覧</h1>
             <p className="mt-2 text-sm text-gray-500">{members.length}件の家族を表示中</p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
@@ -76,6 +76,7 @@ export default function Page() {
               <NewButton
                 href={`/admin/teams/${teamId}/members/new`}
                 trackLabel="member_header"
+                label="家族を登録"
               />
             </div>
           </div>
@@ -102,7 +103,7 @@ export default function Page() {
                 <UserPlus size={22} />
               </span>
               <p className="font-bold text-gray-950">
-                {search ? "該当するメンバーが見つかりません" : "まだメンバーがいません"}
+                {search ? "該当するメンバーが見つかりません" : "まだ家族が登録されていません"}
               </p>
               <p className="mt-2 text-sm leading-6 text-gray-500">
                 {search ? `「${search}」の検索条件を変えてみてください。` : "保護者と子どもを登録すると、配車の回答依頼を始められます。"}
@@ -112,6 +113,7 @@ export default function Page() {
                   <NewButton
                     href={`/admin/teams/${teamId}/members/new`}
                     trackLabel="member_empty_state"
+                    label="最初の家族を登録"
                   />
                 </div>
               )}

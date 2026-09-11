@@ -16,7 +16,7 @@ const newMemberGuideSteps = [
   },
   {
     target: "admin-new-member-submit",
-    title: "メンバーを登録します",
+    title: "家族を登録します",
     body: "登録すると、配車回答画面でこの家族を選べるようになります。",
   },
 ] satisfies GuidedTourStep[];
@@ -27,10 +27,10 @@ export default function Page({ params }: { params: { teamId: string } }) {
       <div className="app-container max-w-xl">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="mb-1 text-sm font-semibold text-teal-700">新規メンバー</p>
+            <p className="mb-1 text-sm font-semibold text-teal-700">新しい家族</p>
             <h1 className="app-section-title flex items-center gap-2">
               <UserPlus size={26} className="text-teal-700" />
-              メンバー登録
+              家族登録
             </h1>
           </div>
           <GuidedTour

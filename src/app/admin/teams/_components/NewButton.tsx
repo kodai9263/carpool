@@ -5,11 +5,13 @@ import { trackEvent } from "@/utils/analytics";
 interface NewButtonProps {
   href: string;
   trackLabel?: string;
+  label?: string;
 }
 
 export const NewButton: React.FC<NewButtonProps> = ({
   href,
   trackLabel,
+  label = "新規作成",
 }) => {
   return (
     <Link 
@@ -24,7 +26,7 @@ export const NewButton: React.FC<NewButtonProps> = ({
       <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white/15 transition group-hover:bg-white/25">
         <Plus size={14} strokeWidth={2.5} />
       </span>
-      新規作成
+      {label}
     </Link>
   );
 };

@@ -121,7 +121,8 @@ export default function AutoAssignPanel({
       {assignmentSummary && (
         <div role="status" className="rounded-lg border border-teal-200 bg-white p-3 text-sm text-teal-950">
           <p className="font-semibold">{assignmentSummary.children}人・{assignmentSummary.cars}台の配車案を作成しました</p>
-          <p className="mt-1 leading-6">下の割り当てを確認し、画面下の「更新」で確定してください。</p>
+          <p className="mt-1 leading-6">まだ保存されていません。下の割り当てを確認し、「変更を更新」で保存してください。</p>
+          <a href="#ride-save" className="app-button-secondary mt-3 inline-flex">保存ボタンへ進む</a>
         </div>
       )}
 

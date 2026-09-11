@@ -40,7 +40,7 @@ export default function TeamForm() {
         token
       );
 
-      router.push(`/admin/teams/${id}/rides`);
+      router.push(`/admin/teams/${id}/members`);
       toast.success("チームを作成しました。");
     } catch (e: unknown) {
       console.error(e);

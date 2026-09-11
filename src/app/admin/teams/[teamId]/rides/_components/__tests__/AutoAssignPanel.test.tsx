@@ -54,3 +54,10 @@ test("条件は折り畳み、変更した内容を要約と配車作成に反�
   fireEvent.change(screen.getByLabelText("台数"), { target: { value: "" } });
   expect(screen.getByText("台数は自動計算 ・ 親子は別々の車")).toBeInTheDocument();
 });
+
+
+test("作成しただけの配車案は未保存と明示し、保存操作へ案内する", () => {
+  render(<AutoAssignPanel onAssign={jest.fn()} onUpgradeClick={jest.fn()} isAssigning={false} error={null} defaultNumberOfCars={2} billingStatus={free} assignmentSummary={{ children: 8, cars: 2 }} />);
+  expect(screen.getByRole("status")).toHaveTextContent("まだ保存されていません");
+  expect(screen.getByRole("link", { name: "保存ボタンへ進む" })).toHaveAttribute("href", "#ride-save");
+});

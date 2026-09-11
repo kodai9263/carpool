@@ -65,14 +65,14 @@ const rideDetailGuideSteps = [
     primaryAction: "dismiss",
   },
   {
-    target: "admin-ride-share-final",
-    title: "決定後の案内を共有します",
-    body: "配車を保存したら、「配車決定を連絡」からメンバーへ案内できます。",
-  },
-  {
     target: "admin-ride-save",
     title: "変更した内容を保存します",
     body: "配車内容を調整したら、最後に更新して確定します。",
+  },
+  {
+    target: "admin-ride-share-final",
+    title: "決定後の案内を共有します",
+    body: "配車を保存したら、「配車決定を連絡」からメンバーへ案内できます。",
   },
 ] satisfies GuidedTourStep[];
 
@@ -99,7 +99,7 @@ export default function Page() {
   });
   const {
     handleSubmit,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting, errors, isDirty },
     reset,
     watch,
     control,
@@ -164,6 +164,8 @@ export default function Page() {
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const [isPaymentPending, setIsPaymentPending] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [hasStaleSavedRide, setHasStaleSavedRide] = useState(false);
+  const [savedAssignmentNotice, setSavedAssignmentNotice] = useState(false);
   const [assignmentSummary, setAssignmentSummary] = useState<{ children: number; cars: number } | null>(null);
   const initializedForm = useRef<string | null>(null);
   const scrolledAction = useRef<string | null>(null);
@@ -173,7 +175,7 @@ export default function Page() {
   useEffect(() => {
     if (isLoading || !data?.ride) return;
     const target = window.location.hash.slice(1);
-    const isAction = ["auto-assign", "share-request", "answer-deadline"].includes(target);
+    const isAction = ["auto-assign", "share-request", "answer-deadline", "share-final", "ride-save"].includes(target);
     setAutoStartGuide(!isAction);
     const key = `${teamId}:${rideId}:${target}`;
     if (!isAction || scrolledAction.current === key) return;
@@ -270,23 +272,36 @@ export default function Page() {
     };
 
     // 配車情報更新
+    setSavedAssignmentNotice(false);
     try {
       await api.put<UpdateRideValues>(
         `/api/admin/teams/${teamId}/rides/${rideId}`,
         payload,
         token,
       );
+      setHasStaleSavedRide(true);
       toast.success("配車詳細を更新しました。");
       reset(payload);
       setAssignmentSummary(null);
       setDraftRestored(false);
+      if (shouldTrackShareCopy) trackEvent("ride_saved", { team_id: teamId, ride_id: rideId });
       // 回答期限には別の保存ボタンがあるため、その未保存値も下書きに残す。
       if (draftKey) {
         try {
           sessionStorage.setItem(draftKey, serializeRideCheckoutDraft({ values: payload, deadline, lockAfterDeadline }));
         } catch { /* 保存済みの配車はサーバーから復元できる */ }
       }
-      await mutate();
+      try {
+        const refreshed = await mutate();
+        if (!refreshed?.ride) throw new Error("保存済みの配車を再取得できませんでした。");
+        setHasStaleSavedRide(false);
+        setSavedAssignmentNotice(refreshed.ride.drivers.some((driver) =>
+          driver.rideAssignments.length > 0 ||
+          driver.escorts.some((escort) => escort.rideAssignments.length > 0)
+        ));
+      } catch {
+        toast.error("配車の保存は完了しました。最新の内容を取得できなかったため、再読み込みしてから連絡してください。");
+      }
     } catch (e: unknown) {
       console.error(e);
       alert("更新中にエラーが発生しました。");
@@ -322,6 +337,7 @@ export default function Page() {
           }),
       }));
       reset({ ...methods.getValues(), drivers: processedDrivers });
+      setSavedAssignmentNotice(false);
       setAssignmentSummary({
         children: new Set(processedDrivers.flatMap((driver) => [
           ...driver.rideAssignments.map((row) => row.childId),
@@ -722,7 +738,7 @@ PINコード: ${pin}
               <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-gray-950"><Share2 size={20} />メンバーへの連絡</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <button type="button" id="share-request" data-guide="admin-ride-share-request" onClick={openRequestShare} className="app-button-primary w-full">回答を依頼</button>
-                <button type="button" data-guide="admin-ride-share-final" onClick={openAssignmentShare} className="app-button-secondary w-full">配車決定を連絡</button>
+                <button type="button" id="share-final" data-guide="admin-ride-share-final" disabled={isSubmitting || hasStaleSavedRide} onClick={openAssignmentShare} className="app-button-secondary w-full">配車決定を連絡</button>
               </div>
               <p className="my-3 text-xs text-gray-600">保存済みの内容を共有します。変更したら先に更新してください。</p>
               {data?.ride.deadline && <p className="mb-3 text-sm text-gray-700">回答期限: {formatRideDate(data.ride.deadline)}{answerLocked ? "（回答ロック中）" : ""}</p>}
@@ -865,7 +881,14 @@ PINコード: ${pin}
             </section>
 
             <div data-guide="admin-ride-save">
-              <button type="submit" disabled={isSubmitting} className="app-button-primary mt-6 w-full">{isSubmitting ? "更新中..." : "変更を更新"}</button>
+              {savedAssignmentNotice && !isDirty && !draftRestored && !assignmentSummary && (
+                <div role="status" className="mt-4 rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm text-teal-950">
+                  <p className="font-semibold">配車を保存しました</p>
+                  <p className="mt-1 leading-6">次は、保存した内容を確認して保護者へ連絡しましょう。</p>
+                  <button type="button" onClick={openAssignmentShare} className="app-button-secondary mt-3">連絡する文面を確認</button>
+                </div>
+              )}
+              <button id="ride-save" type="submit" disabled={isSubmitting} className="app-button-primary mt-6 w-full">{isSubmitting ? "更新中..." : "変更を更新"}</button>
               <details className="mt-4 text-sm text-gray-600">
                 <summary className="cursor-pointer">その他の操作</summary>
                 <button type="button" onClick={handleDeleteRide} disabled={isSubmitting} className="app-button-secondary mt-3 text-red-700">この配車を削除</button>
