@@ -41,7 +41,7 @@ export default function Page() {
                   Freeでは1チームまで作成できます
                 </h1>
                 <p className="mt-3 text-sm leading-6 text-amber-900">
-                  複数チームの管理と自動割り当て無制限は、Proプラン（年
+                  複数チームの管理は、Proプラン（年
                   {PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円 / 月{PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
                 </p>
               </div>

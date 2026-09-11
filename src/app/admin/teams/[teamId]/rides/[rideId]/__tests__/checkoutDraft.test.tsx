@@ -230,7 +230,7 @@ test("保存失敗時は共有案内も保存イベントも出さない", async
   } finally { alertSpy.mockRestore(); errorSpy.mockRestore(); }
 });
 
-test.each(["share-final", "ride-save"])("案内先 #%s は読込後にフォーカスを移す", async (target) => {
+test.each(["share-final", "ride-save", "manual-assign"])("案内先 #%s は読込後にフォーカスを移す", async (target) => {
   window.history.replaceState(null, "", `/admin/teams/1/rides/2#${target}`);
   const original = HTMLElement.prototype.scrollIntoView;
   HTMLElement.prototype.scrollIntoView = jest.fn();

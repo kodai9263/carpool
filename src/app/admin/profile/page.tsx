@@ -16,8 +16,6 @@ import { TransferFormValues } from "@/app/_types/admin";
 import { AlertTriangle, CheckCircle2, Mail, Send, ShieldCheck, Sparkles, Trash2, WalletCards } from "lucide-react";
 import { trackEvent } from "@/utils/analytics";
 import {
-  AUTO_ASSIGN_FREE_TRIAL_LIMIT,
-  getAutoAssignRemainingFreeUses,
   isProPlan,
   PRO_MONTHLY_PRICE_JPY,
   PRO_YEARLY_PRICE_JPY,
@@ -142,19 +140,14 @@ export default function ProfilePage() {
   const admin = data?.admin;
   const isPro = isProPlan(admin?.billingPlan);
   const plan = isPro ? "Pro" : "Free";
-  const autoAssignTrialUsed = Math.max(admin?.autoAssignTrialUsed ?? 0, 0);
-  const autoAssignRemaining = getAutoAssignRemainingFreeUses(autoAssignTrialUsed);
   const planFeatures = [
     "配車作成・回答収集（無制限）",
-    isPro
-      ? "自動割り当て無制限"
-      : `自動割り当て お試し残り${autoAssignRemaining}回 / ${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回`,
     "回答状況の確認・催促テキスト",
     "回答期限ロック",
   ];
   const planDescription = isPro
-    ? "Proプランが有効です。自動割り当て無制限と複数チーム管理を利用できます。"
-    : "基本機能はずっと無料で使えます。配車調整の手間をさらに減らしたい方はProをどうぞ。";
+    ? "Proプランが有効です。複数チームを管理できます。"
+    : "基本機能はずっと無料で使えます。複数チームを管理したい方はProをご利用ください。";
 
   return (
     <div className="app-page min-h-screen px-4 py-8 md:px-8">
@@ -221,14 +214,10 @@ export default function ProfilePage() {
                 </div>
                 {isPro ? (
                   <p className="text-sm leading-6 text-amber-900">
-                    自動割り当て無制限と複数チーム管理をこのアカウントで利用できます。
+                    複数チーム管理をこのアカウントで利用できます。
                   </p>
                 ) : (
                   <ul className="space-y-1.5 text-sm leading-6 text-amber-900">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 size={15} className="mt-1 shrink-0" />
-                      自動割り当てが無制限に
-                    </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 size={15} className="mt-1 shrink-0" />
                       複数チームの管理

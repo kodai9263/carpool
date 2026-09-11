@@ -14,7 +14,6 @@ import GettingStartedCard from "./_components/GettingStartedCard";
 import { useRouter } from "next/navigation";
 import { trackEvent } from "@/utils/analytics";
 import {
-  AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   FREE_TEAM_LIMIT,
   isSecondTeamCandidate,
   PRO_MONTHLY_PRICE_JPY,
@@ -113,7 +112,7 @@ export default function Page() {
             <div className="flex gap-3 text-sm leading-6 text-teal-900">
               <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-teal-700" />
               <p>
-                {FREE_TEAM_LIMIT}チームまでは無料で、配車作成・回答収集・自動割り当て{AUTO_ASSIGN_FREE_TRIAL_LIMIT}回を試せます。
+                {FREE_TEAM_LIMIT}チームまでは無料で、配車作成・回答収集・配車調整を利用できます。
               </p>
             </div>
           </div>
@@ -177,7 +176,7 @@ export default function Page() {
                 <div>
                   <p className="text-sm font-bold text-amber-900">Freeでは1チームまで作成できます</p>
                   <p className="mt-1 text-xs leading-5 text-amber-800">
-                    複数チームと自動割り当て無制限は、Proプラン（年{PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円 / 月{PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
+                    複数チームの管理は、Proプラン（年{PRO_YEARLY_PRICE_JPY.toLocaleString("ja-JP")}円 / 月{PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円）で利用できます。
                   </p>
                 </div>
               </div>

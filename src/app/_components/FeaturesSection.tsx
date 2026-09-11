@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Car, Users, Calendar, Zap, Key, UserCog } from "lucide-react";
+import { Car, Users, Calendar, Key, UserCog } from "lucide-react";
 import { FeatureModal } from "./FeatureModal";
 
 type Feature = {
@@ -34,13 +34,6 @@ const features: Feature[] = [
     desc: "試合・練習ごとに配車を個別管理。行き帰りで別々の配車にも対応しています",
     image: "/features/schedule.png",
     detail: "試合・練習ごとに配車を作成・管理できます。行きと帰りで別々のドライバーを設定することも可能。過去の配車もいつでも振り返れます。",
-  },
-  {
-    icon: <Zap size={22} className="text-[#5d9b94]" />,
-    title: "自動アサイン",
-    desc: "ボタン1つで子供を各ドライバーへ自動割り当て。手作業の調整時間をゼロに",
-    image: "/features/auto-assign.png",
-    detail: "「自動アサイン」ボタンを押すだけで、各ドライバーの座席数に合わせて子供を自動で振り分けます。手動での細かい調整も後から自由にできます。",
   },
   {
     icon: <Key size={22} className="text-[#5d9b94]" />,

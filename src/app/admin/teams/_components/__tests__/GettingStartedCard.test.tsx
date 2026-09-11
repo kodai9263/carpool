@@ -18,11 +18,11 @@ describe("初回の次の手順", () => {
   it("次の日程がなければ配車を作成する", () => {
     expect(getGettingStartedAction("4", { ...empty, memberCount: 1, childCount: 1 }).href).toBe("/admin/teams/4/rides/new");
   });
-  it("回答なしは依頼、ロック中は期限、候補ありは自動割り当てへ進む", () => {
+  it("回答なしは依頼、ロック中は期限、候補ありは手動の配車操作へ進む", () => {
     const data = { ...empty, memberCount: 1, childCount: 1, ride };
     expect(getGettingStartedAction("4", data).href).toContain("/8#share-request");
     expect(getGettingStartedAction("4", { ...data, ride: { ...ride, isAnswerLocked: true } }).href).toContain("/8#answer-deadline");
-    expect(getGettingStartedAction("4", { ...data, ride: { ...ride, driverCount: 1 } }).href).toContain("/8#auto-assign");
+    expect(getGettingStartedAction("4", { ...data, ride: { ...ride, driverCount: 1 } }).href).toContain("/8#manual-assign");
   });
   it("現在の手順と対象日程が表示され、主操作は1つだけ", () => {
     render(<GettingStartedContent teamId="4" data={{ ...empty, memberCount: 1, childCount: 1, ride }} />);
@@ -34,7 +34,7 @@ describe("初回の次の手順", () => {
   it("割り当ての保存前はガイドを表示し、保存まで案内する", () => {
     render(<GettingStartedContent teamId="4" data={{ ...empty, memberCount: 1, childCount: 1, ride: { ...ride, driverCount: 1 } }} />);
     expect(screen.getByRole("region", { name: "次の配車の準備" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "配車を割り当てる" })).toHaveAttribute("href", "/admin/teams/4/rides/8#auto-assign");
+    expect(screen.getByRole("link", { name: "配車を割り当てる" })).toHaveAttribute("href", "/admin/teams/4/rides/8#manual-assign");
     expect(screen.getByText(/「変更を更新」で保存/)).toBeInTheDocument();
   });
   it("一部の保存を全員分の完成とは扱わず、確認と結果連絡へ案内する", () => {
