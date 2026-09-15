@@ -12,6 +12,31 @@ export async function resolveBillingReturnPath(adminId: number, value: unknown) 
   return ride ? value : "/admin/profile";
 }
 
+export async function resolveSettlementBillingReturnPath(adminId: number, teamId: number, value: unknown) {
+  const fallback = `/admin/teams/${teamId}/settlements`;
+  if (value === fallback) return fallback;
+  if (typeof value !== "string") return fallback;
+  const rideMatch = new RegExp(`^/admin/teams/${teamId}/rides/([1-9]\\d*)$`).exec(value);
+  if (rideMatch) {
+    const rideId = Number(rideMatch[1]);
+    const ride = await prisma.ride.findFirst({
+      where: { id: rideId, teamId, team: { adminId } },
+      select: { id: true },
+    });
+    return ride ? value : fallback;
+  }
+  const settlementMatch = new RegExp(`^/admin/teams/${teamId}/settlements/([1-9]\\d*)$`).exec(value);
+  if (settlementMatch) {
+    const settlementId = Number(settlementMatch[1]);
+    const settlement = await prisma.rideSettlement.findFirst({
+      where: { id: settlementId, teamId, team: { adminId } },
+      select: { id: true },
+    });
+    return settlement ? value : fallback;
+  }
+  return fallback;
+}
+
 export function billingReturnUrl(request: NextRequest, path: string, query: string) {
   const origin = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin).origin;
   return `${origin}${path}?${query}${path === "/admin/profile" ? "#plan" : ""}`;

@@ -51,11 +51,21 @@ export const PUT = (request: NextRequest, ctx: { params: { teamId: string } }) =
 export const DELETE = (request: NextRequest, ctx: { params: { teamId: string } }) =>
   withAuthEntry(request, async ({ adminId, teamId }) => {
     try {
+      const settlementCount = await prisma.rideSettlement.count({ where: { teamId } });
+      if (settlementCount > 0) {
+        return NextResponse.json(
+          { message: "遠征費精算の履歴があるチームは削除できません" },
+          { status: 409 },
+        );
+      }
       await prisma.team.deleteMany({
         where: { id: teamId, adminId },
       });
       return NextResponse.json({ status: 'OK', message: '削除しました' }, { status: 200 });
     } catch (e) {
+      if (e && typeof e === 'object' && 'code' in e && e.code === "P2003") {
+        return NextResponse.json({ message: "遠征費精算の履歴があるチームは削除できません" }, { status: 409 });
+      }
       if (e && typeof e === 'object' && 'code' in e && e.code === "P2025") {
         return NextResponse.json({ message: "not found"}, { status: 400 });
       }
