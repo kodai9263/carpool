@@ -5,8 +5,10 @@ import GuidedTour, { type GuidedTourFocusRequest, type GuidedTourStep } from "@/
 import { useFetch } from "@/app/_hooks/useFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { UpdateRideValues } from "@/app/_types/ride";
+import type { SettlementAccessErrorResponse, SettlementCreateResponse } from "@/app/_types/settlement";
 import { api } from "@/utils/api";
 import { trackEvent } from "@/utils/analytics";
+import Link from "next/link";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -17,11 +19,13 @@ import { RideShareDialog } from "../_components/RideShareDialog";
 import { convertRideDetailToFormValues } from "@/utils/rideConverter";
 import { formatRideExportText } from "@/utils/rideExport";
 import { isAnswerLocked } from "@/utils/deadlineLock";
-import { Car, Copy, Share2 } from "lucide-react";
+import { Car, Copy, ReceiptText, Share2, X } from "lucide-react";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
 import toast from "react-hot-toast";
 import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
 import { BillingReturnNotice } from "@/app/admin/_components/BillingReturnNotice";
+import { SettlementBillingButton } from "@/app/admin/_components/SettlementBillingButton";
+import { SettlementBillingReturnNotice } from "@/app/admin/_components/SettlementBillingReturnNotice";
 import { parseRideCheckoutDraft, rideCheckoutDraftKey, serializeRideCheckoutDraft } from "@/utils/rideCheckoutDraft";
 
 const GUEST_EMAIL = "guest@carpool.demo";
@@ -142,6 +146,8 @@ export default function Page() {
   const [deadline, setDeadline] = useState("");
   const [lockAfterDeadline, setLockAfterDeadline] = useState(false);
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
+  const [isStartingSettlement, setIsStartingSettlement] = useState(false);
+  const [settlementAccessError, setSettlementAccessError] = useState<SettlementAccessErrorResponse | null>(null);
   const [guideFocusRequest, setGuideFocusRequest] = useState<GuidedTourFocusRequest | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
   const [hasStaleSavedRide, setHasStaleSavedRide] = useState(false);
@@ -444,6 +450,40 @@ PINコード: ${pin}
     setSharePreview({ title: "配車決定を連絡", text });
   };
 
+  const startSettlement = async (moveFreeTrial = false) => {
+    if (!token) return;
+    if (isDirty || hasStaleSavedRide) {
+      toast.error("配車の変更を先に保存してください。");
+      return;
+    }
+    setIsStartingSettlement(true);
+    try {
+      const response = await api.post(
+        `/api/admin/teams/${teamId}/rides/${rideId}/settlement`,
+        { moveFreeTrial },
+        token,
+      ) as SettlementCreateResponse;
+      setSettlementAccessError(null);
+      router.push(`/admin/teams/${teamId}/settlements/${response.settlement.id}`);
+    } catch (error) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "SETTLEMENT_SUBSCRIPTION_REQUIRED"
+      ) {
+        setSettlementAccessError(error as SettlementAccessErrorResponse);
+        setIsStartingSettlement(false);
+        return;
+      }
+      const message = error && typeof error === "object" && "message" in error && typeof error.message === "string"
+        ? error.message
+        : "遠征費精算を開始できませんでした。";
+      toast.error(message);
+      setIsStartingSettlement(false);
+    }
+  };
+
   // 保存済みの設定に基づく現在のロック状態
   const answerLocked = isAnswerLocked(
     data?.ride?.deadline,
@@ -472,6 +512,45 @@ PINコード: ${pin}
   return (
     <div className="app-page">
       <div className="app-container">
+        {settlementAccessError && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-gray-950/45 p-0 sm:items-center sm:p-4">
+            <div role="dialog" aria-modal="true" aria-labelledby="settlement-access-title" className="w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl sm:rounded-2xl sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-teal-700">遠征費精算オプション</p>
+                  <h2 id="settlement-access-title" className="mt-1 text-xl font-bold text-gray-950">
+                    {settlementAccessError.reason === "trial_in_use" ? "無料体験は別の遠征で利用中です" : "無料体験は利用済みです"}
+                  </h2>
+                </div>
+                <button type="button" onClick={() => setSettlementAccessError(null)} aria-label="料金案内を閉じる" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100">
+                  <X size={20} />
+                </button>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-gray-700">{settlementAccessError.message}</p>
+              <div className="mt-5 space-y-3">
+                {settlementAccessError.freeTrialSettlementId && (
+                  <Link href={`/admin/teams/${teamId}/settlements/${settlementAccessError.freeTrialSettlementId}`} className="app-button-secondary w-full">
+                    利用中の無料精算を見る
+                  </Link>
+                )}
+                {settlementAccessError.reason === "trial_in_use" && (
+                  <button type="button" onClick={() => startSettlement(true)} disabled={isStartingSettlement} className="app-button-secondary w-full">
+                    {isStartingSettlement ? "変更中..." : "無料体験をこの遠征へ変更"}
+                  </button>
+                )}
+                <SettlementBillingButton
+                  teamId={Number(teamId)}
+                  token={token}
+                  returnPath={`/admin/teams/${teamId}/rides/${rideId}`}
+                  className="app-button-primary w-full"
+                >
+                  月{settlementAccessError.monthlyPrice.toLocaleString("ja-JP")}円の精算プランを始める
+                </SettlementBillingButton>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-gray-500">確定済みの精算履歴や受領・返金の記録は、契約の有無にかかわらず引き続き利用できます。</p>
+            </div>
+          </div>
+        )}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="mb-1 text-sm font-semibold text-teal-700">配車情報</p>
@@ -489,6 +568,11 @@ PINコード: ${pin}
           />
         </div>
       <BillingReturnNotice token={token} onConfirmed={refreshBilling} />
+      <SettlementBillingReturnNotice
+        teamId={Number(teamId)}
+        token={token}
+        onActive={() => startSettlement(false)}
+      />
       {draftRestored && (
         <p role="status" className="mb-4 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-6 text-teal-900">
           決済前の入力を復元しました。配車は画面下の「更新」、回答期限は「設定」で保存できます。
@@ -764,6 +848,29 @@ PINコード: ${pin}
                   <button type="button" onClick={copyDetailText} className="app-button-secondary w-full"><Copy size={16} />{copied === "配車内容テキスト" ? "コピーしました！" : "配車内容をコピー"}</button>
                 </div>
               </details>
+            </section>
+
+            <section className="rounded-xl border border-sky-200 bg-sky-50/80 p-4 md:p-6" aria-label="遠征費精算">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-gray-950">
+                <ReceiptText size={20} className="text-sky-700" />
+                遠征費を精算
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-gray-700">
+                高速代・駐車場代・ガソリン代をまとめ、家庭ごとの負担額と立替分を計算します。
+              </p>
+              <button
+                type="button"
+                onClick={() => startSettlement(false)}
+                disabled={isSubmitting || isStartingSettlement}
+                className="app-button-primary mt-4 w-full sm:w-auto"
+              >
+                {isStartingSettlement ? "準備中..." : "この配車の精算を始める"}
+              </button>
+              <p className="mt-2 text-xs text-gray-600">配車に未保存の変更がある場合は、先に「変更を更新」してください。</p>
+              <p className="mt-2 text-xs font-medium text-sky-900">最初の1遠征は無料。2遠征目から月980円／チームです。</p>
+              <Link href={`/admin/teams/${teamId}/settlements`} className="mt-3 inline-flex text-sm font-semibold text-sky-800 hover:underline">
+                過去の精算を見る
+              </Link>
             </section>
 
           </form>

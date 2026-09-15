@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { PRO_MONTHLY_PRICE_JPY, PRO_YEARLY_PRICE_JPY } from "@/utils/billing";
+import { SETTLEMENT_MONTHLY_PRICE_JPY } from "@/utils/settlementAccess";
 
 function unavailable(message: string) {
   return Object.assign(new Error(message), { code: "BILLING_UNAVAILABLE" });
@@ -39,6 +40,14 @@ export function getStripeWebhookSecret() {
   return webhookSecret;
 }
 
+export function getStripeSettlementPriceId() {
+  const priceId = process.env.STRIPE_SETTLEMENT_PRICE_ID;
+  if (!priceId) {
+    throw unavailable("STRIPE_SETTLEMENT_PRICE_ID is not configured");
+  }
+  return priceId;
+}
+
 // 表示料金と決済料金の取り違えやWebhook未設定のままの課金を防ぐ。
 export async function getValidatedStripeProPriceId(interval: "month" | "year") {
   getStripeWebhookSecret();
@@ -51,4 +60,30 @@ export async function getValidatedStripeProPriceId(interval: "month" | "year") {
     throw unavailable("Stripe price does not match the advertised plan");
   }
   return price.id;
+}
+
+// 精算専用商品が月980円・JPY・月次であることをCheckout作成前に確定する。
+export async function getValidatedStripeSettlementPrice() {
+  getStripeWebhookSecret();
+  const priceId = getStripeSettlementPriceId();
+  const stripe = getStripeClient();
+  const price = await stripe.prices.retrieve(priceId);
+  const product = typeof price.product === "string"
+    ? await stripe.products.retrieve(price.product)
+    : price.product;
+  if (
+    (process.env.VERCEL_ENV === "production" && !price.livemode) ||
+    !price.active ||
+    price.currency !== "jpy" ||
+    price.unit_amount !== SETTLEMENT_MONTHLY_PRICE_JPY ||
+    price.type !== "recurring" ||
+    price.recurring?.interval !== "month" ||
+    price.recurring.interval_count !== 1 ||
+    !product ||
+    product.deleted ||
+    !product.active
+  ) {
+    throw unavailable("Stripe settlement price does not match the advertised plan");
+  }
+  return { priceId: price.id, productId: product.id };
 }

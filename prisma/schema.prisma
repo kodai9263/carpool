@@ -42,6 +42,12 @@ model Team {
   members             Member[]
   rides               Ride[]
   availabilityDrivers AvailabilityDriver[]
+  rideSettlements                RideSettlement[]
+  settlementAccess               TeamSettlementAccess?
+  settlementSubscription         TeamSettlementSubscription?
+  settlementCheckoutReservations SettlementCheckoutReservation[]
+  settlementSubscriptionEvents   SettlementSubscriptionEvent[]
+  settlementBillingConversions   SettlementBillingConversion[]
   viewPinHash         String?
   pin                 String?
   maxGrade            Int                   @default(6)
@@ -104,6 +110,7 @@ model Ride {
   drivers             Driver[]
   availabilityDrivers AvailabilityDriver[]
   childAvailabilities ChildAvailability[]
+  settlement          RideSettlement?
 
   @@index([teamId, date])  // 日付範囲検索 + チームフィルタ
 }
@@ -201,4 +208,154 @@ model BillingConversion {
   value          Int
   currency       String
   createdAt      DateTime @default(now())
+}
+// 1回の配車に紐づく遠征費精算。確定後は元配車が消えても履歴を残す。
+model RideSettlement {
+  id                    Int                   @id @default(autoincrement())
+  teamId                Int
+  team                  Team                  @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  rideId                Int?                  @unique
+  ride                  Ride?                 @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  sourceDate            DateTime
+  sourceDestination     String
+  sourceFingerprint     String?
+  sourceRideUpdatedAt   DateTime?
+  currency              String                @default("JPY")
+  status                String                @default("draft")
+  version               Int                   @default(0)
+  currentRevisionNumber Int?
+  draft                 Json?
+  voidReason            String?
+  createdByAdminId      Int
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  revisions             SettlementRevision[]
+  movements             SettlementMovement[]
+  freeTrialAccess       TeamSettlementAccess? @relation("FreeTrialSettlement")
+
+  @@index([teamId, status, createdAt])
+}
+
+// チームごとに1回だけ使える遠征費精算の無料体験を予約・消費する。
+model TeamSettlementAccess {
+  id                    Int             @id @default(autoincrement())
+  teamId                Int             @unique
+  team                  Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  freeTrialSettlementId Int?            @unique
+  freeTrialSettlement   RideSettlement? @relation("FreeTrialSettlement", fields: [freeTrialSettlementId], references: [id], onDelete: Restrict)
+  freeTrialConsumedAt   DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+}
+
+// 遠征費精算専用のチーム契約。既存の管理者向けPro契約とはStripe顧客を分離する。
+model TeamSettlementSubscription {
+  id                       Int       @id @default(autoincrement())
+  teamId                   Int       @unique
+  team                     Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  billingAdminId           Int
+  billingOwnerSupabaseUid  String
+  billingOwnerEmail        String
+  stripeCustomerId         String?   @unique
+  stripeSubscriptionId     String?   @unique
+  stripeSubscriptionStatus String?
+  stripePriceId            String?
+  stripeProductId          String?
+  subscriptionStartedAt    DateTime?
+  lastStripeEventCreatedAt DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@index([billingAdminId])
+}
+
+// 二重クリックや別タブからの同時申込を1つのCheckoutへまとめる予約。
+model SettlementCheckoutReservation {
+  id                      Int       @id @default(autoincrement())
+  operationKey            String    @unique
+  activeKey               String?   @unique
+  teamId                  Int
+  team                    Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  billingAdminId          Int
+  billingOwnerSupabaseUid String
+  returnPath              String
+  stripeCheckoutSessionId String?   @unique
+  status                  String    @default("creating")
+  expiresAt               DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([teamId, createdAt])
+}
+
+// Webhookの再送・順不同を監査し、現在状態へ反映したかを追記式で残す。
+model SettlementSubscriptionEvent {
+  id                      Int      @id @default(autoincrement())
+  stripeEventId           String   @unique
+  eventType               String
+  eventCreatedAt          DateTime
+  teamId                  Int
+  team                    Team     @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  billingAdminId          Int
+  billingOwnerSupabaseUid String
+  stripeSubscriptionId    String
+  stripeStatus            String
+  stripePriceId           String
+  stripeProductId         String
+  applied                 Boolean  @default(false)
+  createdAt               DateTime @default(now())
+
+  @@index([teamId, eventCreatedAt])
+  @@index([stripeSubscriptionId])
+}
+
+// 精算プランの成立済みCheckoutを、画面確認とWebhookの重複から守って1件だけ記録する。
+model SettlementBillingConversion {
+  id                   Int      @id @default(autoincrement())
+  checkoutId           String   @unique
+  stripeSubscriptionId String   @unique
+  teamId               Int
+  team                 Team     @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  billingAdminId       Int
+  value                Int
+  currency             String
+  createdAt            DateTime @default(now())
+
+  @@index([teamId, createdAt])
+}
+
+// 確定時点の費用・対象家庭・計算結果を変更不可のスナップショットとして保持する。
+model SettlementRevision {
+  id                 Int            @id @default(autoincrement())
+  settlementId       Int
+  settlement         RideSettlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  revision           Int
+  snapshot           Json
+  totalAmount        Int
+  calculationVersion String         @default("1")
+  correctionReason   String?
+  createdByAdminId   Int
+  createdAt          DateTime       @default(now())
+
+  @@unique([settlementId, revision])
+  @@index([settlementId, createdAt])
+}
+
+// チーム会計が確認した受領・返金と、その記録ミスの取消を追記式で保持する。
+model SettlementMovement {
+  id                 Int                 @id @default(autoincrement())
+  settlementId       Int
+  settlement         RideSettlement      @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  memberIdSnapshot   Int
+  memberNameSnapshot String
+  signedAmount       Int
+  operationKey       String              @unique
+  note               String?
+  reversesMovementId Int?                @unique
+  reversesMovement   SettlementMovement? @relation("MovementReversal", fields: [reversesMovementId], references: [id])
+  reversedBy         SettlementMovement? @relation("MovementReversal")
+  createdByAdminId   Int
+  createdAt          DateTime            @default(now())
+
+  @@index([settlementId, memberIdSnapshot, createdAt])
 }

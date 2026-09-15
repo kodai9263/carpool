@@ -7,6 +7,7 @@ import {
   Car,
   LayoutDashboard,
   LogOut,
+  ReceiptText,
   Settings,
   User,
   UserCircle,
@@ -56,7 +57,7 @@ export const Sidebar: React.FC = () => {
         </div>
       )}
 
-      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-56 flex-col justify-between border-r border-gray-100 bg-white/90 px-4 py-5 shadow-sm backdrop-blur-xl md:flex">
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-56 flex-col justify-between border-r border-gray-100 bg-white/90 px-4 py-5 shadow-sm backdrop-blur-xl print:hidden md:flex">
         <div>
           <Link href="/admin/teams" className="mb-7 flex items-center gap-2.5 px-1">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-700 to-teal-900 text-white shadow-[0_10px_24px_rgba(15,118,110,0.22)]">
@@ -96,6 +97,13 @@ export const Sidebar: React.FC = () => {
               >
                 <Car size={18} />
                 <span>配車</span>
+              </Link>
+              <Link
+                href={`/admin/teams/${teamId}/settlements`}
+                className={isActive(`/admin/teams/${teamId}/settlements`) ? activeNavItemClass : navItemClass}
+              >
+                <ReceiptText size={18} />
+                <span>遠征費精算</span>
               </Link>
             </>
           )}
@@ -139,7 +147,7 @@ export const Sidebar: React.FC = () => {
       </aside>
 
       {/* モバイル用下部ナビゲーション */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-t border-gray-100 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white/70 shadow-lg backdrop-blur-xl print:hidden md:hidden">
         <div className="flex justify-around items-center h-16 px-2">
           {teamId && (
             <>
