@@ -7,6 +7,9 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://carpool-navy.vercel.app";
 
 export const metadata: Metadata = {
+  other: {
+    "google-adsense-account": "ca-pub-4456672047953319",
+  },
   title: "Carpool｜少年野球・サッカーの配車管理アプリ",
   description: "LINEやExcelでの配車調整をアプリ1つで解決。配車可否の収集から乗車の割り当てまで、チームの送迎をスムーズに。無料で始められます。",
   icons: {
