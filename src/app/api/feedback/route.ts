@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { notifyFeedback } from "@/lib/feedbackNotification";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const VALID_CATEGORIES = ["改善要望", "バグ報告", "使ってみたい機能", "その他"] as const;
 
@@ -18,22 +20,33 @@ export const POST = async (request: NextRequest) => {
     replyEmail?: string;
   } | null;
 
-  if (!body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ message: "リクエストが不正です" }, { status: 400 });
   }
 
   const { category, message, replyEmail } = body;
 
-  if (!category || !VALID_CATEGORIES.includes(category as typeof VALID_CATEGORIES[number])) {
+  if (typeof category !== "string" || !VALID_CATEGORIES.includes(category as typeof VALID_CATEGORIES[number])) {
     return NextResponse.json({ message: "カテゴリが不正です" }, { status: 400 });
   }
 
-  if (!message || message.trim().length === 0) {
+  if (typeof message !== "string" || message.trim().length === 0) {
     return NextResponse.json({ message: "メッセージは必須です" }, { status: 400 });
   }
 
   if (message.trim().length > 1000) {
     return NextResponse.json({ message: "メッセージは1000文字以内で入力してください" }, { status: 400 });
+  }
+
+  if (replyEmail != null && typeof replyEmail !== "string") {
+    return NextResponse.json({ message: "返信先メールアドレスが不正です" }, { status: 400 });
+  }
+  const normalizedReplyEmail = replyEmail?.trim() || null;
+  if (normalizedReplyEmail && (
+    normalizedReplyEmail.length > 254 ||
+    !/^[^\s@<>(),;:\\"\[\]]+@[^\s@<>(),;:\\"\[\]]+\.[^\s@<>(),;:\\"\[\]]+$/.test(normalizedReplyEmail)
+  )) {
+    return NextResponse.json({ message: "返信先メールアドレスが不正です" }, { status: 400 });
   }
 
   // Bearerトークンがあればadminを特定する
@@ -49,14 +62,21 @@ export const POST = async (request: NextRequest) => {
   }
 
   try {
-    await prisma.feedback.create({
+    const feedback = await prisma.feedback.create({
       data: {
         category,
         message: message.trim(),
-        replyEmail: replyEmail?.trim() || null,
+        replyEmail: normalizedReplyEmail,
         adminId,
       },
     });
+    try {
+      // サーバーレス環境で送信が中断されないよう、完了を待って応答する。
+      await notifyFeedback(feedback);
+    } catch {
+      // 保存済みの投稿は受け付ける。本文や認証情報はログに残さない。
+      console.error("[feedback-notification] delivery_failed", { feedbackId: feedback.id });
+    }
     return NextResponse.json({ success: true }, { status: 201 });
   } catch {
     return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
