@@ -18,6 +18,7 @@ import { LpTracker, TrackedLink } from "./_components/LpTracker";
 import { FeaturesSection } from "./_components/FeaturesSection";
 import { prisma } from "@/lib/prisma";
 import {
+  AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   FREE_TEAM_LIMIT,
   PRO_MONTHLY_PRICE_JPY,
   PRO_YEARLY_PRICE_JPY,
@@ -54,11 +55,13 @@ const memberSteps = [
 const freeFeatures = [
   "1チームまで無料",
   "配車作成・回答収集・乗車の割り当て",
+  `自動割り当てを${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回お試し（再計算も1回）`,
   "メンバーはアカウント登録なしで参加",
   "LINEに貼れる共有テキストをコピー",
 ];
 
 const proFeatures = [
+  "自動割り当て無制限",
   "複数チームの管理",
   "年払いなら月あたり250円",
 ];
@@ -66,7 +69,7 @@ const proFeatures = [
 const faqs = [
   {
     question: "無料でどこまで使えますか？",
-    answer: `まずは${FREE_TEAM_LIMIT}チームを無料で使えます。配車作成、メンバー回答、乗車の割り当て、LINE共有を利用できます。`,
+    answer: `まずは${FREE_TEAM_LIMIT}チームを無料で使えます。配車作成、メンバー回答、乗車の割り当て、LINE共有を利用できます。自動割り当ては${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回までお試しでき、再計算も1回に数えます。`,
   },
   {
     question: "メンバーにも登録や支払いが必要ですか？",
@@ -74,7 +77,7 @@ const faqs = [
   },
   {
     question: "Proはどんな人向けですか？",
-    answer: "複数チームを管理したい配車係向けです。",
+    answer: "自動割り当てを回数制限なく使いたい方や、複数チームを管理したい配車係向けです。",
   },
   {
     question: "支払い開始後にすぐ使えなくなりますか？",
@@ -351,10 +354,10 @@ function PricingSection() {
       <div className="app-container">
         <div className="mb-10 max-w-2xl">
           <p className="mb-2 text-sm font-semibold text-teal-700">料金</p>
-          <h2 className="app-section-title">1チームは無料。複数チームの管理はProで。</h2>
+          <h2 className="app-section-title">1チームは無料。自動割り当て無制限はPro。</h2>
           <p className="mt-3 text-sm leading-7 text-gray-500 md:text-base">
             個人の配車係が安心して使い始められるよう、まずは無料で運用できます。
-            複数チームの管理が必要になったタイミングでProを検討できます。
+            Proでは、自動割り当てを無制限で利用でき、複数チームも管理できます。
           </p>
         </div>
 
@@ -391,7 +394,7 @@ function PricingSection() {
                   <WalletCards size={22} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-950">Pro</h3>
-                <p className="mt-1 text-sm text-gray-600">複数チームを管理したい方向け</p>
+                <p className="mt-1 text-sm text-gray-600">自動割り当てを無制限で使いたい方向け</p>
               </div>
               <span className="app-status bg-white text-amber-800">年払いがお得</span>
             </div>

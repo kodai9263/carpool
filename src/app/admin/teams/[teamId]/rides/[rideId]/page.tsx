@@ -21,6 +21,9 @@ import { formatRideExportText } from "@/utils/rideExport";
 import { isAnswerLocked } from "@/utils/deadlineLock";
 import { Car, Copy, ReceiptText, Share2, X } from "lucide-react";
 import { RideDetailResponse } from "@/app/_types/response/rideResponse";
+import { BillingStatusResponse } from "@/app/_types/response/billingResponse";
+import AutoAssignPanel, { AutoAssignOptions } from "../_components/AutoAssignPanel";
+import { UpgradeDialog } from "@/app/admin/_components/UpgradeDialog";
 import toast from "react-hot-toast";
 import { AttendanceListButton } from "@/app/_components/AttendanceListButton";
 import { BillingReturnNotice } from "@/app/admin/_components/BillingReturnNotice";
@@ -40,6 +43,11 @@ const rideDetailGuideSteps = [
     target: "admin-ride-share-request",
     title: "回答を依頼します",
     body: "「回答を依頼」から文面を確認し、LINEまたはコピーで共有できます。期限は共有の詳細から設定できます。",
+  },
+  {
+    target: "admin-ride-auto-assign",
+    title: "自動で配車案を作れます",
+    body: "回答が集まったら、自動割り当てで配車案を作れます。下の欄で手動調整し、保存して確定してください。",
   },
   {
     target: "admin-ride-manual-assign",
@@ -71,6 +79,11 @@ const rideDetailGuideSteps = [
     body: "配車を保存したら、「配車決定を連絡」からメンバーへ案内できます。",
   },
 ] satisfies GuidedTourStep[];
+
+type AutoAssignResponse = {
+  drivers: UpdateRideValues["drivers"];
+  billing?: BillingStatusResponse["autoAssign"];
+};
 
 function formatRideDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -140,6 +153,13 @@ export default function Page() {
     (destination ?? "") !== (data.ride.destination ?? "") ||
     (meetingPlace ?? "") !== (data.ride.meetingPlace ?? "")
   ));
+  const { data: billingData, error: billingError, mutate: mutateBilling } = useFetch<BillingStatusResponse>("/api/admin/billing/status");
+  const autoAssignInFlight = useRef(false);
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  const [autoAssignError, setAutoAssignError] = useState<{ message: string; minimumCars?: number } | null>(null);
+  const [assignmentSummary, setAssignmentSummary] = useState<{ children: number; cars: number } | null>(null);
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+  const [isPaymentPending, setIsPaymentPending] = useState(false);
   const isDeleting = useRef(false);
   const [sharePreview, setSharePreview] = useState<{ title: string; text: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -159,10 +179,8 @@ export default function Page() {
 
   useEffect(() => {
     if (isLoading || !data?.ride) return;
-    const hash = window.location.hash.slice(1);
-    // 以前共有した自動割り当てリンクも、現在の配車操作へ案内する。
-    const target = hash === "auto-assign" ? "manual-assign" : hash;
-    const isAction = ["manual-assign", "share-request", "answer-deadline", "share-final", "ride-save"].includes(target);
+    const target = window.location.hash.slice(1);
+    const isAction = ["auto-assign", "manual-assign", "share-request", "answer-deadline", "share-final", "ride-save"].includes(target);
     setAutoStartGuide(!isAction);
     const key = `${teamId}:${rideId}:${target}`;
     if (!isAction || scrolledAction.current === key) return;
@@ -183,8 +201,8 @@ export default function Page() {
   }, [data?.ride, isLoading, teamId, rideId]);
 
   const refreshBilling = useCallback(async () => {
-    if (token) await api.get("/api/admin/billing/status", token);
-  }, [token]);
+    await mutateBilling();
+  }, [mutateBilling]);
 
   const requestGuideFocus = useCallback((target: string) => {
     setGuideFocusRequest((current) => ({
@@ -197,6 +215,8 @@ export default function Page() {
     if (data?.ride && draftKey && initializedForm.current !== draftKey) {
       initializedForm.current = draftKey;
       setDraftRestored(false);
+      setAssignmentSummary(null);
+      setAutoAssignError(null);
       const formValues = convertRideDetailToFormValues(data.ride);
       // childId → currentGradeのMap生成
       const childrenMap = new Map(
@@ -249,7 +269,7 @@ export default function Page() {
 
   const onSubmit = async (data: UpdateRideValues) => {
     if (!validateDate()) return;
-    if (!token) return;
+    if (!token || autoAssignInFlight.current) return;
 
     // availabilityDriverIdが未選択でも除外して送信
     const payload: UpdateRideValues = {
@@ -268,6 +288,8 @@ export default function Page() {
       setHasStaleSavedRide(true);
       toast.success("配車詳細を更新しました。");
       reset(payload);
+      setAssignmentSummary(null);
+      setAutoAssignError(null);
       setDraftRestored(false);
       if (shouldTrackShareCopy) trackEvent("ride_saved", { team_id: teamId, ride_id: rideId });
       // 回答期限には別の保存ボタンがあるため、その未保存値も下書きに残す。
@@ -290,6 +312,106 @@ export default function Page() {
     } catch (e: unknown) {
       console.error(e);
       alert("更新中にエラーが発生しました。");
+    }
+  };
+
+  // 自動割り当て実行
+  const handleAutoAssign = async (options: AutoAssignOptions) => {
+    if (!token || autoAssignInFlight.current || isSubmitting || isStartingSettlement) return;
+    if (!billingData?.autoAssign.canUseAutoAssign) return;
+    if (hasStaleSavedRide || methods.getValues("separateDirections") !== data?.ride.separateDirections) {
+      setAutoAssignError({ message: "行き帰りの配車設定を先に保存し、最新の内容を確認してから実行してください。" });
+      return;
+    }
+    autoAssignInFlight.current = true;
+    setIsAutoAssigning(true);
+    setAutoAssignError(null);
+    try {
+      const result = await api.post(
+        `/api/admin/teams/${teamId}/rides/${rideId}/auto-assign`,
+        {
+          numberOfCars: options.numberOfCars,
+          separateParentChild: options.separateParentChild,
+        },
+        token,
+      ) as AutoAssignResponse;
+      // 初期ロード時と同じ前処理（空行除去 + 学年降順ソート）を適用
+      const childrenMap = new Map(
+        (data?.ride?.children ?? []).map((c) => [c.id, c.currentGrade])
+      );
+      const processedDrivers = result.drivers.map((driver) => ({
+        ...driver,
+        rideAssignments: driver.rideAssignments
+          .filter((ra) => ra.childId !== 0 && childrenMap.has(ra.childId))
+          .sort((a, b) => {
+            const gradeA = childrenMap.get(a.childId) ?? -1;
+            const gradeB = childrenMap.get(b.childId) ?? -1;
+            return gradeB - gradeA;
+          }),
+      }));
+      // 自動生成も未保存の編集として扱い、保存前の精算開始を防ぐ。
+      methods.setValue("drivers", processedDrivers, { shouldDirty: true, shouldValidate: true });
+      setSavedAssignmentNotice(false);
+      setAssignmentSummary({
+        children: new Set(processedDrivers.flatMap((driver) => [
+          ...driver.rideAssignments.map((row) => row.childId),
+          ...driver.escorts.flatMap((escort) => escort.rideAssignments.map((row) => row.childId)),
+        ]).filter((id) => id > 0)).size,
+        cars: new Set(processedDrivers.map((driver) => driver.availabilityDriverId)).size,
+      });
+      toast.success("自動割り当て完了。保存ボタンで確定してください。");
+      if (result.billing) {
+        await mutateBilling({
+          status: "OK",
+          billing: { plan: result.billing.plan, isPro: result.billing.isPro },
+          autoAssign: result.billing,
+        }, { revalidate: false });
+      } else {
+        // 配車案の作成成功と、残り回数の再取得失敗を分けて扱う。
+        await mutateBilling().catch(() => toast.error("プラン情報を更新できませんでした。再読み込みして確認してください。"));
+      }
+    } catch (e: unknown) {
+      const err = e as {
+        message?: string;
+        minimumCars?: number;
+        billing?: BillingStatusResponse["autoAssign"];
+      };
+      setAutoAssignError({
+        message: err.message ?? "自動割り当てに失敗しました。",
+        minimumCars: err.minimumCars,
+      });
+      if (err.billing) {
+        await mutateBilling(
+          {
+            status: "OK",
+            billing: {
+              plan: err.billing.plan,
+              isPro: err.billing.isPro,
+            },
+            autoAssign: err.billing,
+          },
+          { revalidate: false },
+        );
+      }
+    } finally {
+      autoAssignInFlight.current = false;
+      setIsAutoAssigning(false);
+    }
+  };
+
+  const handleAutoAssignUpgradeClick = () => {
+    trackEvent("upgrade_offer_clicked", { source: "ride_auto_assign", ride_id: rideId });
+    setIsUpgradeOpen(true);
+  };
+
+  const preserveCheckoutDraft = async () => {
+    if (!draftKey || !token) throw new Error("ログイン状態を確認してください。");
+    try {
+      const serialized = serializeRideCheckoutDraft({ values: methods.getValues(), deadline, lockAfterDeadline });
+      sessionStorage.setItem(draftKey, serialized);
+      if (sessionStorage.getItem(draftKey) !== serialized) throw new Error("保存の確認に失敗");
+    } catch {
+      throw new Error("入力内容を一時保存できませんでした。配車を更新してからもう一度お試しください。");
     }
   };
 
@@ -451,8 +573,8 @@ PINコード: ${pin}
   };
 
   const startSettlement = async (moveFreeTrial = false) => {
-    if (!token) return;
-    if (isDirty || hasStaleSavedRide) {
+    if (!token || autoAssignInFlight.current || isSubmitting) return;
+    if (isDirty || draftRestored || hasStaleSavedRide) {
       toast.error("配車の変更を先に保存してください。");
       return;
     }
@@ -567,7 +689,7 @@ PINコード: ${pin}
             focusRequest={guideFocusRequest}
           />
         </div>
-      <BillingReturnNotice token={token} onConfirmed={refreshBilling} />
+      <BillingReturnNotice token={token} onConfirmed={refreshBilling} onPendingChange={setIsPaymentPending} />
       <SettlementBillingReturnNotice
         teamId={Number(teamId)}
         token={token}
@@ -578,6 +700,15 @@ PINコード: ${pin}
           決済前の入力を復元しました。配車は画面下の「更新」、回答期限は「設定」で保存できます。
         </p>
       )}
+      <UpgradeDialog
+        open={isUpgradeOpen}
+        onClose={() => setIsUpgradeOpen(false)}
+        onBeforeCheckout={preserveCheckoutDraft}
+        returnPath={`/admin/teams/${teamId}/rides/${rideId}`}
+        source="ride_auto_assign"
+        token={token}
+        isPaymentPending={isPaymentPending}
+      />
       <div className="app-card min-w-0 overflow-hidden p-4 md:p-8">
         <RideShareDialog open={sharePreview !== null} title={sharePreview?.title ?? "共有"} text={sharePreview?.text ?? ""} onClose={() => setSharePreview(null)} onCopy={async (text) => {
           await navigator.clipboard.writeText(text);
@@ -586,8 +717,9 @@ PINコード: ${pin}
         <FormProvider {...methods}>
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6 md:space-y-8 min-w-0"
+            className="min-w-0"
           >
+            <fieldset disabled={isAutoAssigning} className="min-w-0 space-y-6 md:space-y-8">
             <details ref={basicDetails} className="app-panel group p-4 md:p-5" data-guide="admin-ride-basic">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
                 <span className="min-w-0 break-words">
@@ -641,6 +773,28 @@ PINコード: ${pin}
             </div>
 
             </details>
+
+            {/* 自動割り当てパネル */}
+            <div id="auto-assign" tabIndex={-1} className="scroll-mt-20" data-guide="admin-ride-auto-assign">
+              <AutoAssignPanel
+                onAssign={handleAutoAssign}
+                isAssigning={isAutoAssigning}
+                disabled={isSubmitting || isStartingSettlement}
+                error={autoAssignError}
+                defaultNumberOfCars={data?.ride?.availabilityDrivers.filter(
+                  (d) => d.type === "driver" && d.availability === true
+                ).length}
+                billingStatus={billingData?.autoAssign}
+                onUpgradeClick={handleAutoAssignUpgradeClick}
+                onRequestAnswers={openRequestShare}
+                isPaymentPending={isPaymentPending}
+                analyticsKey={isGuestUser ? undefined : rideId}
+                assignmentSummary={assignmentSummary}
+              />
+              {billingError && (
+                <p role="alert" className="mt-2 text-sm text-red-700">プラン情報を取得できませんでした。ページを再読み込みしてください。</p>
+              )}
+            </div>
 
             <div id="manual-assign" tabIndex={-1} className="scroll-mt-20">
               <RideDriverList
@@ -873,6 +1027,7 @@ PINコード: ${pin}
               </Link>
             </section>
 
+            </fieldset>
           </form>
         </FormProvider>
       </div>

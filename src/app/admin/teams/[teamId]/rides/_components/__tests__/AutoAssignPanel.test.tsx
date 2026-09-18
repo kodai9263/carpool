@@ -61,3 +61,59 @@ test("作成しただけの配車案は未保存と明示し、保存操作へ�
   expect(screen.getByRole("status")).toHaveTextContent("まだ保存されていません");
   expect(screen.getByRole("link", { name: "保存ボタンへ進む" })).toHaveAttribute("href", "#ride-save");
 });
+
+test.each(["0", "-1", "1.5", "abc", "1e0"])("台数が %s の場合は自動割り当てを実行せず、入力エラーを案内する", (value) => {
+  const assign = jest.fn().mockResolvedValue(undefined);
+  render(<AutoAssignPanel onAssign={assign} onUpgradeClick={jest.fn()} isAssigning={false} error={null} defaultNumberOfCars={2} billingStatus={free} />);
+  fireEvent.click(screen.getByText("配車の条件"));
+  const input = screen.getByLabelText("台数");
+  fireEvent.change(input, { target: { value } });
+  fireEvent.click(screen.getByRole("button", { name: "無料で配車案を作る" }));
+  expect(assign).not.toHaveBeenCalled();
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(input).toHaveAccessibleDescription("台数は1以上の整数で入力してください。空欄なら自動計算します。");
+});
+
+test("台数を空欄にすると入力エラーを解消し、自動計算として実行する", () => {
+  const assign = jest.fn().mockResolvedValue(undefined);
+  render(<AutoAssignPanel onAssign={assign} onUpgradeClick={jest.fn()} isAssigning={false} error={null} defaultNumberOfCars={2} billingStatus={free} />);
+  fireEvent.click(screen.getByText("配車の条件"));
+  const input = screen.getByLabelText("台数");
+  fireEvent.change(input, { target: { value: "0" } });
+  fireEvent.click(screen.getByRole("button", { name: "無料で配車案を作る" }));
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  fireEvent.change(input, { target: { value: "" } });
+  fireEvent.click(screen.getByRole("button", { name: "無料で配車案を作る" }));
+  expect(input).toHaveAttribute("aria-invalid", "false");
+  expect(assign).toHaveBeenCalledTimes(1);
+  expect(assign).toHaveBeenCalledWith({ numberOfCars: undefined, separateParentChild: false });
+});
+
+test("候補が0人から2人に増えたら台数を2に初期化して実行できる", () => {
+  const assign = jest.fn().mockResolvedValue(undefined);
+  const props = { onAssign: assign, onUpgradeClick: jest.fn(), isAssigning: false, error: null, billingStatus: free };
+  const { rerender } = render(<AutoAssignPanel {...props} defaultNumberOfCars={0} />);
+  expect(screen.getByRole("button", { name: "無料で配車案を作る" })).toBeDisabled();
+  rerender(<AutoAssignPanel {...props} defaultNumberOfCars={2} />);
+  expect(screen.getByLabelText("台数")).toHaveValue("2");
+  fireEvent.click(screen.getByRole("button", { name: "無料で配車案を作る" }));
+  expect(assign).toHaveBeenCalledWith({ numberOfCars: 2, separateParentChild: false });
+});
+
+test("自動条件の台数が0でも、手動割り当ての保存をブラウザーの入力検証で止めない", () => {
+  const assign = jest.fn().mockResolvedValue(undefined);
+  const save = jest.fn();
+  const { container } = render(
+    <form onSubmit={(event) => { event.preventDefault(); save(); }}>
+      <AutoAssignPanel onAssign={assign} onUpgradeClick={jest.fn()} isAssigning={false} error={null} defaultNumberOfCars={2} billingStatus={free} />
+      <button type="submit">手動の配車を保存</button>
+    </form>,
+  );
+  fireEvent.click(screen.getByText("配車の条件"));
+  fireEvent.change(screen.getByLabelText("台数"), { target: { value: "0" } });
+  fireEvent.click(screen.getByRole("button", { name: "無料で配車案を作る" }));
+  expect(assign).not.toHaveBeenCalled();
+  expect(container.querySelector("form")!.checkValidity()).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: "手動の配車を保存" }));
+  expect(save).toHaveBeenCalledTimes(1);
+});
