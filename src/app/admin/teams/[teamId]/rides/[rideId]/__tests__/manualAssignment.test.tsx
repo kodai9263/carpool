@@ -36,14 +36,16 @@ test("手動で選んだドライバーと子どもを保存し、保存結果�
     ride = { ...ride, drivers: [savedDriver] };
     return { ride };
   });
-  (useFetch as jest.Mock).mockImplementation(() => ({ data: { ride }, mutate: refresh, isLoading: false }));
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({
+    data: url.includes("billing") ? { autoAssign: { plan: "pro", isPro: true, isExempt: false, canUseAutoAssign: true } } : { ride },
+    mutate: url.includes("billing") ? jest.fn() : refresh, isLoading: false,
+  }));
   (api.put as jest.Mock).mockResolvedValue({});
   try {
     const { container } = render(<Page />);
-    await waitFor(() => expect(document.activeElement?.id).toBe("manual-assign"));
-    expect(screen.queryByText(/自動割り当て/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Proプラン/)).not.toBeInTheDocument();
-    expect(useFetch).not.toHaveBeenCalledWith(expect.stringContaining("billing"));
+    await waitFor(() => expect(document.activeElement?.id).toBe("auto-assign"));
+    expect(screen.getByRole("button", { name: "自動割り当てを実行" })).toBeEnabled();
+    expect(useFetch).toHaveBeenCalledWith("/api/admin/billing/status");
     expect(api.get).not.toHaveBeenCalled();
     const saveButton = screen.getByRole("button", { name: "変更を更新" });
     expect(saveButton.compareDocumentPosition(screen.getByRole("region", { name: "メンバーへの連絡" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

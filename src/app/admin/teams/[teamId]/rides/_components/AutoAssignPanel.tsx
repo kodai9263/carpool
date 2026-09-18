@@ -14,6 +14,7 @@ export interface AutoAssignOptions {
 interface Props {
   onAssign: (options: AutoAssignOptions) => Promise<void>;
   isAssigning: boolean;
+  disabled?: boolean;
   error: { message: string; minimumCars?: number } | null;
   defaultNumberOfCars?: number; // 配車可能な台数（初期値・上限として使用）
   billingStatus?: AutoAssignBillingStatus;
@@ -27,6 +28,7 @@ interface Props {
 export default function AutoAssignPanel({
   onAssign,
   isAssigning,
+  disabled = false,
   error,
   defaultNumberOfCars,
   billingStatus,
@@ -38,6 +40,7 @@ export default function AutoAssignPanel({
 }: Props) {
   const numberOfCarsId = useId();
   const [numberOfCarsInput, setNumberOfCarsInput] = useState<string>("");
+  const [optionsError, setOptionsError] = useState<string | null>(null);
   const [separateParentChild, setSeparateParentChild] = useState<boolean>(false);
   const isLimitReached = Boolean(billingStatus && !billingStatus.canUseAutoAssign);
   const hasDrivers = (defaultNumberOfCars ?? 0) > 0;
@@ -62,13 +65,14 @@ export default function AutoAssignPanel({
 
   // データ取得後に配車可能台数を初期値としてセット
   useEffect(() => {
-    if (defaultNumberOfCars !== undefined && numberOfCarsInput === "") {
+    if (defaultNumberOfCars !== undefined && defaultNumberOfCars > 0 && (numberOfCarsInput === "" || Number(numberOfCarsInput) <= 0)) {
       setNumberOfCarsInput(String(defaultNumberOfCars));
     }
   }, [defaultNumberOfCars]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleNumberOfCarsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
+    setOptionsError(null);
     if (
       defaultNumberOfCars !== undefined &&
       val !== "" &&
@@ -81,16 +85,20 @@ export default function AutoAssignPanel({
   };
 
   const handleSubmit = async () => {
-    if (isAssigning || isLimitReached || !hasDrivers || !billingStatus) return;
-    const numberOfCars =
-      numberOfCarsInput !== "" && !isNaN(Number(numberOfCarsInput))
-        ? Number(numberOfCarsInput)
-        : undefined;
+    if (disabled || isAssigning || isLimitReached || !hasDrivers || !billingStatus) return;
+    const input = numberOfCarsInput.trim();
+    const numberOfCars = input === "" ? undefined : Number(input);
+    if (numberOfCars !== undefined && (!/^[0-9]+$/.test(input) || !Number.isSafeInteger(numberOfCars) || numberOfCars < 1 || (defaultNumberOfCars !== undefined && numberOfCars > defaultNumberOfCars))) {
+      setOptionsError("台数は1以上の整数で入力してください。空欄なら自動計算します。");
+      return;
+    }
+    setOptionsError(null);
     await onAssign({ numberOfCars, separateParentChild });
   };
 
   const handleRetryWithMinimum = async (minimumCars: number) => {
-    if (isAssigning || isLimitReached || !hasDrivers || !billingStatus) return;
+    if (disabled || isAssigning || isLimitReached || !hasDrivers || !billingStatus) return;
+    setOptionsError(null);
     setNumberOfCarsInput(String(minimumCars));
     await onAssign({ numberOfCars: minimumCars, separateParentChild });
   };
@@ -106,6 +114,8 @@ export default function AutoAssignPanel({
           </span>
         )}
       </div>
+
+      <p className="text-sm leading-6 text-teal-950">回答と座席数から配車案を作ります。現在の割り当てを置き換えるため、作成後に内容を確認・調整して保存してください。</p>
 
       {!hasDrivers && (
         <div className="rounded-lg bg-white p-3 text-sm text-gray-700">
@@ -150,7 +160,7 @@ export default function AutoAssignPanel({
               <button
                 type="button"
                 onClick={onUpgradeClick}
-                disabled={isPaymentPending || isAssigning}
+                disabled={disabled || isPaymentPending || isAssigning}
                 className={`${isLimitReached ? "app-button-primary" : "app-button-secondary"} shrink-0`}
               >
                 {isPaymentPending ? "契約状況を確認中" : `月${PRO_MONTHLY_PRICE_JPY}円で続ける`}
@@ -168,15 +178,16 @@ export default function AutoAssignPanel({
             {" ・ "}{separateParentChild ? "親子は別々の車" : "親子の指定なし"}
           </span>
         </summary>
-        <fieldset disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus} className="space-y-3 px-3 pb-3 disabled:opacity-60">
+        <fieldset disabled={disabled || isAssigning || isLimitReached || !hasDrivers || !billingStatus} className="space-y-3 px-3 pb-3 disabled:opacity-60">
           {/* 台数入力 */}
           <div className="flex items-center gap-3">
             <label htmlFor={numberOfCarsId} className="text-sm text-gray-700 w-16 shrink-0">台数</label>
             <input
               id={numberOfCarsId}
-              type="number"
-              min={1}
-              max={defaultNumberOfCars}
+              type="text"
+              inputMode="numeric"
+              aria-invalid={Boolean(optionsError)}
+              aria-describedby={optionsError ? `${numberOfCarsId}-error` : undefined}
               value={numberOfCarsInput}
               onChange={handleNumberOfCarsChange}
               placeholder="自動計算"
@@ -207,11 +218,13 @@ export default function AutoAssignPanel({
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus}
+        disabled={disabled || isAssigning || isLimitReached || !hasDrivers || !billingStatus}
         className="app-button-primary w-full"
       >
         {isAssigning ? "配車案を作成中..." : !billingStatus ? "プランを確認中..." : isFree && !isLimitReached ? "無料で配車案を作る" : "自動割り当てを実行"}
       </button>
+
+      {optionsError && <p id={`${numberOfCarsId}-error`} role="alert" className="text-sm text-red-700">{optionsError}</p>}
 
       {/* エラー表示（消えないインライン） */}
       {error && (
@@ -221,7 +234,7 @@ export default function AutoAssignPanel({
             <button
               type="button"
               onClick={() => handleRetryWithMinimum(error.minimumCars!)}
-              disabled={isAssigning || isLimitReached || !hasDrivers || !billingStatus}
+              disabled={disabled || isAssigning || isLimitReached || !hasDrivers || !billingStatus}
               className="text-xs font-medium text-red-700 underline hover:text-red-900 disabled:opacity-50"
             >
               {error.minimumCars}台で実行する

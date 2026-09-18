@@ -230,7 +230,7 @@ test("保存失敗時は共有案内も保存イベントも出さない", async
   } finally { alertSpy.mockRestore(); errorSpy.mockRestore(); }
 });
 
-test.each(["share-final", "ride-save", "manual-assign"])("案内先 #%s は読込後にフォーカスを移す", async (target) => {
+test.each(["share-final", "ride-save", "manual-assign", "auto-assign"])("案内先 #%s は読込後にフォーカスを移す", async (target) => {
   window.history.replaceState(null, "", `/admin/teams/1/rides/2#${target}`);
   const original = HTMLElement.prototype.scrollIntoView;
   HTMLElement.prototype.scrollIntoView = jest.fn();
@@ -252,4 +252,14 @@ test("送信した割当が保存結果にない場合は、共有案内を表�
   await waitFor(() => expect(screen.getByRole("button", { name: "変更を更新" })).toBeEnabled());
   expect(screen.queryByRole("button", { name: "連絡する文面を確認" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "配車決定を連絡" })).toBeEnabled();
+});
+
+
+test("決済から復元した未保存の自動案では精算作成を止める", async () => {
+  sessionStorage.setItem(key, serializeRideCheckoutDraft(assignedDraft));
+  render(<Page />);
+  fireEvent.click(screen.getByRole("button", { name: "この配車の精算を始める" }));
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith("配車の変更を先に保存してください。"));
+  expect(api.post).not.toHaveBeenCalled();
+  expect(api.put).not.toHaveBeenCalled();
 });

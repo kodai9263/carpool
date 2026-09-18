@@ -48,8 +48,14 @@ const ride = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  sessionStorage.clear();
+  HTMLDialogElement.prototype.showModal = jest.fn(function (this: HTMLDialogElement) { this.open = true; });
+  HTMLDialogElement.prototype.close = jest.fn(function (this: HTMLDialogElement) { this.open = false; });
   window.history.replaceState(null, "", "/admin/teams/1/rides/2");
-  (useFetch as jest.Mock).mockReturnValue({ data: { ride }, mutate: jest.fn(), isLoading: false });
+  (useFetch as jest.Mock).mockImplementation((url: string) => ({
+    data: url.includes("billing") ? { autoAssign: { plan: "pro", isPro: true, isExempt: false, canUseAutoAssign: true } } : { ride },
+    mutate: jest.fn(), isLoading: false,
+  }));
   (api.post as jest.Mock).mockResolvedValue({
     status: "OK",
     created: true,
