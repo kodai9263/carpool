@@ -12,7 +12,7 @@ type FeedbackNotification = {
 
 export async function notifyFeedback(feedback: FeedbackNotification): Promise<void> {
   const password = process.env.CARPOOL_GMAIL_APP_PASSWORD?.replace(/\s/g, "");
-  if (!password) throw new Error("Feedback notification is not configured");
+  if (!password) throw Object.assign(new Error("Feedback notification is not configured"), { code: "EMISSINGCONFIG" });
 
   const transport = nodemailer.createTransport({
     host: "smtp.gmail.com",

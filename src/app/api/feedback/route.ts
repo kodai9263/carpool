@@ -73,9 +73,15 @@ export const POST = async (request: NextRequest) => {
     try {
       // サーバーレス環境で送信が中断されないよう、完了を待って応答する。
       await notifyFeedback(feedback);
-    } catch {
+    } catch (error) {
       // 保存済みの投稿は受け付ける。本文や認証情報はログに残さない。
-      console.error("[feedback-notification] delivery_failed", { feedbackId: feedback.id });
+      const details = error && typeof error === "object" ? error as { code?: unknown; responseCode?: unknown } : {};
+      const code = typeof details.code === "string" &&
+        ["EAUTH", "ECONNECTION", "ETIMEDOUT", "EDNS", "ESOCKET", "ETLS", "EENVELOPE", "EMESSAGE", "EMISSINGCONFIG"].includes(details.code)
+        ? details.code : "UNKNOWN";
+      const responseCode = typeof details.responseCode === "number" && Number.isInteger(details.responseCode) &&
+        details.responseCode >= 400 && details.responseCode <= 599 ? details.responseCode : undefined;
+      console.error("[feedback-notification] delivery_failed", { feedbackId: feedback.id, code, responseCode });
     }
     return NextResponse.json({ success: true }, { status: 201 });
   } catch {

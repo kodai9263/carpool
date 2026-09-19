@@ -120,7 +120,26 @@ test("メール送信が失敗しても保存成功を返し、ログに本文�
     expect(await response.json()).toEqual({ success: true });
     expect(prisma.feedback.create).toHaveBeenCalledTimes(1);
     expect(errorSpy).toHaveBeenCalledTimes(1);
-    expect(errorSpy).toHaveBeenCalledWith("[feedback-notification] delivery_failed", { feedbackId: 81 });
+    expect(errorSpy).toHaveBeenCalledWith("[feedback-notification] delivery_failed", { feedbackId: 81, code: "UNKNOWN", responseCode: undefined });
+  } finally {
+    errorSpy.mockRestore();
+  }
+});
+
+test.each([
+  { code: "EAUTH", responseCode: 535, expectedCode: "EAUTH", expectedResponse: 535 },
+  { code: "ETIMEDOUT", responseCode: undefined, expectedCode: "ETIMEDOUT", expectedResponse: undefined },
+  { code: "secret-in-code", responseCode: "secret-in-response", expectedCode: "UNKNOWN", expectedResponse: undefined },
+])("通知失敗の診断情報は許可したコードと数値だけを記録する ($expectedCode)", async ({ code, responseCode, expectedCode, expectedResponse }) => {
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  (notifyFeedback as jest.Mock).mockRejectedValueOnce(Object.assign(new Error("secret-password"), {
+    code, responseCode, response: "secret-response", command: "secret-command",
+  }));
+  try {
+    expect((await POST(request())).status).toBe(201);
+    expect(errorSpy).toHaveBeenCalledWith("[feedback-notification] delivery_failed", {
+      feedbackId: 81, code: expectedCode, responseCode: expectedResponse,
+    });
   } finally {
     errorSpy.mockRestore();
   }
