@@ -188,13 +188,20 @@ model ChildAvailability {
 
 // フィードバックテーブル
 model Feedback {
-  id         Int      @id @default(autoincrement())
-  category   String
-  message    String
-  replyEmail String?
-  adminId    Int?
-  admin      Admin?   @relation(fields: [adminId], references: [id])
-  createdAt  DateTime @default(now())
+  id                       Int       @id @default(autoincrement())
+  category                 String
+  message                  String
+  replyEmail               String?
+  adminId                  Int?
+  admin                    Admin?    @relation(fields: [adminId], references: [id])
+  createdAt                DateTime  @default(now())
+  notificationStatus       String    @default("pending")
+  notificationErrorCode    String?
+  notificationResponseCode Int?
+  notificationAcceptedAt   DateTime?
+  reviewedAt               DateTime?
+
+  @@index([reviewedAt, id])
 }
 
 // Checkoutで確定した契約の一次記録。GA送信の成否とは独立して保持する。

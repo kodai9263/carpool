@@ -70,6 +70,9 @@ export const POST = async (request: NextRequest) => {
         adminId,
       },
     });
+    let notificationStatus = "accepted";
+    let notificationErrorCode: string | null = null;
+    let notificationResponseCode: number | null = null;
     try {
       // サーバーレス環境で送信が中断されないよう、完了を待って応答する。
       await notifyFeedback(feedback);
@@ -81,7 +84,24 @@ export const POST = async (request: NextRequest) => {
         ? details.code : "UNKNOWN";
       const responseCode = typeof details.responseCode === "number" && Number.isInteger(details.responseCode) &&
         details.responseCode >= 400 && details.responseCode <= 599 ? details.responseCode : undefined;
+      notificationStatus = "failed";
+      notificationErrorCode = code;
+      notificationResponseCode = responseCode ?? null;
       console.error("[feedback-notification] delivery_failed", { feedbackId: feedback.id, code, responseCode });
+    }
+    try {
+      await prisma.feedback.update({
+        where: { id: feedback.id },
+        data: {
+          notificationStatus,
+          notificationErrorCode,
+          notificationResponseCode,
+          notificationAcceptedAt: notificationStatus === "accepted" ? new Date() : null,
+        },
+      });
+    } catch {
+      // 状態記録に失敗しても投稿自体は保存済み。pendingのまま運営画面へ表示する。
+      console.error("[feedback-notification] status_persist_failed", { feedbackId: feedback.id });
     }
     return NextResponse.json({ success: true }, { status: 201 });
   } catch {
