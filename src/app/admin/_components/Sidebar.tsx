@@ -89,9 +89,9 @@ export const Sidebar: React.FC = () => {
                 className={isActive("/admin/feedback") ? activeNavItemClass : navItemClass}
               >
                 <MessageSquareText size={18} />
-                <span>フィードバック</span>
+                <span className="whitespace-nowrap text-[13px]">フィードバック</span>
                 {feedbackSummary.unreadCount > 0 && (
-                  <span className="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                  <span className="ml-auto shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
                     {feedbackSummary.unreadCount}
                   </span>
                 )}
