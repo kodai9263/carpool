@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { supabase } from "@/utils/supabase";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { fetcher } from "@/utils/fetcher";
+import useSWR from "swr";
 import {
   Car,
   LayoutDashboard,
   LogOut,
+  MessageSquareText,
   ReceiptText,
   Settings,
   User,
@@ -19,6 +22,7 @@ import { AddToHomeScreenButton } from "@/app/_components/AddToHomeScreenButton";
 import { trackEvent } from "@/utils/analytics";
 
 const GUEST_EMAIL = "guest@carpool.demo";
+type FeedbackSummary = { canAccess: boolean; unreadCount: number };
 
 const navItemClass = "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-teal-50 hover:text-teal-800";
 const activeNavItemClass = "flex w-full items-center gap-3 rounded-lg bg-teal-50 px-3 py-2.5 text-sm font-semibold text-teal-800";
@@ -30,8 +34,13 @@ export const Sidebar: React.FC = () => {
   const params = useParams<{ teamId: string }>();
   const teamId = params.teamId;
   const pathname = usePathname();
-  const { session } = useSupabaseSession();
+  const { session, token } = useSupabaseSession();
   const isGuest = session?.user.email === GUEST_EMAIL;
+  const { data: feedbackSummary } = useSWR<FeedbackSummary>(
+    token && !isGuest ? "/api/admin/feedback/summary" : null,
+    fetcher,
+    { refreshInterval: 60_000, revalidateOnFocus: true, errorRetryCount: 1 },
+  );
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -74,6 +83,20 @@ export const Sidebar: React.FC = () => {
               <LayoutDashboard size={18} />
               <span>ダッシュボード</span>
             </Link>
+            {feedbackSummary?.canAccess && (
+              <Link
+                href="/admin/feedback"
+                className={isActive("/admin/feedback") ? activeNavItemClass : navItemClass}
+              >
+                <MessageSquareText size={18} />
+                <span>フィードバック</span>
+                {feedbackSummary.unreadCount > 0 && (
+                  <span className="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                    {feedbackSummary.unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
           {teamId && (
             <>
@@ -148,7 +171,20 @@ export const Sidebar: React.FC = () => {
 
       {/* モバイル用下部ナビゲーション */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white/70 shadow-lg backdrop-blur-xl print:hidden md:hidden">
-        <div className="flex justify-around items-center h-16 px-2">
+        <div className="flex h-16 items-center justify-around gap-1 overflow-x-auto px-2">
+          {feedbackSummary?.canAccess && (
+            <Link
+              href="/admin/feedback"
+              className={`${isActive("/admin/feedback") ? activeMobileNavItemClass : mobileNavItemClass} relative`}
+            >
+              <MessageSquareText size={22} /><span>ご意見</span>
+              {feedbackSummary.unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 rounded-full bg-rose-600 px-1.5 text-[10px] font-bold text-white">
+                  {feedbackSummary.unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
           {teamId && (
             <>
               <Link

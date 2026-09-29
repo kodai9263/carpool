@@ -10,7 +10,7 @@ jest.mock("@supabase/supabase-js", () => ({
 }));
 jest.mock("@/lib/prisma", () => ({
   prisma: {
-    feedback: { create: jest.fn() },
+    feedback: { create: jest.fn(), update: jest.fn() },
     admin: { findUnique: jest.fn() },
   },
 }));
@@ -35,6 +35,7 @@ const request = (body: unknown = validBody, token?: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   (prisma.feedback.create as jest.Mock).mockResolvedValue(savedFeedback);
+  (prisma.feedback.update as jest.Mock).mockResolvedValue(savedFeedback);
   (prisma.admin.findUnique as jest.Mock).mockResolvedValue(null);
   getUser.mockResolvedValue({ data: { user: null } });
   (notifyFeedback as jest.Mock).mockResolvedValue(undefined);
@@ -50,6 +51,15 @@ test("未ログインでも保存したフィードバックを一度通知す�
   });
   expect(notifyFeedback).toHaveBeenCalledTimes(1);
   expect(notifyFeedback).toHaveBeenCalledWith(savedFeedback);
+  expect(prisma.feedback.update).toHaveBeenCalledWith({
+    where: { id: 81 },
+    data: {
+      notificationStatus: "accepted",
+      notificationErrorCode: null,
+      notificationResponseCode: null,
+      notificationAcceptedAt: expect.any(Date),
+    },
+  });
   expect(getUser).not.toHaveBeenCalled();
 });
 
@@ -121,6 +131,27 @@ test("メール送信が失敗しても保存成功を返し、ログに本文�
     expect(prisma.feedback.create).toHaveBeenCalledTimes(1);
     expect(errorSpy).toHaveBeenCalledTimes(1);
     expect(errorSpy).toHaveBeenCalledWith("[feedback-notification] delivery_failed", { feedbackId: 81, code: "UNKNOWN", responseCode: undefined });
+    expect(prisma.feedback.update).toHaveBeenCalledWith({
+      where: { id: 81 },
+      data: {
+        notificationStatus: "failed",
+        notificationErrorCode: "UNKNOWN",
+        notificationResponseCode: null,
+        notificationAcceptedAt: null,
+      },
+    });
+  } finally {
+    errorSpy.mockRestore();
+  }
+});
+
+test("通知状態の保存に失敗しても投稿の受付を維持する", async () => {
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  (prisma.feedback.update as jest.Mock).mockRejectedValueOnce(new Error("database unavailable"));
+
+  try {
+    expect((await POST(request())).status).toBe(201);
+    expect(errorSpy).toHaveBeenCalledWith("[feedback-notification] status_persist_failed", { feedbackId: 81 });
   } finally {
     errorSpy.mockRestore();
   }
@@ -139,6 +170,14 @@ test.each([
     expect((await POST(request())).status).toBe(201);
     expect(errorSpy).toHaveBeenCalledWith("[feedback-notification] delivery_failed", {
       feedbackId: 81, code: expectedCode, responseCode: expectedResponse,
+    });
+    expect(prisma.feedback.update).toHaveBeenCalledWith({
+      where: { id: 81 },
+      data: expect.objectContaining({
+        notificationStatus: "failed",
+        notificationErrorCode: expectedCode,
+        notificationResponseCode: expectedResponse ?? null,
+      }),
     });
   } finally {
     errorSpy.mockRestore();
