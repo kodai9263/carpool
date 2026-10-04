@@ -22,6 +22,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SettlementBillingButton } from "@/app/admin/_components/SettlementBillingButton";
+import { BillingReturnNotice } from "@/app/admin/_components/BillingReturnNotice";
 import { SettlementBillingReturnNotice } from "@/app/admin/_components/SettlementBillingReturnNotice";
 
 const CATEGORY_LABELS: Record<SettlementExpenseCategory, string> = {
@@ -441,6 +442,7 @@ export default function Page() {
           onActive={() => mutate()}
           onRefresh={() => mutate()}
         />
+        <BillingReturnNotice token={token} onConfirmed={() => mutate()} />
 
         {visibleSettlement.draft && visibleSettlement.access.state === "free_trial" && (
           <section className="mb-5 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-6 text-teal-950">
@@ -454,7 +456,7 @@ export default function Page() {
             <p className="font-bold">
               {visibleSettlement.access.freeTrialConsumed ? "無料体験は利用済みです" : "無料体験は別の遠征で利用中です"}
             </p>
-            <p className="mt-1">この下書きの編集・初回確定には、月{visibleSettlement.access.monthlyPrice.toLocaleString("ja-JP")}円／チームの精算プランが必要です。</p>
+            <p className="mt-1">この下書きの編集・初回確定には、遠征費精算を含む月{visibleSettlement.access.monthlyPrice.toLocaleString("ja-JP")}円のProが必要です。</p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               {!visibleSettlement.access.freeTrialConsumed && visibleSettlement.rideId && (
                 <button type="button" onClick={handleMoveFreeTrial} disabled={isMovingFreeTrial} className="app-button-secondary bg-white">
@@ -472,7 +474,7 @@ export default function Page() {
                 returnPath={`/admin/teams/${teamId}/settlements/${settlementId}`}
                 className="app-button-primary"
               >
-                月{visibleSettlement.access.monthlyPrice.toLocaleString("ja-JP")}円の精算プランを始める
+                月{visibleSettlement.access.monthlyPrice.toLocaleString("ja-JP")}円のProを始める
               </SettlementBillingButton>
             </div>
             <p className="mt-2 text-xs">保存済みの下書きは削除されません。</p>
@@ -481,16 +483,26 @@ export default function Page() {
 
         {visibleSettlement.draft && visibleSettlement.access.state === "subscribed" && (
           <section className="mb-5 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-6 text-teal-950">
-            <p className="font-bold">精算プランを利用中です</p>
-            <p className="mt-1">このチームの遠征費精算を作成・編集できます。</p>
+            <p className="font-bold">
+              {visibleSettlement.access.accessSource === "trial"
+                ? "Pro無料体験中です"
+                : visibleSettlement.access.accessSource === "legacy"
+                ? "精算プランを利用中です"
+                : "Proで遠征費精算を利用中です"}
+            </p>
+            <p className="mt-1">
+              {visibleSettlement.access.accessSource === "legacy"
+                ? "このチームの遠征費精算を作成・編集できます。"
+                : "この管理者が所有するチームで遠征費精算を作成・編集できます。"}
+            </p>
             <SettlementBillingButton
               teamId={Number(teamId)}
               token={token}
               returnPath={`/admin/teams/${teamId}/settlements/${settlementId}`}
-              action="portal"
+              action={visibleSettlement.access.accessSource === "trial" ? "checkout" : visibleSettlement.access.accessSource === "legacy" ? "legacy_portal" : "portal"}
               className="app-button-secondary mt-3 bg-white"
             >
-              支払い管理を開く
+              {visibleSettlement.access.accessSource === "trial" ? "月300円でProを継続する" : "支払い管理を開く"}
             </SettlementBillingButton>
           </section>
         )}

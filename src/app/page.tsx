@@ -21,6 +21,7 @@ import {
   AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   FREE_TEAM_LIMIT,
   PRO_MONTHLY_PRICE_JPY,
+  PRO_TRIAL_DAYS,
   PRO_YEARLY_PRICE_JPY,
 } from "@/utils/billing";
 
@@ -61,8 +62,10 @@ const freeFeatures = [
 ];
 
 const proFeatures = [
+  `登録から${PRO_TRIAL_DAYS}日間は無料`,
   "自動割り当て無制限",
   "複数チームの管理",
+  "遠征費精算を無制限で利用",
   "年払いなら月あたり250円",
 ];
 
@@ -77,11 +80,11 @@ const faqs = [
   },
   {
     question: "Proはどんな人向けですか？",
-    answer: "自動割り当てを回数制限なく使いたい方や、複数チームを管理したい配車係向けです。",
+    answer: "自動割り当てを回数制限なく使いたい方、複数チームを管理したい方、遠征費を家庭ごとに精算したい配車係向けです。登録から30日間はカード登録なしで試せます。",
   },
   {
-    question: "支払い開始後にすぐ使えなくなりますか？",
-    answer: "いいえ。1チームまでの無料利用はそのまま続けられます。Proが必要になったら、登録後のプロフィール画面からいつでも申し込み・解約できます。",
+    question: "無料体験が終わると使えなくなりますか？",
+    answer: "いいえ。30日間のPro無料体験が終わっても、1チームまでの基本機能と作成済みデータはそのまま利用できます。Proが必要になったら、プロフィール画面からいつでも申し込めます。",
   },
 ];
 
@@ -354,10 +357,10 @@ function PricingSection() {
       <div className="app-container">
         <div className="mb-10 max-w-2xl">
           <p className="mb-2 text-sm font-semibold text-teal-700">料金</p>
-          <h2 className="app-section-title">1チームは無料。自動割り当て無制限はPro。</h2>
+          <h2 className="app-section-title">Proを30日無料で。遠征費精算も月300円に。</h2>
           <p className="mt-3 text-sm leading-7 text-gray-500 md:text-base">
             個人の配車係が安心して使い始められるよう、まずは無料で運用できます。
-            Proでは、自動割り当てを無制限で利用でき、複数チームも管理できます。
+            登録から30日間は、カード登録なしでProを体験できます。Proでは、自動割り当て無制限・複数チーム管理・遠征費精算をまとめて利用できます。
           </p>
         </div>
 
@@ -394,7 +397,7 @@ function PricingSection() {
                   <WalletCards size={22} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-950">Pro</h3>
-                <p className="mt-1 text-sm text-gray-600">自動割り当てを無制限で使いたい方向け</p>
+                <p className="mt-1 text-sm text-gray-600">配車と遠征費精算をまとめて効率化したい方向け</p>
               </div>
               <span className="app-status bg-white text-amber-800">年払いがお得</span>
             </div>
@@ -416,11 +419,11 @@ function PricingSection() {
               trackLabel="upgrade_lp_pricing"
               className="app-button-secondary mt-6 w-full border-amber-200 bg-white text-amber-900 hover:bg-amber-100"
             >
-              無料で始めてアップグレード
+              30日間Pro無料で始める
               <CreditCard size={17} />
             </TrackedLink>
             <p className="mt-2 text-center text-xs text-gray-500">
-              登録後、プロフィール画面からいつでもProに申し込めます
+              カード登録不要。無料体験後も基本機能とデータは残ります
             </p>
           </div>
         </div>

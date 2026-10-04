@@ -300,6 +300,9 @@ export const settlementDetailInclude = {
       settlementSubscription: {
         select: { stripeSubscriptionStatus: true },
       },
+      admin: {
+        select: { billingPlan: true, proTrialEndsAt: true },
+      },
     },
   },
   revisions: { orderBy: { revision: "desc" as const } },
