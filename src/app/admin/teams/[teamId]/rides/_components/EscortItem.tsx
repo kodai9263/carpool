@@ -29,6 +29,7 @@ export default function EscortItem({
   onRemove,
 }: Props) {
   const { register } = useFormContext<UpdateRideValues>();
+  const separateDirections = useWatch({ name: "separateDirections" });
 
   // 選択中の引率者IDを監視してコメント取得
   const selectedEscortId = useWatch({ name: `drivers.${driverIndex}.escorts.${escortIndex}.availabilityDriverId` });
@@ -42,10 +43,13 @@ export default function EscortItem({
   // 引率者候補（availability: true かつ type: 'escort' かつ対応方向）
   const availableEscorts = useMemo(() =>
     availabilityDrivers.filter(
-      d => d.availability === true && d.type === 'escort' && (d.direction === direction || d.direction === 'both')
+      d => d.availability === true && d.type === 'escort' &&
+        (d.direction === 'both' || (separateDirections && d.direction === direction))
     ),
-    [availabilityDrivers, direction]
+    [availabilityDrivers, direction, separateDirections]
   );
+  const selectedUnavailable = selectedEscortId > 0 &&
+    !availableEscorts.some((escort) => escort.id === Number(selectedEscortId));
 
   // 選択済みの引率者IDを収集（同方向の他の引率者枠 + 配車ドライバーと同一人物の引率IDも除外）
   const excludedEscortIds = useMemo(() => {
@@ -85,12 +89,18 @@ export default function EscortItem({
       <div className="flex items-center gap-2">
         <PersonStanding size={18} className="flex-shrink-0 text-teal-700" />
         <select
+          aria-label="引率者"
           {...register(`drivers.${driverIndex}.escorts.${escortIndex}.availabilityDriverId`, {
             valueAsNumber: true,
           })}
           className="app-select w-full min-w-0 truncate py-2 text-sm"
         >
           <option value={0}>引率者を選択</option>
+          {selectedUnavailable && (
+            <option value={selectedEscortId} disabled>
+              {selectedEscort?.guardian.name ?? '選択済みの引率者'}（回答の再確認が必要）
+            </option>
+          )}
           {availableEscorts.map((escort) => {
             const isDisabled = excludedEscortIds.has(escort.id);
             return (
@@ -107,12 +117,18 @@ export default function EscortItem({
         </select>
         <button
           type="button"
+          aria-label="引率者を削除"
           onClick={onRemove}
           className="flex-shrink-0 text-gray-400 transition hover:text-red-500"
         >
           <X size={16} />
         </button>
       </div>
+      {selectedUnavailable && (
+        <p className="mt-2 text-xs text-red-700">
+          この配車で引率できる保護者を選び直すか、引率枠を削除してください。
+        </p>
+      )}
       {/* 引率者のコメント */}
       {comment && (
         <div className="ml-7 mr-6 mt-2 flex items-start gap-1.5 rounded border border-orange-200 bg-orange-100 px-2 py-1.5 text-xs text-orange-700">

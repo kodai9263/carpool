@@ -11,6 +11,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+class RideUpdateError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
+
 // 配車詳細取得(自分のチームのみ)
 // チーム名とPINコードも含めて返す
 export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
@@ -42,6 +48,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           where: { id: rideId, teamId },
           select: {
             id: true,
+            updatedAt: true,
             date: true,
             destination: true,
             meetingPlace: true,
@@ -128,6 +135,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         status: "OK",
         ride: {
           id: ride.id,
+          updatedAt: ride.updatedAt.toISOString(),
           date: ride.date.toISOString(),
           destination: ride.destination,
           meetingPlace: ride.meetingPlace,
@@ -174,21 +182,98 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
 
   // 配車更新(自分のチームのみ)
   export const PUT = (request: NextRequest, ctx: { params: { teamId: string; rideId: string } }) =>
-    withAdminTeamRide(request, async({ rideId }) => {
+    withAdminTeamRide(request, async({ teamId, rideId }) => {
       const body = await request.json().catch(() => null) as UpdateRideValues | null;
 
       if (!body) return NextResponse.json({ message: "リクエストの形式が正しくありません" }, { status: 400 });
 
       if (!body.date) return NextResponse.json({ message: "日付を選択してください" }, { status: 400 });
 
+      if (!Array.isArray(body.drivers)) {
+        return NextResponse.json({ message: "配車の形式が正しくありません" }, { status: 400 });
+      }
+
       const rideIdNum = Number(rideId);
       const date = new Date(body.date);
+      if (Number.isNaN(date.getTime())) {
+        return NextResponse.json({ message: "日付が正しくありません" }, { status: 400 });
+      }
+
+      if (body.expectedUpdatedAt !== undefined && typeof body.expectedUpdatedAt !== "string") {
+        return NextResponse.json({ message: "更新時刻が正しくありません" }, { status: 400 });
+      }
+      const expectedUpdatedAt = body.expectedUpdatedAt === undefined
+        ? null
+        : new Date(body.expectedUpdatedAt);
+      if (expectedUpdatedAt && Number.isNaN(expectedUpdatedAt.getTime())) {
+        return NextResponse.json({ message: "更新時刻が正しくありません" }, { status: 400 });
+      }
+
+      // Webの未選択枠は除外する。更新は全件置換なので、残りの形を削除前に確認する。
+      const driversToSave = body.drivers.filter((driver) =>
+        body.separateDirections || driver?.direction !== "inbound"
+      );
+      const validDirection = (direction: string) => direction === "outbound" || direction === "inbound";
+      const validId = (id: number) => Number.isInteger(id) && id > 0;
+      const availabilityIds = new Set<number>();
+      const childIds = new Set<number>();
+      const assignedChildren = new Set<string>();
+      const selectedPeople = new Set<string>();
+      for (const driver of driversToSave) {
+        if (!driver || !validId(driver.availabilityDriverId) || !validDirection(driver.direction ?? "outbound") ||
+            !Array.isArray(driver.rideAssignments) || !Array.isArray(driver.escorts ?? [])) {
+          return NextResponse.json({ message: "配車の形式が正しくありません" }, { status: 400 });
+        }
+        const driverDirection = driver.direction ?? "outbound";
+        const driverKey = `${driver.availabilityDriverId}:${driverDirection}`;
+        if (selectedPeople.has(driverKey)) {
+          return NextResponse.json({ message: "同じ保護者を同じ方向に複数回選択しています" }, { status: 400 });
+        }
+        selectedPeople.add(driverKey);
+        availabilityIds.add(driver.availabilityDriverId);
+        for (const assignment of driver.rideAssignments) {
+          if (!assignment?.childId) continue;
+          if (!validId(assignment.childId)) return NextResponse.json({ message: "子どものIDが正しくありません" }, { status: 400 });
+          const childKey = `${assignment.childId}:${driverDirection}`;
+          if (assignedChildren.has(childKey)) return NextResponse.json({ message: "同じ子どもを同じ方向に複数回割り当てています" }, { status: 400 });
+          assignedChildren.add(childKey);
+          childIds.add(assignment.childId);
+        }
+        for (const escort of driver.escorts ?? []) {
+          if (!escort || !validDirection(escort.direction ?? "outbound") || !Array.isArray(escort.rideAssignments)) {
+            return NextResponse.json({ message: "引率者の形式が正しくありません" }, { status: 400 });
+          }
+          if (!escort.availabilityDriverId) continue;
+          const escortDirection = escort.direction ?? "outbound";
+          if (!validId(escort.availabilityDriverId) || escortDirection !== driverDirection) {
+            return NextResponse.json({ message: "引率者のIDまたは方向が正しくありません" }, { status: 400 });
+          }
+          const escortKey = `${escort.availabilityDriverId}:${escortDirection}`;
+          if (selectedPeople.has(escortKey)) {
+            return NextResponse.json({ message: "同じ保護者を同じ方向に複数回選択しています" }, { status: 400 });
+          }
+          selectedPeople.add(escortKey);
+          availabilityIds.add(escort.availabilityDriverId);
+          for (const assignment of escort.rideAssignments) {
+            if (!assignment?.childId) continue;
+            if (!validId(assignment.childId)) return NextResponse.json({ message: "子どものIDが正しくありません" }, { status: 400 });
+            const childKey = `${assignment.childId}:${escortDirection}`;
+            if (assignedChildren.has(childKey)) return NextResponse.json({ message: "同じ子どもを同じ方向に複数回割り当てています" }, { status: 400 });
+            assignedChildren.add(childKey);
+            childIds.add(assignment.childId);
+          }
+        }
+      }
 
       try {
         await prisma.$transaction(async (tx) => {
-          // Ride自体を更新
-          await tx.ride.update({
-            where: { id: rideIdNum },
+          // 親レコードを先にロックし、回答変更と割り当て保存を直列化する。
+          const updated = await tx.ride.updateMany({
+            where: {
+              id: rideIdNum,
+              teamId,
+              ...(expectedUpdatedAt ? { updatedAt: expectedUpdatedAt } : {}),
+            },
             data: {
               date,
               destination: body.destination,
@@ -196,23 +281,67 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
               separateDirections: body.separateDirections ?? false,
             },
           });
+          if (updated.count === 0) {
+            throw new RideUpdateError(
+              expectedUpdatedAt ? "配車が更新されています。再読み込みしてから保存してください" : "配車が見つかりません",
+              expectedUpdatedAt ? 409 : 404,
+            );
+          }
+
+          const [availablePeople, teamChildren] = await Promise.all([
+            tx.availabilityDriver.findMany({
+              where: { id: { in: [...availabilityIds] }, rideId: rideIdNum, teamId },
+              select: { id: true, guardianId: true, type: true, direction: true, availability: true, seats: true },
+            }),
+            tx.child.findMany({
+              where: { id: { in: [...childIds] }, member: { teamId } },
+              select: { id: true },
+            }),
+          ]);
+          if (availablePeople.length !== availabilityIds.size || teamChildren.length !== childIds.size) {
+            throw new RideUpdateError("別の配車またはチームの回答・子どもは選択できません", 400);
+          }
+          const availableById = new Map(availablePeople.map((person) => [person.id, person]));
+          const occupiedGuardians = new Set<string>();
+          const reserveGuardian = (guardianId: number, direction: string) => {
+            const key = `${guardianId}:${direction}`;
+            if (occupiedGuardians.has(key)) {
+              throw new RideUpdateError("同じ保護者を同じ方向の運転者と引率者に重複して選択できません", 400);
+            }
+            occupiedGuardians.add(key);
+          };
+          for (const driver of driversToSave) {
+            const answer = availableById.get(driver.availabilityDriverId);
+            if (answer?.type !== "driver" || !answer.availability ||
+                (answer.direction !== "both" && (!body.separateDirections || answer.direction !== (driver.direction ?? "outbound")))) {
+              throw new RideUpdateError(body.separateDirections
+                ? "運転者の回答と方向が一致しません"
+                : "往復共通の配車には、往復とも車出し可能と回答した運転者を選択してください", 400);
+            }
+            reserveGuardian(answer.guardianId, driver.direction ?? "outbound");
+            const occupiedSeats = driver.rideAssignments.filter((assignment) => assignment.childId).length +
+              (driver.escorts ?? []).filter((escort) => escort.availabilityDriverId).length;
+            if (occupiedSeats > answer.seats) {
+              throw new RideUpdateError("乗車人数が座席数を超えています", 400);
+            }
+            for (const escort of driver.escorts ?? []) {
+              if (!escort.availabilityDriverId) continue;
+              const escortAnswer = availableById.get(escort.availabilityDriverId);
+              if (escortAnswer?.type !== "escort" || !escortAnswer.availability ||
+                  (escortAnswer.direction !== "both" && (!body.separateDirections || escortAnswer.direction !== (escort.direction ?? "outbound")))) {
+                throw new RideUpdateError(body.separateDirections
+                  ? "引率者の回答と方向が一致しません"
+                  : "往復共通の配車には、往復とも引率可能と回答した保護者を選択してください", 400);
+              }
+              reserveGuardian(escortAnswer.guardianId, escort.direction ?? "outbound");
+            }
+          }
 
           // 既存のDriverとAssignmentを削除（引率者も含む）
           await tx.rideAssignment.deleteMany({ where: { rideId: rideIdNum } });
           await tx.driver.deleteMany({ where: { rideId: rideIdNum } });
 
-          // separateDirections=false の場合、inbound ドライバーは保存しない
-          const driversToSave = (body.drivers ?? []).filter(
-            (d) => body.separateDirections || d.direction !== "inbound"
-          );
-
-          // 1. availabilityDriverを一括更新（N回 → 1クエリ）
-          await tx.availabilityDriver.updateMany({
-            where: { id: { in: driversToSave.map((d) => d.availabilityDriverId) } },
-            data: { rideId: rideIdNum },
-          });
-
-          // 2. ドライバーを一括作成しIDを取得（N回 → 1クエリ）
+          // 1. ドライバーを一括作成しIDを取得（N回 → 1クエリ）
           const createdDrivers = await tx.driver.createManyAndReturn({
             data: driversToSave.map((d) => ({
               rideId: rideIdNum,
@@ -226,7 +355,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
           // 同じ号車を行き・帰りで使う場合も区別してdriver.idを取得する
           const driverIdMap = createDirectionalDriverIdMap(createdDrivers);
 
-          // 3. ドライバーの子供割当を一括作成（N回 → 1クエリ）
+          // 2. ドライバーの子供割当を一括作成（N回 → 1クエリ）
           const allDriverAssignments = driversToSave.flatMap((d) => {
             const driverId = getDirectionalDriverId(
               driverIdMap,
@@ -241,7 +370,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             await tx.rideAssignment.createMany({ data: allDriverAssignments });
           }
 
-          // 4. 引率者を一括作成しIDを取得（E回 → 1クエリ）
+          // 3. 引率者を一括作成しIDを取得（E回 → 1クエリ）
           const allEscortData = driversToSave.flatMap((d) => {
             const linkedDriverId = getDirectionalDriverId(
               driverIdMap,
@@ -268,7 +397,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
             escortIdMap = createDirectionalDriverIdMap(createdEscorts);
           }
 
-          // 5. 引率者の子供割当を一括作成（E回 → 1クエリ）
+          // 4. 引率者の子供割当を一括作成（E回 → 1クエリ）
           const allEscortAssignments = driversToSave.flatMap((d) =>
             (d.escorts ?? [])
               .filter((e) => e.availabilityDriverId && e.availabilityDriverId !== 0)
@@ -291,6 +420,9 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string; rideI
         return NextResponse.json(
           { status: "OK", message: "更新しました" } satisfies UpdateRideResponse, { status: 200 });
       } catch (e) {
+        if (e instanceof RideUpdateError) {
+          return NextResponse.json({ message: e.message }, { status: e.status });
+        }
         console.error(e);
         if (e && typeof e === 'object' && 'code' in e && e.code === "P2002") return NextResponse.json({ message: "同じ子供を複数回選択しています" }, { status: 400 });
         return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
