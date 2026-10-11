@@ -1,7 +1,7 @@
 import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/teamResponse"; 
 import { TeamFormValues } from "@/app/_types/Team";
 import { prisma } from "@/lib/prisma";
-import { FREE_TEAM_LIMIT, isProPlan } from "@/utils/billing";
+import { FREE_TEAM_LIMIT, getProEntitlement } from "@/utils/billing";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import bcrypt from "bcryptjs";
@@ -75,19 +75,23 @@ export const POST = (request: NextRequest) => {
       const [admin, currentTeamCount] = await Promise.all([
         prisma.admin.findUnique({
           where: { id: adminId },
-          select: { billingPlan: true },
+          select: { billingPlan: true, proTrialEndsAt: true },
         }),
         prisma.team.count({ where: { adminId } }),
       ]);
 
-      if (!isProPlan(admin?.billingPlan) && currentTeamCount >= FREE_TEAM_LIMIT) {
+      const entitlement = getProEntitlement({
+        billingPlan: admin?.billingPlan,
+        proTrialEndsAt: admin?.proTrialEndsAt,
+      });
+      if (!entitlement.isPro && currentTeamCount >= FREE_TEAM_LIMIT) {
         await trackServerEvent(
           "team_limit_reached",
           {
             admin_id: adminId,
             team_count: currentTeamCount,
             free_limit: FREE_TEAM_LIMIT,
-            plan: admin?.billingPlan ?? "free",
+            plan: entitlement.plan,
           },
           { adminId, request },
         );

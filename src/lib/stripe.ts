@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { PRO_MONTHLY_PRICE_JPY, PRO_YEARLY_PRICE_JPY } from "@/utils/billing";
-import { SETTLEMENT_MONTHLY_PRICE_JPY } from "@/utils/settlementAccess";
+import { LEGACY_SETTLEMENT_MONTHLY_PRICE_JPY } from "@/utils/settlementAccess";
 
 function unavailable(message: string) {
   return Object.assign(new Error(message), { code: "BILLING_UNAVAILABLE" });
@@ -75,7 +75,7 @@ export async function getValidatedStripeSettlementPrice() {
     (process.env.VERCEL_ENV === "production" && !price.livemode) ||
     !price.active ||
     price.currency !== "jpy" ||
-    price.unit_amount !== SETTLEMENT_MONTHLY_PRICE_JPY ||
+    price.unit_amount !== LEGACY_SETTLEMENT_MONTHLY_PRICE_JPY ||
     price.type !== "recurring" ||
     price.recurring?.interval !== "month" ||
     price.recurring.interval_count !== 1 ||

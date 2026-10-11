@@ -1,6 +1,8 @@
 import type { Prisma, TeamSettlementAccess } from "@prisma/client";
+import { getProEntitlement, PRO_MONTHLY_PRICE_JPY, type ProAccessSource } from "@/utils/billing";
 
-export const SETTLEMENT_MONTHLY_PRICE_JPY = 980;
+export const LEGACY_SETTLEMENT_MONTHLY_PRICE_JPY = 980;
+export const SETTLEMENT_MONTHLY_PRICE_JPY = PRO_MONTHLY_PRICE_JPY;
 export const SETTLEMENT_SUBSCRIPTION_REQUIRED = "SETTLEMENT_SUBSCRIPTION_REQUIRED";
 
 export function isSettlementSubscriptionActive(status?: string | null) {
@@ -12,7 +14,23 @@ export type SettlementAccessReason = "trial_in_use" | "trial_used";
 type AccessRecord = Pick<
   TeamSettlementAccess,
   "id" | "teamId" | "freeTrialSettlementId" | "freeTrialConsumedAt"
-> & { subscriptionStatus?: string | null };
+> & {
+  subscriptionStatus?: string | null;
+  billingPlan?: string | null;
+  proTrialEndsAt?: Date | null;
+};
+
+type SettlementEntitlementInput = Pick<AccessRecord, "subscriptionStatus" | "billingPlan" | "proTrialEndsAt">;
+
+export function getSettlementAccessSource(access: SettlementEntitlementInput): ProAccessSource | "legacy" {
+  const entitlement = getProEntitlement(access);
+  if (entitlement.isPro) return entitlement.accessSource;
+  return isSettlementSubscriptionActive(access.subscriptionStatus) ? "legacy" : "free";
+}
+
+export function hasUnlimitedSettlementAccess(access: SettlementEntitlementInput) {
+  return getSettlementAccessSource(access) !== "free";
+}
 
 export class SettlementAccessError extends Error {
   readonly code = SETTLEMENT_SUBSCRIPTION_REQUIRED;
@@ -23,8 +41,8 @@ export class SettlementAccessError extends Error {
   ) {
     super(
       reason === "trial_in_use"
-        ? "無料体験は別の遠征で利用中です。この遠征へ変更するか、月980円の精算プランをご利用ください。"
-        : "無料体験は利用済みです。この遠征の精算を始めるには月980円の精算プランが必要です。",
+        ? "無料体験は別の遠征で利用中です。この遠征へ変更するか、月300円のProをご利用ください。"
+        : "無料体験は利用済みです。この遠征の精算を始めるには月300円のProが必要です。",
     );
     this.name = "SettlementAccessError";
   }
@@ -65,7 +83,16 @@ export async function lockTeamSettlementAccess(
     where: { teamId },
     select: { stripeSubscriptionStatus: true },
   });
-  return { ...access, subscriptionStatus: subscription?.stripeSubscriptionStatus ?? null };
+  const team = await tx.team.findUniqueOrThrow({
+    where: { id: teamId },
+    select: { admin: { select: { billingPlan: true, proTrialEndsAt: true } } },
+  });
+  return {
+    ...access,
+    subscriptionStatus: subscription?.stripeSubscriptionStatus ?? null,
+    billingPlan: team.admin.billingPlan,
+    proTrialEndsAt: team.admin.proTrialEndsAt,
+  };
 }
 
 /**
@@ -78,7 +105,7 @@ export async function assignFreeTrialOrThrow(
   settlementId: number,
   allowMove: boolean,
 ): Promise<AccessRecord> {
-  if (isSettlementSubscriptionActive(access.subscriptionStatus)) return access;
+  if (hasUnlimitedSettlementAccess(access)) return access;
   if (access.freeTrialSettlementId === settlementId) return access;
   if (access.freeTrialConsumedAt) {
     throw new SettlementAccessError("trial_used", access.freeTrialSettlementId);
@@ -122,6 +149,7 @@ export async function consumeFreeTrial(
   access: AccessRecord,
   settlementId: number,
 ): Promise<void> {
+  if (hasUnlimitedSettlementAccess(access)) return;
   if (access.freeTrialSettlementId !== settlementId || access.freeTrialConsumedAt) {
     throw new SettlementAccessError(
       access.freeTrialConsumedAt ? "trial_used" : "trial_in_use",
@@ -148,6 +176,7 @@ export function buildSettlementAccessView(
     team: {
       settlementAccess: Pick<TeamSettlementAccess, "freeTrialSettlementId" | "freeTrialConsumedAt"> | null;
       settlementSubscription?: { stripeSubscriptionStatus: string | null } | null;
+      admin?: { billingPlan: string | null; proTrialEndsAt: Date | null } | null;
     };
   },
 ) {
@@ -162,7 +191,14 @@ export function buildSettlementAccessView(
     };
   }
   const subscriptionStatus = settlement.team?.settlementSubscription?.stripeSubscriptionStatus ?? null;
-  if (isSettlementSubscriptionActive(subscriptionStatus)) {
+  const entitlementInput = {
+    ...access,
+    subscriptionStatus,
+    billingPlan: settlement.team?.admin?.billingPlan ?? null,
+    proTrialEndsAt: settlement.team?.admin?.proTrialEndsAt ?? null,
+  };
+  if (hasUnlimitedSettlementAccess(entitlementInput)) {
+    const accessSource = getSettlementAccessSource(entitlementInput);
     return {
       state: "subscribed" as const,
       canEdit: true,
@@ -170,6 +206,7 @@ export function buildSettlementAccessView(
       freeTrialConsumed: Boolean(access?.freeTrialConsumedAt),
       monthlyPrice: SETTLEMENT_MONTHLY_PRICE_JPY,
       subscriptionStatus,
+      accessSource,
     };
   }
   const canEdit = access?.freeTrialSettlementId === settlement.id && !access.freeTrialConsumedAt;
@@ -180,5 +217,6 @@ export function buildSettlementAccessView(
     freeTrialConsumed: Boolean(access?.freeTrialConsumedAt),
     monthlyPrice: SETTLEMENT_MONTHLY_PRICE_JPY,
     subscriptionStatus,
+    accessSource: "free" as const,
   };
 }

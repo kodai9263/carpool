@@ -2,13 +2,18 @@ import { prisma } from "@/lib/prisma";
 import {
   AUTO_ASSIGN_FREE_TRIAL_LIMIT,
   getAutoAssignRemainingFreeUses,
-  isProPlan,
-  normalizeBillingPlan,
+  getProEntitlement,
+  type ProAccessSource,
 } from "@/utils/billing";
 
 export type AutoAssignBillingStatus = {
   plan: "free" | "pro";
   isPro: boolean;
+  isPaidPro?: boolean;
+  isTrialActive?: boolean;
+  accessSource?: ProAccessSource;
+  trialEndsAt?: string | null;
+  trialDaysRemaining?: number;
   isExempt: boolean;
   freeLimit: number;
   used: number;
@@ -31,23 +36,30 @@ function isExcludedBillingAdmin(adminId: number) {
 export async function getAutoAssignBillingStatus(adminId: number): Promise<AutoAssignBillingStatus> {
   const admin = await prisma.admin.findUnique({
     where: { id: adminId },
-    select: { billingPlan: true, autoAssignTrialUsed: true },
+    select: { billingPlan: true, proTrialEndsAt: true, autoAssignTrialUsed: true },
   });
 
-  const plan = normalizeBillingPlan(admin?.billingPlan);
+  const entitlement = getProEntitlement({
+    billingPlan: admin?.billingPlan,
+    proTrialEndsAt: admin?.proTrialEndsAt,
+  });
   const used = Math.max(admin?.autoAssignTrialUsed ?? 0, 0);
-  const isPro = isProPlan(plan);
   const isExempt = isExcludedBillingAdmin(adminId);
   const remaining = getAutoAssignRemainingFreeUses(used);
 
   return {
-    plan,
-    isPro,
+    plan: entitlement.plan,
+    isPro: entitlement.isPro,
+    isPaidPro: entitlement.isPaidPro,
+    isTrialActive: entitlement.isTrialActive,
+    accessSource: entitlement.accessSource,
+    trialEndsAt: entitlement.trialEndsAt?.toISOString() ?? null,
+    trialDaysRemaining: entitlement.trialDaysRemaining,
     isExempt,
     freeLimit: AUTO_ASSIGN_FREE_TRIAL_LIMIT,
     used,
     remaining,
-    canUseAutoAssign: isPro || isExempt || remaining > 0,
+    canUseAutoAssign: entitlement.isPro || isExempt || remaining > 0,
   };
 }
 

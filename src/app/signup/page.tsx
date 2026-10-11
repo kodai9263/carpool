@@ -75,6 +75,9 @@ export default function Page() {
           <p className="text-sm text-gray-500">
             管理者アカウントを作成します
           </p>
+          <p className="mt-2 text-sm leading-6 text-teal-800">
+            登録から30日間、遠征費精算を含むPro機能をカード登録なしで利用できます。
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

@@ -11,14 +11,14 @@ type Props = {
   returnPath: string;
   children?: ReactNode;
   className?: string;
-  action?: "checkout" | "portal";
+  action?: "checkout" | "portal" | "legacy_portal";
 };
 
 export function SettlementBillingButton({
   teamId,
   token,
   returnPath,
-  children = "月980円の精算プランを始める",
+  children = "月300円のProを始める",
   className = "app-button-primary",
   action = "checkout",
 }: Props) {
@@ -28,16 +28,20 @@ export function SettlementBillingButton({
     if (!token || isOpening) return;
     setIsOpening(true);
     try {
-      const result = await api.post(
-        `/api/admin/teams/${teamId}/settlement-billing/${action}`,
-        { returnPath },
-        token,
-      ) as SettlementBillingCheckoutResponse;
+      const endpoint = action === "legacy_portal"
+        ? `/api/admin/teams/${teamId}/settlement-billing/portal`
+        : action === "portal"
+        ? "/api/admin/billing/portal"
+        : "/api/admin/billing/checkout";
+      const body = action === "checkout"
+        ? { interval: "month", returnPath, source: "settlement" }
+        : { returnPath };
+      const result = await api.post(endpoint, body, token) as SettlementBillingCheckoutResponse;
       window.location.assign(result.url);
     } catch (error) {
       const message = error && typeof error === "object" && "message" in error && typeof error.message === "string"
         ? error.message
-        : "精算プランの決済ページを開けませんでした。";
+        : "Proの決済ページを開けませんでした。";
       toast.error(message);
       setIsOpening(false);
     }

@@ -17,7 +17,6 @@ import { AlertTriangle, CheckCircle2, Mail, Send, ShieldCheck, Sparkles, Trash2,
 import { trackEvent } from "@/utils/analytics";
 import {
   AUTO_ASSIGN_FREE_TRIAL_LIMIT,
-  isProPlan,
   PRO_MONTHLY_PRICE_JPY,
   PRO_YEARLY_PRICE_JPY,
   type BillingInterval,
@@ -139,16 +138,24 @@ export default function ProfilePage() {
   if (isLoading) return <LoadingSpinner />;
 
   const admin = data?.admin;
-  const isPro = isProPlan(admin?.billingPlan);
-  const plan = isPro ? "Pro" : "Free";
+  const isPro = admin?.proAccess.isPro === true;
+  const isPaidPro = admin?.proAccess.isPaidPro === true;
+  const isTrialActive = admin?.proAccess.isTrialActive === true;
+  const plan = isPaidPro ? "Pro" : isTrialActive ? "Pro無料体験" : "Free";
+  const trialEndLabel = admin?.proAccess.trialEndsAt
+    ? new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric" }).format(new Date(admin.proAccess.trialEndsAt))
+    : null;
   const planFeatures = [
     "配車作成・回答収集（無制限）",
     "回答状況の確認・催促テキスト",
     "回答期限ロック",
     isPro ? "自動割り当て無制限" : `自動割り当てを${AUTO_ASSIGN_FREE_TRIAL_LIMIT}回お試し（再計算も1回）`,
+    isPro ? "遠征費精算を無制限で利用" : "遠征費精算はProで利用",
   ];
-  const planDescription = isPro
-    ? "Proプランが有効です。自動割り当てを無制限で利用でき、複数チームを管理できます。"
+  const planDescription = isPaidPro
+    ? "Proプランが有効です。自動割り当て・複数チーム管理・遠征費精算を利用できます。"
+    : isTrialActive
+    ? `${trialEndLabel ?? "期限日"}までPro機能を無料で利用できます。期間終了後も基本機能と作成済みデータは残ります。`
     : "基本機能はずっと無料で使えます。自動割り当てを無制限で使いたい方や、複数チームを管理したい方はProをご利用ください。";
 
   return (
@@ -192,7 +199,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <span className="app-status shrink-0 whitespace-nowrap bg-white px-4 text-teal-800">
-                  {isPro ? "Pro利用中" : "Free"}
+                  {isPaidPro ? "Pro利用中" : isTrialActive ? `無料体験 残り${admin?.proAccess.trialDaysRemaining ?? 0}日` : "Free"}
                 </span>
               </div>
             </div>
@@ -211,12 +218,12 @@ export default function ProfilePage() {
                 <div className="mb-3 flex items-center gap-2">
                   <Sparkles size={18} className="text-amber-700" />
                   <p className="text-sm font-bold text-amber-900">
-                    {isPro ? "Pro機能が有効です" : "Proプラン"}
+                    {isPaidPro ? "Pro機能が有効です" : isTrialActive ? "Pro無料体験中" : "Proプラン"}
                   </p>
                 </div>
-                {isPro ? (
+                {isPaidPro ? (
                   <p className="text-sm leading-6 text-amber-900">
-                    自動割り当て無制限・複数チーム管理をこのアカウントで利用できます。
+                    自動割り当て無制限・複数チーム管理・遠征費精算をこのアカウントで利用できます。
                   </p>
                 ) : (
                   <ul className="space-y-1.5 text-sm leading-6 text-amber-900">
@@ -228,10 +235,14 @@ export default function ProfilePage() {
                       <CheckCircle2 size={15} className="mt-1 shrink-0" />
                       複数チームの管理
                     </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 size={15} className="mt-1 shrink-0" />
+                      遠征費精算
+                    </li>
                   </ul>
                 )}
                 <div className="mt-4 space-y-2">
-                  {isPro ? (
+                  {isPaidPro ? (
                     <>
                       <button
                         type="button"
@@ -271,8 +282,8 @@ export default function ProfilePage() {
                       </button>
                     </>
                   )}
-                  {!isPro && <p className="text-xs leading-5 text-amber-900">月払い・年払いともに自動更新です。「支払い・解約を管理」から解約できます。お支払い総額は決済画面でご確認ください。</p>}
-                  {!isPro && admin?.hasBillingCustomer && <button type="button" onClick={handleOpenCustomerPortal} disabled={isOpeningPortal} className="app-button-secondary w-full">{isOpeningPortal ? "準備中..." : "支払い・解約を管理"}</button>}
+                  {!isPaidPro && <p className="text-xs leading-5 text-amber-900">無料体験中に申し込んだ場合も、初回請求は無料体験終了後です。月払い・年払いともに自動更新で、「支払い・解約を管理」から解約できます。</p>}
+                  {!isPaidPro && admin?.hasBillingCustomer && <button type="button" onClick={handleOpenCustomerPortal} disabled={isOpeningPortal} className="app-button-secondary w-full">{isOpeningPortal ? "準備中..." : "支払い・解約を管理"}</button>}
                 </div>
               </div>
             </div>

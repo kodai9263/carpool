@@ -363,7 +363,7 @@ export default function Page() {
       if (result.billing) {
         await mutateBilling({
           status: "OK",
-          billing: { plan: result.billing.plan, isPro: result.billing.isPro },
+          billing: result.billing,
           autoAssign: result.billing,
         }, { revalidate: false });
       } else {
@@ -384,10 +384,7 @@ export default function Page() {
         await mutateBilling(
           {
             status: "OK",
-            billing: {
-              plan: err.billing.plan,
-              isPro: err.billing.isPro,
-            },
+            billing: err.billing,
             autoAssign: err.billing,
           },
           { revalidate: false },
@@ -666,7 +663,7 @@ PINコード: ${pin}
                   returnPath={`/admin/teams/${teamId}/rides/${rideId}`}
                   className="app-button-primary w-full"
                 >
-                  月{settlementAccessError.monthlyPrice.toLocaleString("ja-JP")}円の精算プランを始める
+                  月{settlementAccessError.monthlyPrice.toLocaleString("ja-JP")}円のProを始める
                 </SettlementBillingButton>
               </div>
               <p className="mt-3 text-xs leading-5 text-gray-500">確定済みの精算履歴や受領・返金の記録は、契約の有無にかかわらず引き続き利用できます。</p>
@@ -1021,7 +1018,7 @@ PINコード: ${pin}
                 {isStartingSettlement ? "準備中..." : "この配車の精算を始める"}
               </button>
               <p className="mt-2 text-xs text-gray-600">配車に未保存の変更がある場合は、先に「変更を更新」してください。</p>
-              <p className="mt-2 text-xs font-medium text-sky-900">最初の1遠征は無料。2遠征目から月980円／チームです。</p>
+              <p className="mt-2 text-xs font-medium text-sky-900">30日間はPro機能を無料で利用できます。無料期間後は月300円です。</p>
               <Link href={`/admin/teams/${teamId}/settlements`} className="mt-3 inline-flex text-sm font-semibold text-sky-800 hover:underline">
                 過去の精算を見る
               </Link>
