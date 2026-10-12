@@ -5,6 +5,7 @@ import { FREE_TEAM_LIMIT, getProEntitlement } from "@/utils/billing";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -58,12 +59,12 @@ export const POST = (request: NextRequest) => {
 
       const { teamName, teamCode, pin, isMiddleSchool } = body;
 
-      const name = teamName.trim();
-      const code = teamCode.trim();
-      const pinValue = pin?.trim();
+      const name = typeof teamName === "string" ? teamName.trim() : "";
+      const code = typeof teamCode === "string" && teamCode.trim() ? teamCode.trim() : `team-${randomUUID()}`;
+      const pinValue = typeof pin === "string" ? pin.trim() : "";
 
-      if (!name || !code) {
-        return NextResponse.json({ message: "チーム名とチームIDは必須です" }, { status: 400 });
+      if (!name) {
+        return NextResponse.json({ message: "チーム名は必須です" }, { status: 400 });
       }
       if (!pinValue || pinValue.length < 4) {
         return NextResponse.json({ message: "PINは4桁以上で入力してください" }, { status: 400 });
