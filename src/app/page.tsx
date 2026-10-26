@@ -160,6 +160,10 @@ export default async function Home() {
               LINEやExcelでのやり取りを減らし、配車可否の収集から乗車の割り当て、当日の出欠確認までをひとつのアプリで完結します。
             </p>
 
+            <p className="mt-4 text-sm font-semibold leading-6 text-teal-800">
+              {FREE_TEAM_LIMIT}チームの基本的な配車管理は、期限なしで無料
+            </p>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <TrackedLink href="/login?guest=true" trackLabel="demo_hero" className="app-button-primary min-h-12 px-7 text-base">
                 登録なしで30秒デモ
@@ -357,7 +361,7 @@ function PricingSection() {
       <div className="app-container">
         <div className="mb-10 max-w-2xl">
           <p className="mb-2 text-sm font-semibold text-teal-700">料金</p>
-          <h2 className="app-section-title">Proを30日無料で。遠征費精算も月300円に。</h2>
+          <h2 className="app-section-title">基本の配車管理は無料。便利なPro機能は月{PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円</h2>
           <p className="mt-3 text-sm leading-7 text-gray-500 md:text-base">
             個人の配車係が安心して使い始められるよう、まずは無料で運用できます。
             登録から30日間は、カード登録なしでProを体験できます。Proでは、自動割り当て無制限・複数チーム管理・遠征費精算をまとめて利用できます。

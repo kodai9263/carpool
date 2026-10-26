@@ -76,7 +76,7 @@ export default function Page() {
             管理者アカウントを作成します
           </p>
           <p className="mt-2 text-sm leading-6 text-teal-800">
-            登録から30日間、遠征費精算を含むPro機能をカード登録なしで利用できます。
+            カード登録不要。30日間のPro体験後も、1チームの基本機能は無料で使えます。
           </p>
         </div>
 
