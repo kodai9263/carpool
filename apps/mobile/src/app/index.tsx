@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { Redirect, router, useFocusEffect } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -19,14 +19,16 @@ import { adminGet } from '@/lib/api';
 import type { TeamsListResponse } from '@/types/api';
 
 export default function HomeScreen() {
-  const { session, token, isLoading, signIn, signOut } = useAuth();
+  const { session, token, isLoading, error, retry, signIn, signOut, isPasswordRecovery } = useAuth();
 
   if (isLoading) {
     return <LoadingState label="ログイン状態を確認しています" />;
   }
 
+  if (isPasswordRecovery) return <Redirect href="/password-reset" />;
+
   if (!session || !token) {
-    return <LoginScreen onSubmit={signIn} />;
+    return <LoginScreen onSubmit={signIn} authError={error} onRetry={retry} />;
   }
 
   return <TeamsScreen token={token} email={session.user.email ?? ''} onSignOut={signOut} />;
@@ -34,8 +36,12 @@ export default function HomeScreen() {
 
 function LoginScreen({
   onSubmit,
+  authError,
+  onRetry,
 }: {
   onSubmit: (email: string, password: string) => Promise<void>;
+  authError: string | null;
+  onRetry: () => void;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,6 +76,15 @@ function LoginScreen({
           </View>
           <Text style={styles.brandTitle}>Carpool</Text>
           <Text style={styles.brandCopy}>管理者向けスマホアプリ</Text>
+
+          {authError ? (
+            <EmptyState
+              title="ログイン状態を確認できませんでした"
+              body={authError}
+              actionLabel="再試行"
+              onAction={onRetry}
+            />
+          ) : null}
 
           <Card style={styles.loginCard}>
             <Text style={styles.cardTitle}>ログイン</Text>
@@ -106,6 +121,8 @@ function LoginScreen({
               onPress={handleSubmit}
               disabled={isSubmitting}
             />
+            <AppButton label="初めての方はこちら" onPress={() => router.push('/signup')} variant="secondary" disabled={isSubmitting} />
+            <AppButton label="パスワードを忘れた方" onPress={() => router.push('/password-reset')} variant="secondary" disabled={isSubmitting} />
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -125,24 +142,32 @@ function TeamsScreen({
   const [teams, setTeams] = useState<TeamsListResponse['teams']>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const requestId = useRef(0);
 
   const loadTeams = useCallback(async () => {
+    const id = ++requestId.current;
     setIsLoading(true);
     setError(null);
     try {
-      const data = await adminGet<TeamsListResponse>('/api/admin/teams?perPage=50', token);
+      const data = await adminGet<TeamsListResponse>(`/api/admin/teams?perPage=20&page=${page}`, token);
+      if (id !== requestId.current) return;
       setTeams(data.teams);
+      setTotalPages(data.totalPages);
     } catch (loadError) {
+      if (id !== requestId.current) return;
       const message = loadError instanceof Error ? loadError.message : 'チーム一覧を取得できませんでした。';
       setError(message);
     } finally {
-      setIsLoading(false);
+      if (id === requestId.current) setIsLoading(false);
     }
-  }, [token]);
+  }, [page, token]);
 
-  useEffect(() => {
-    loadTeams();
-  }, [loadTeams]);
+  useFocusEffect(useCallback(() => {
+    void loadTeams();
+    return () => { requestId.current += 1; };
+  }, [loadTeams]));
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -155,10 +180,12 @@ function TeamsScreen({
 
         <View style={styles.accountRow}>
           <Text style={styles.accountText}>{email}</Text>
-          <Pressable onPress={onSignOut} hitSlop={12}>
+          <Pressable accessibilityRole="button" onPress={() => { void onSignOut().catch(() => setError('ログアウトできませんでした。もう一度お試しください。')); }} hitSlop={12}>
             <Text style={styles.signOutText}>ログアウト</Text>
           </Pressable>
         </View>
+
+        {teams.length > 0 ? <AppButton label="チームを作成" onPress={() => router.push('/teams/new')} style={{ marginBottom: 16 }} /> : null}
 
         {isLoading ? (
           <LoadingState label="チームを読み込んでいます" compact />
@@ -167,9 +194,9 @@ function TeamsScreen({
         ) : teams.length === 0 ? (
           <EmptyState
             title="チームがありません"
-            body="チーム作成はWeb版から行えます。まずはWeb版でチームを作成してください。"
-            actionLabel="再読み込み"
-            onAction={loadTeams}
+            body="チーム名と共有PINを決めて、最初のチームを作りましょう。"
+            actionLabel="チームを作成"
+            onAction={() => router.push('/teams/new')}
           />
         ) : (
           <View style={styles.list}>
@@ -193,6 +220,13 @@ function TeamsScreen({
             ))}
           </View>
         )}
+        {!isLoading && !error && totalPages > 1 ? (
+          <View style={{ gap: 10, marginTop: 16 }}>
+            <Text>{page} / {totalPages}ページ</Text>
+            <AppButton label="前のページ" disabled={page <= 1} onPress={() => setPage(page - 1)} variant="secondary" />
+            <AppButton label="次のページ" disabled={page >= totalPages} onPress={() => setPage(page + 1)} variant="secondary" />
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

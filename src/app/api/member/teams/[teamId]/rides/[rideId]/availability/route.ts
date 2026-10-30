@@ -46,6 +46,12 @@ export const POST = async (request: NextRequest, { params }: { params: { teamId:
 
   try {
     const data = await prisma.$transaction(async (tx) => {
+      // 回答変更と管理者の配車保存を同じ配車の更新として直列化する。
+      await tx.ride.update({
+        where: { id: rideIdNum, teamId: teamIdNum },
+        data: { updatedAt: new Date() },
+      });
+
       // 1. 配車レコードをupsert（type: "driver"）
       const driverRecord = await tx.availabilityDriver.upsert({
         where: { rideId_guardianId_type: { rideId: rideIdNum, guardianId: guardianId!, type: "driver" } },

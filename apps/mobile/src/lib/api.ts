@@ -37,6 +37,13 @@ export function adminPost<TResponse, TBody>(path: string, token: string, body: T
   });
 }
 
+export function adminPut<TResponse, TBody>(path: string, token: string, body: TBody) {
+  return request<TResponse>(path, token, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
 export function publicPost<TResponse>(path: string, token: string) {
   return request<TResponse>(path, token, { method: 'POST' });
 }
