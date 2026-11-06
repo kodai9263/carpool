@@ -13,6 +13,8 @@ function access(overrides: Partial<{
   freeTrialSettlementId: number | null;
   freeTrialConsumedAt: Date | null;
   subscriptionStatus: string | null;
+  billingPlan: string | null;
+  proTrialEndsAt: Date | null;
 }> = {}) {
   return {
     id: 1,
@@ -31,6 +33,11 @@ function transaction() {
       updateMany: jest.fn(),
     },
     teamSettlementSubscription: { findUnique: jest.fn().mockResolvedValue(null) },
+    team: {
+      findUniqueOrThrow: jest.fn().mockResolvedValue({
+        admin: { billingPlan: "free", proTrialEndsAt: null },
+      }),
+    },
     $executeRaw: jest.fn(),
     rideSettlement: { findFirst: jest.fn() },
     $queryRaw: jest.fn(),
@@ -45,6 +52,8 @@ test("チームの無料枠行を競合を吸収して作成してから行ロ�
   await expect(lockTeamSettlementAccess(tx as never, 2)).resolves.toEqual({
     ...current,
     subscriptionStatus: null,
+    billingPlan: "free",
+    proTrialEndsAt: null,
   });
 
   expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
@@ -142,7 +151,7 @@ test("表示状態を無料下書き・要契約・確定履歴に分ける", ()
     id: 20,
     currentRevisionNumber: null,
     team: { settlementAccess: access({ freeTrialSettlementId: 20 }) },
-  })).toMatchObject({ state: "free_trial", canEdit: true, monthlyPrice: 980 });
+  })).toMatchObject({ state: "free_trial", canEdit: true, monthlyPrice: 300 });
 
   expect(buildSettlementAccessView({
     id: 20,
@@ -183,4 +192,29 @@ test("精算プラン契約中は無料枠を動かさず別遠征を編集で�
       settlementSubscription: { stripeSubscriptionStatus: "active" },
     },
   })).toMatchObject({ state: "subscribed", canEdit: true, subscriptionStatus: "active" });
+});
+
+test.each([
+  ["有料Pro", { billingPlan: "pro", proTrialEndsAt: null }, "paid"],
+  ["Pro無料体験", { billingPlan: "free", proTrialEndsAt: new Date(Date.now() + 60000) }, "trial"],
+] as const)("%sは全チームの精算を利用でき、1遠征無料枠を消費しない", async (_label, pro, source) => {
+  const tx = transaction();
+  const entitled = access({
+    ...pro,
+    freeTrialSettlementId: 19,
+    freeTrialConsumedAt: new Date(),
+  });
+
+  await expect(assignFreeTrialOrThrow(tx as never, entitled, 20, false)).resolves.toEqual(entitled);
+  await consumeFreeTrial(tx as never, entitled, 20);
+  expect(tx.teamSettlementAccess.update).not.toHaveBeenCalled();
+  expect(tx.teamSettlementAccess.updateMany).not.toHaveBeenCalled();
+  expect(buildSettlementAccessView({
+    id: 20,
+    currentRevisionNumber: null,
+    team: {
+      settlementAccess: entitled,
+      admin: pro,
+    },
+  })).toMatchObject({ state: "subscribed", canEdit: true, accessSource: source, monthlyPrice: 300 });
 });

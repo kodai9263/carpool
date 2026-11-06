@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { getStripeClient, getStripeSettlementPriceId } from "@/lib/stripe";
 import { stripeId } from "@/utils/billingCheckout";
-import { isSettlementSubscriptionActive, SETTLEMENT_MONTHLY_PRICE_JPY } from "@/utils/settlementAccess";
+import { isSettlementSubscriptionActive, LEGACY_SETTLEMENT_MONTHLY_PRICE_JPY } from "@/utils/settlementAccess";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 
 export const SETTLEMENT_BILLING_PURPOSE = "settlement_v1";
@@ -59,7 +59,7 @@ export function validateSettlementSubscription(subscription: Stripe.Subscription
     item.quantity !== 1 ||
     item.price.id !== expectedPriceId ||
     item.price.currency !== "jpy" ||
-    item.price.unit_amount !== SETTLEMENT_MONTHLY_PRICE_JPY ||
+    item.price.unit_amount !== LEGACY_SETTLEMENT_MONTHLY_PRICE_JPY ||
     item.price.type !== "recurring" ||
     item.price.recurring?.interval !== "month" ||
     item.price.recurring.interval_count !== 1 ||

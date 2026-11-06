@@ -85,6 +85,12 @@ async function replaceExpiredReservation(input: {
 export const POST = (request: NextRequest, ctx: Context) =>
   withAuthTeam(request, async ({ adminId, teamId }) => {
     try {
+      if (process.env.LEGACY_SETTLEMENT_SALES_ENABLED !== "true") {
+        return NextResponse.json({
+          code: "SETTLEMENT_BILLING_RETIRED",
+          message: "遠征費精算は月300円のProに含まれます。Proプランからお申し込みください。",
+        }, { status: 410 });
+      }
       const body = await request.json().catch(() => null) as { returnPath?: unknown } | null;
       const returnPath = await resolveSettlementBillingReturnPath(adminId, teamId, body?.returnPath);
       // 設定・商品・料金の検証は、予約作成や顧客作成より先に完了させる。

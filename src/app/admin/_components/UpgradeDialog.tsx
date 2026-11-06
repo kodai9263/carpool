@@ -55,8 +55,8 @@ export function UpgradeDialog({ open, onClose, onBeforeCheckout, returnPath, sou
 
   return (
     <dialog ref={dialogRef} aria-labelledby="upgrade-title" aria-describedby="upgrade-description" onCancel={(event) => { if (busy) event.preventDefault(); }} onClose={onClose} className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl backdrop:bg-black/40">
-      <h2 id="upgrade-title" className="text-xl font-bold text-gray-950">自動割り当て無制限はProで</h2>
-      <p id="upgrade-description" className="mt-3 text-sm leading-6 text-gray-600">1チームの配車管理は無料で、自動割り当ては{AUTO_ASSIGN_FREE_TRIAL_LIMIT}回までお試しできます（再計算も1回）。Proでは自動割り当てを無制限で利用でき、同じアカウントで複数チームを管理できます。</p>
+      <h2 id="upgrade-title" className="text-xl font-bold text-gray-950">便利な機能をProでまとめて</h2>
+      <p id="upgrade-description" className="mt-3 text-sm leading-6 text-gray-600">1チームの配車管理は無料で、自動割り当ては{AUTO_ASSIGN_FREE_TRIAL_LIMIT}回までお試しできます（再計算も1回）。Proでは自動割り当て無制限・複数チーム管理・遠征費精算を利用できます。</p>
       {onBeforeCheckout && <p className="mt-3 text-sm leading-6 text-gray-600">入力内容をこのタブに一時保存してから決済画面へ進みます。戻った後に配車を確定できます。</p>}
       <div className="mt-5 space-y-3">
         <button type="button" onClick={() => checkout("month")} disabled={busy || !token || isPaymentPending} className="app-button-primary w-full">{busy ? "決済ページを準備中..." : `月${PRO_MONTHLY_PRICE_JPY.toLocaleString("ja-JP")}円でProを始める`}</button>

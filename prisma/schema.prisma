@@ -19,6 +19,8 @@ model Admin {
   pendingTransferNewEmail     String?  // 招待中の新担当者メールアドレス
   pendingTransferNewSupabaseUid String? // 招待中の新担当者 Supabase UID
   billingPlan             String   @default("free")
+  proTrialStartedAt       DateTime?
+  proTrialEndsAt          DateTime?
   autoAssignTrialUsed     Int      @default(0)
   stripeCustomerId        String?  @unique
   stripeSubscriptionId    String?  @unique

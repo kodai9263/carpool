@@ -1,49 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isSettlementSubscriptionActive, SETTLEMENT_MONTHLY_PRICE_JPY } from "@/utils/settlementAccess";
+import { getProEntitlement } from "@/utils/billing";
 import { withAuthTeam } from "@/utils/withAuth";
 
 export const runtime = "nodejs";
 
 export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =>
   withAuthTeam(request, async ({ adminId, teamId }) => {
-    const subscription = await prisma.teamSettlementSubscription.findUnique({
-      where: { teamId },
-      include: {
-        team: {
+    const team = await prisma.team.findUniqueOrThrow({
+      where: { id: teamId },
+      select: {
+        admin: {
           select: {
-            admin: {
-              select: {
-                supabaseUid: true,
-                pendingTransferNewEmail: true,
-                pendingTransferNewSupabaseUid: true,
-              },
-            },
+            billingPlan: true,
+            proTrialEndsAt: true,
+            stripeCustomerId: true,
+            supabaseUid: true,
+            pendingTransferNewEmail: true,
+            pendingTransferNewSupabaseUid: true,
           },
         },
+        settlementSubscription: true,
       },
     });
+    const subscription = team.settlementSubscription;
     const status = subscription?.stripeSubscriptionStatus ?? null;
+    const entitlement = getProEntitlement(team.admin);
+    const legacyActive = isSettlementSubscriptionActive(status);
     const transferPending = Boolean(
-      subscription?.team.admin.pendingTransferNewEmail ||
-      subscription?.team.admin.pendingTransferNewSupabaseUid,
+      team.admin.pendingTransferNewEmail ||
+      team.admin.pendingTransferNewSupabaseUid,
     );
-    const canManageBilling = Boolean(
+    const canManageLegacyBilling = Boolean(
       subscription &&
       subscription.billingAdminId === adminId &&
-      subscription.billingOwnerSupabaseUid === subscription.team.admin.supabaseUid &&
+      subscription.billingOwnerSupabaseUid === team.admin.supabaseUid &&
       !transferPending &&
       subscription.stripeCustomerId,
     );
     return NextResponse.json({
       status: "OK",
       billing: {
-        active: isSettlementSubscriptionActive(status),
+        active: entitlement.isPro || legacyActive,
+        accessSource: entitlement.isPro ? entitlement.accessSource : legacyActive ? "legacy" : "free",
         subscriptionStatus: status,
         monthlyPrice: SETTLEMENT_MONTHLY_PRICE_JPY,
-        canManageBilling,
+        canManageBilling: entitlement.isPaidPro ? Boolean(team.admin.stripeCustomerId) : canManageLegacyBilling,
+        managementSource: entitlement.isPaidPro ? "pro" : canManageLegacyBilling ? "legacy" : null,
         transferPending,
-        ownerChanged: Boolean(subscription && subscription.billingOwnerSupabaseUid !== subscription.team.admin.supabaseUid),
+        ownerChanged: Boolean(subscription && subscription.billingOwnerSupabaseUid !== team.admin.supabaseUid),
       },
     });
   }, { params: { teamId: ctx.params.teamId } });

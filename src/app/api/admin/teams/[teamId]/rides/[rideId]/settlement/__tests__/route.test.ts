@@ -111,6 +111,6 @@ test("別遠征で無料体験中なら課金案内に必要な情報を返す",
     code: "SETTLEMENT_SUBSCRIPTION_REQUIRED",
     reason: "trial_in_use",
     freeTrialSettlementId: 19,
-    monthlyPrice: 980,
+    monthlyPrice: 300,
   });
 });

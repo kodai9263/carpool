@@ -54,7 +54,10 @@ export async function recordCheckoutConversion(session: Stripe.Checkout.Session,
   });
   if (!inserted.count) return;
   // 一次記録はDB。GAはベストエフォートであり、送信失敗を購入失敗にしない。
-  await trackServerEvent("purchase", {
+  const eventName = subscription.status === "trialing" && session.payment_status === "no_payment_required"
+    ? "free_trial_confirmed"
+    : "purchase";
+  await trackServerEvent(eventName, {
     transaction_id: subscription.id,
     value: session.currency === "jpy" ? session.amount_total ?? 0 : (session.amount_total ?? 0) / 100,
     currency: (session.currency ?? "jpy").toUpperCase(),

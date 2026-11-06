@@ -10,7 +10,7 @@ jest.mock("@/utils/serverAnalytics", () => ({ trackServerEvent: jest.fn() }));
 jest.mock("@/utils/billingSubscription", () => ({ syncBillingSubscription: jest.fn(), recordCheckoutConversion: jest.fn() }));
 jest.mock("@/lib/prisma", () => ({ prisma: { $transaction: jest.fn(), $queryRaw: jest.fn(), admin: { findUnique: jest.fn(), findUniqueOrThrow: jest.fn(), update: jest.fn() }, ride: { findFirst: jest.fn() } } }));
 jest.mock("@/lib/stripe", () => ({ getValidatedStripeProPriceId: jest.fn().mockResolvedValue("price_month"), getStripeClient: jest.fn() }));
-const admin = { id: 9, email: "test@example.com", billingPlan: "free", stripeCustomerId: "cus_owner" };
+const admin = { id: 9, email: "test@example.com", billingPlan: "free", proTrialEndsAt: null, stripeCustomerId: "cus_owner" };
 const stripe = {
   customers: { retrieve: jest.fn(), create: jest.fn() },
   subscriptions: { list: jest.fn(), retrieve: jest.fn() },
@@ -86,6 +86,34 @@ test("外部戻り先は拒否してprofileへ、Stripe作成には冪等キー�
     success_url: "https://app.example/admin/profile?checkout=success&session_id={CHECKOUT_SESSION_ID}#plan",
     metadata: expect.objectContaining({ conversionVersion: "1", source: "auto_assign" }),
   }), expect.objectContaining({ idempotencyKey: expect.stringMatching(/^billing-checkout-/) }));
+});
+
+test("Pro無料体験中の申込みは残り期間をStripeの初回請求前trialへ引き継ぐ", async () => {
+  const trialEndsAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+  (prisma.admin.findUniqueOrThrow as jest.Mock).mockResolvedValue({ ...admin, proTrialEndsAt: trialEndsAt });
+
+  await POST(request({ interval: "month" }));
+
+  expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(expect.objectContaining({
+    subscription_data: expect.objectContaining({
+      trial_end: Math.floor(trialEndsAt.getTime() / 1000),
+    }),
+  }), expect.any(Object));
+});
+
+test("無料体験が48時間未満ならCheckout失敗を避けるため2日間のtrialにする", async () => {
+  const trialEndsAt = new Date(Date.now() + 47 * 60 * 60 * 1000);
+  (prisma.admin.findUniqueOrThrow as jest.Mock).mockResolvedValue({ ...admin, proTrialEndsAt: trialEndsAt });
+
+  await POST(request({ interval: "month" }));
+
+  expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(expect.objectContaining({
+    subscription_data: expect.objectContaining({
+      trial_period_days: 2,
+    }),
+  }), expect.any(Object));
+  const checkoutParams = stripe.checkout.sessions.create.mock.calls[0][0];
+  expect(checkoutParams.subscription_data.trial_end).toBeUndefined();
 });
 
 test("所有する配車へだけ戻す", async () => {

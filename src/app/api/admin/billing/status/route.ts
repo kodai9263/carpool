@@ -15,6 +15,11 @@ export const GET = (request: NextRequest) =>
           billing: {
             plan: autoAssign.plan,
             isPro: autoAssign.isPro,
+            isPaidPro: autoAssign.isPaidPro,
+            isTrialActive: autoAssign.isTrialActive,
+            accessSource: autoAssign.accessSource,
+            trialEndsAt: autoAssign.trialEndsAt,
+            trialDaysRemaining: autoAssign.trialDaysRemaining,
           },
           autoAssign,
         },

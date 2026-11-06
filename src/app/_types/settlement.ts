@@ -95,6 +95,7 @@ export type SettlementDetail = {
     freeTrialConsumed: boolean;
     monthlyPrice: number;
     subscriptionStatus?: string | null;
+    accessSource?: "paid" | "trial" | "legacy" | "free";
   };
 };
 

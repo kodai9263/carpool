@@ -94,7 +94,7 @@ function response(status: "draft" | "pending" = "draft", version = 1): Settlemen
         canEdit: true,
         freeTrialSettlementId: 20,
         freeTrialConsumed: status !== "draft",
-        monthlyPrice: 980,
+        monthlyPrice: 300,
       },
     },
   };
@@ -134,7 +134,7 @@ test("別遠征で無料体験中の下書きは編集を止め、対象変更�
     canEdit: false,
     freeTrialSettlementId: 19,
     freeTrialConsumed: false,
-    monthlyPrice: 980,
+    monthlyPrice: 300,
   };
   useFetch.mockReturnValue({ data: blocked, error: undefined, isLoading: false, mutate });
   (api.post as jest.Mock).mockResolvedValue(response());
@@ -143,7 +143,7 @@ test("別遠征で無料体験中の下書きは編集を止め、対象変更�
 
   expect(screen.getByText("無料体験は別の遠征で利用中です")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "確認計算" })).not.toBeInTheDocument();
-  expect(screen.getByText(/月980円／チームの精算プランが必要です。/)).toBeInTheDocument();
+  expect(screen.getByText(/遠征費精算を含む月300円のProが必要です。/)).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: "無料体験をこの遠征へ変更" }));
   await waitFor(() => expect(api.post).toHaveBeenCalledWith(
@@ -160,8 +160,9 @@ test("精算プラン契約中は無料対象外の下書きも編集できる",
     canEdit: true,
     freeTrialSettlementId: 19,
     freeTrialConsumed: true,
-    monthlyPrice: 980,
+    monthlyPrice: 300,
     subscriptionStatus: "active",
+    accessSource: "legacy",
   };
   useFetch.mockReturnValue({ data: subscribed, error: undefined, isLoading: false, mutate });
 

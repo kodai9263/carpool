@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/utils/supabase";
 import { prisma } from "@/lib/prisma";
+import { createProTrialPeriod } from "@/utils/billing";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
     data: {
       email: user.email ?? "",
       supabaseUid: user.id,
+      ...createProTrialPeriod(),
     },
     select: { id: true },
   });

@@ -74,7 +74,7 @@ test("保存済み配車から精算を作成し、同じ精算画面へ移動�
     "token",
   ));
   expect(routerPush).toHaveBeenCalledWith("/admin/teams/1/settlements/20");
-  expect(screen.getByText("最初の1遠征は無料。2遠征目から月980円／チームです。")).toBeInTheDocument();
+  expect(screen.getByText("30日間はPro機能を無料で利用できます。無料期間後は月300円です。")).toBeInTheDocument();
 });
 
 test("別遠征で無料体験中なら、確認後に対象をこの遠征へ変更できる", async () => {
@@ -84,7 +84,7 @@ test("別遠征で無料体験中なら、確認後に対象をこの遠征へ�
       code: "SETTLEMENT_SUBSCRIPTION_REQUIRED",
       reason: "trial_in_use",
       freeTrialSettlementId: 19,
-      monthlyPrice: 980,
+      monthlyPrice: 300,
       message: "無料体験は別の遠征で利用中です。",
     })
     .mockResolvedValueOnce({ status: "OK", created: true, settlement: { id: 20 } });
@@ -104,13 +104,13 @@ test("別遠征で無料体験中なら、確認後に対象をこの遠征へ�
   expect(routerPush).toHaveBeenCalledWith("/admin/teams/1/settlements/20");
 });
 
-test("無料体験利用済みなら月980円の案内を表示して精算を作らない", async () => {
+test("無料体験利用済みなら月300円のPro案内を表示して精算を作らない", async () => {
   (api.post as jest.Mock).mockRejectedValueOnce({
     status: 402,
     code: "SETTLEMENT_SUBSCRIPTION_REQUIRED",
     reason: "trial_used",
     freeTrialSettlementId: 18,
-    monthlyPrice: 980,
+    monthlyPrice: 300,
     message: "無料体験は利用済みです。",
   });
 
@@ -118,7 +118,7 @@ test("無料体験利用済みなら月980円の案内を表示して精算を�
   fireEvent.click(screen.getByRole("button", { name: "この配車の精算を始める" }));
 
   expect(await screen.findByRole("dialog", { name: "無料体験は利用済みです" })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "月980円の精算プランを始める" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "月300円のProを始める" })).toBeEnabled();
   expect(routerPush).not.toHaveBeenCalled();
 });
 

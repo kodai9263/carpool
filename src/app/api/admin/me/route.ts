@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/utils/withAuth";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { getProEntitlement } from "@/utils/billing";
 
 export const runtime = "nodejs";
 
@@ -21,6 +22,8 @@ export const GET = (request: NextRequest) =>
           email: true,
           pendingTransferNewEmail: true,
           billingPlan: true,
+          proTrialStartedAt: true,
+          proTrialEndsAt: true,
           autoAssignTrialUsed: true,
           stripeSubscriptionStatus: true,
           stripeCustomerId: true,
@@ -30,7 +33,22 @@ export const GET = (request: NextRequest) =>
         return NextResponse.json({ message: "管理者が見つかりません"}, { status: 404 });
       }
       const { stripeCustomerId, ...publicAdmin } = admin;
-      return NextResponse.json({ status: "OK", admin: { ...publicAdmin, hasBillingCustomer: Boolean(stripeCustomerId) } }, { status: 200 });
+      const entitlement = getProEntitlement(admin);
+      return NextResponse.json({
+        status: "OK",
+        admin: {
+          ...publicAdmin,
+          hasBillingCustomer: Boolean(stripeCustomerId),
+          proAccess: {
+            isPro: entitlement.isPro,
+            isPaidPro: entitlement.isPaidPro,
+            isTrialActive: entitlement.isTrialActive,
+            accessSource: entitlement.accessSource,
+            trialEndsAt: entitlement.trialEndsAt?.toISOString() ?? null,
+            trialDaysRemaining: entitlement.trialDaysRemaining,
+          },
+        },
+      }, { status: 200 });
     } catch {
       return NextResponse.json({ message: "サーバー内部でエラーが発生しました" }, { status: 500 });
     }

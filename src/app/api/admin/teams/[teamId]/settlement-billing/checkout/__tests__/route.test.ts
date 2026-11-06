@@ -106,6 +106,7 @@ function request(body: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  process.env.LEGACY_SETTLEMENT_SALES_ENABLED = "true";
   (getStripeClient as jest.Mock).mockReturnValue(stripe);
   (prisma.$transaction as jest.Mock).mockImplementation((callback) => callback(prisma));
   (prisma.team.findFirst as jest.Mock).mockResolvedValue(team);
@@ -125,6 +126,16 @@ beforeEach(() => {
     expires_at: Math.floor(Date.now() / 1000) + 86400,
   });
   stripe.billingPortal.sessions.create.mockResolvedValue({ url: "https://billing.stripe.com/test" });
+});
+
+test("月980円の新規販売を停止しProへ案内する", async () => {
+  delete process.env.LEGACY_SETTLEMENT_SALES_ENABLED;
+
+  const response = await POST(request(), { params: { teamId: "2" } });
+
+  expect(response.status).toBe(410);
+  expect(await response.json()).toMatchObject({ code: "SETTLEMENT_BILLING_RETIRED" });
+  expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
 });
 
 test("既存Proとは別のチーム専用顧客と月980円Checkoutを作る", async () => {

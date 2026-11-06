@@ -6,8 +6,13 @@ import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
+import { getProEntitlement } from "@/utils/billing";
 
 export const runtime = "nodejs";
+
+// Checkoutのtrial_endは48時間以上先が必要。通信中に下回らないよう少し余裕を持たせる。
+const STRIPE_MIN_TRIAL_LEAD_MS = (48 * 60 + 5) * 60 * 1000;
+const STRIPE_SHORT_TRIAL_DAYS = 2;
 
 export const POST = (request: NextRequest) => withAuth(request, async (adminId) => {
   try {
@@ -22,6 +27,7 @@ export const POST = (request: NextRequest) => withAuth(request, async (adminId) 
     const result = await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT "id" FROM "Admin" WHERE "id" = ${adminId} FOR UPDATE`;
       const admin = await tx.admin.findUniqueOrThrow({ where: { id: adminId } });
+      const entitlement = getProEntitlement(admin);
       let customerId = admin.stripeCustomerId;
       if (customerId) {
         try {
@@ -74,13 +80,24 @@ export const POST = (request: NextRequest) => withAuth(request, async (adminId) 
       const successUrl = billingReturnUrl(request, returnPath, "checkout=success&session_id={CHECKOUT_SESSION_ID}");
       const cancelUrl = billingReturnUrl(request, returnPath, "checkout=cancel");
       const idempotencyKey = createHash("sha256").update(JSON.stringify([adminId, customerId, priceId, successUrl, source, latest.data[0]?.id ?? "first"])).digest("hex");
+      const remainingTrialMs = entitlement.trialEndsAt
+        ? entitlement.trialEndsAt.getTime() - Date.now()
+        : 0;
+      const stripeTrial = entitlement.isTrialActive && remainingTrialMs > 0
+        ? remainingTrialMs >= STRIPE_MIN_TRIAL_LEAD_MS
+          ? { trial_end: Math.floor(entitlement.trialEndsAt!.getTime() / 1000) }
+          : { trial_period_days: STRIPE_SHORT_TRIAL_DAYS }
+        : {};
       const session = await stripe.checkout.sessions.create({
         mode: "subscription", customer: customerId,
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: successUrl, cancel_url: cancelUrl,
         client_reference_id: String(adminId),
         metadata: { adminId: String(adminId), interval, source, returnPath, conversionVersion: "1" },
-        subscription_data: { metadata: { adminId: String(adminId) } },
+        subscription_data: {
+          metadata: { adminId: String(adminId) },
+          ...stripeTrial,
+        },
       }, { idempotencyKey: `billing-checkout-${idempotencyKey}` });
       if (!session.url) throw new Error("Checkout URL is missing");
       return { url: session.url, destination: "checkout" as const, created: true };
