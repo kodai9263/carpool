@@ -25,10 +25,37 @@ model Admin {
   stripeCustomerId        String?  @unique
   stripeSubscriptionId    String?  @unique
   stripeSubscriptionStatus String?
+  appleProExpiresAt        DateTime?
+  appleProEnvironment      String?
+  appleProAccountToken     String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   teams                   Team[]
   feedbacks               Feedback[]
+  appleSubscriptions      AppleSubscription[]
+}
+
+// Appleの署名検証済み契約。Stripe契約と独立して保持する。
+model AppleSubscription {
+  id                    Int      @id @default(autoincrement())
+  adminId               Int
+  admin                 Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  environment           String
+  originalTransactionId String
+  transactionId         String
+  productId             String
+  appAccountToken       String
+  expiresAt             DateTime
+  gracePeriodExpiresAt  DateTime?
+  revokedAt             DateTime?
+  signedAt              DateTime
+  status                String
+  isUpgraded            Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([environment, originalTransactionId])
+  @@index([adminId, environment])
 }
 
 // チームテーブル

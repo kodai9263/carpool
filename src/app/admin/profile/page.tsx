@@ -251,14 +251,6 @@ export default function ProfilePage() {
                       >
                         新しいチームを作成
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleOpenCustomerPortal}
-                        disabled={isOpeningPortal}
-                        className="app-button-secondary w-full border-amber-200 bg-amber-100 text-amber-900 hover:bg-amber-200"
-                      >
-                        {isOpeningPortal ? "支払い管理画面を準備中..." : "支払い・解約を管理"}
-                      </button>
                     </>
                   ) : (
                     <>
@@ -283,7 +275,12 @@ export default function ProfilePage() {
                     </>
                   )}
                   {!isPaidPro && <p className="text-xs leading-5 text-amber-900">無料体験中に申し込んだ場合も、初回請求は無料体験終了後です。月払い・年払いともに自動更新で、「支払い・解約を管理」から解約できます。</p>}
-                  {!isPaidPro && admin?.hasBillingCustomer && <button type="button" onClick={handleOpenCustomerPortal} disabled={isOpeningPortal} className="app-button-secondary w-full">{isOpeningPortal ? "準備中..." : "支払い・解約を管理"}</button>}
+                  {admin?.hasAppleSubscription && (
+                    <a href="https://apps.apple.com/account/subscriptions" target="_blank" rel="noopener noreferrer" className="app-button-secondary w-full">
+                      Appleの支払い・解約を管理
+                    </a>
+                  )}
+                  {admin?.hasBillingCustomer && <button type="button" onClick={handleOpenCustomerPortal} disabled={isOpeningPortal} className="app-button-secondary w-full">{isOpeningPortal ? "準備中..." : admin.hasAppleSubscription ? "Web契約の支払い・解約を管理" : "支払い・解約を管理"}</button>}
                 </div>
               </div>
             </div>

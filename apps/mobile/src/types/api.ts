@@ -45,12 +45,14 @@ export interface RideDetailResponse {
   ride: {
     id: number;
     date: string;
+    updatedAt: string;
     destination: string;
     meetingPlace?: string | null;
     deadline?: string | null;
     separateDirections?: boolean;
     teamName?: string;
     pin?: string | null;
+    guardians: { id: number; name: string; memberId: number }[];
     drivers: {
       id: number;
       type: string;

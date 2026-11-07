@@ -1,7 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +14,7 @@ import { AppButton, Card, ScreenHeader } from '@/components/ui';
 import { useAuth } from '@/contexts/auth';
 import { adminPost } from '@/lib/api';
 import { toRideDateInput } from '@/lib/format';
+import { useUnsavedForm } from '@/lib/useUnsavedForm';
 import type { CreateRideResponse } from '@/types/api';
 
 export default function NewRideScreen() {
@@ -25,20 +25,25 @@ export default function NewRideScreen() {
   const [destination, setDestination] = useState('');
   const [meetingPlace, setMeetingPlace] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitting = useRef(false);
+  const [error, setError] = useState<string | null>(null);
+  const allowSavedNavigation = useUnsavedForm(Boolean(date || destination || meetingPlace), isSubmitting);
 
   const handleCreate = async () => {
-    if (!token || !teamId) return;
+    if (!token || !teamId || submitting.current) return;
+    setError(null);
 
     const rideDate = toRideDateInput(date);
     if (!rideDate) {
-      Alert.alert('日付を確認してください', '日付は YYYY-MM-DD の形式で入力してください。');
+      setError('実在する日付を YYYY-MM-DD の形式で入力してください。');
       return;
     }
     if (!destination.trim()) {
-      Alert.alert('行き先を入力してください', '配車の行き先を入力してください。');
+      setError('配車の行き先を入力してください。');
       return;
     }
 
+    submitting.current = true;
     setIsSubmitting(true);
     try {
       const response = await adminPost<CreateRideResponse, { date: string; destination: string; meetingPlace?: string }>(
@@ -50,15 +55,17 @@ export default function NewRideScreen() {
           meetingPlace: meetingPlace.trim() || undefined,
         },
       );
+      allowSavedNavigation();
       router.replace({
         pathname: '/team/[teamId]/ride/[rideId]',
         params: { teamId, rideId: String(response.id) },
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : '配車を作成できませんでした。';
-      Alert.alert('作成に失敗しました', message);
+      setError(message);
     } finally {
       setIsSubmitting(false);
+      submitting.current = false;
     }
   };
 
@@ -78,6 +85,8 @@ export default function NewRideScreen() {
           <Card style={styles.formCard}>
             <Text style={styles.label}>日付</Text>
             <TextInput
+              accessibilityLabel="配車の日付"
+              editable={!isSubmitting}
               value={date}
               onChangeText={setDate}
               placeholder="2026-07-05"
@@ -88,6 +97,8 @@ export default function NewRideScreen() {
 
             <Text style={styles.label}>行き先</Text>
             <TextInput
+              accessibilityLabel="配車の行き先"
+              editable={!isSubmitting}
               value={destination}
               onChangeText={setDestination}
               placeholder="大会会場・練習試合会場など"
@@ -97,6 +108,8 @@ export default function NewRideScreen() {
 
             <Text style={styles.label}>集合場所</Text>
             <TextInput
+              accessibilityLabel="集合場所"
+              editable={!isSubmitting}
               value={meetingPlace}
               onChangeText={setMeetingPlace}
               placeholder="学校正門、グラウンド駐車場など"
@@ -104,6 +117,7 @@ export default function NewRideScreen() {
               style={styles.input}
             />
 
+            {error ? <Text accessibilityRole="alert" style={{ color: '#b91c1c', lineHeight: 22 }}>{error}</Text> : null}
             <AppButton
               label={isSubmitting ? '作成中...' : '配車を作成'}
               onPress={handleCreate}

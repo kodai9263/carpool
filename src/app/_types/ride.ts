@@ -14,6 +14,7 @@ export interface RideFormValues {
 }
 
 export interface UpdateRideValues {
+  expectedUpdatedAt?: string;
   date: Date | null;
   destination: string;
   meetingPlace?: string | null;

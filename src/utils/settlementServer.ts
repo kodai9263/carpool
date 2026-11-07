@@ -13,6 +13,7 @@ import {
   SETTLEMENT_COST_ITEM_MAX,
 } from "@/utils/settlementCalculation";
 import { buildSettlementAccessView } from "@/utils/settlementAccess";
+import { appleProSelect } from "@/utils/billing";
 
 export const SETTLEMENT_MAX_EXPENSES = 100;
 export const SETTLEMENT_MAX_FAMILIES = 500;
@@ -301,7 +302,7 @@ export const settlementDetailInclude = {
         select: { stripeSubscriptionStatus: true },
       },
       admin: {
-        select: { billingPlan: true, proTrialEndsAt: true },
+        select: { billingPlan: true, proTrialEndsAt: true, ...appleProSelect },
       },
     },
   },

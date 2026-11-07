@@ -26,6 +26,7 @@ export default function EscortSection({
   availabilityDrivers,
 }: Props) {
   const { control } = useFormContext<UpdateRideValues>();
+  const separateDirections = useWatch({ control, name: "separateDirections" });
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -39,9 +40,10 @@ export default function EscortSection({
   // 引率者候補（availability: true かつ type: 'escort' かつ対応方向）の総数
   const totalAvailableEscorts = useMemo(() =>
     availabilityDrivers.filter(
-      d => d.availability === true && d.type === 'escort' && (d.direction === direction || d.direction === 'both')
+      d => d.availability === true && d.type === 'escort' &&
+        (d.direction === 'both' || (separateDirections && d.direction === direction))
     ).length,
-    [availabilityDrivers, direction]
+    [availabilityDrivers, direction, separateDirections]
   );
 
   // 同じ方向のドライバーカードで選択済みの引率者数（上限チェック用）

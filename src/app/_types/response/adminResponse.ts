@@ -10,6 +10,7 @@ export interface AdminMeResponse {
     autoAssignTrialUsed: number;
     stripeSubscriptionStatus: string | null;
     hasBillingCustomer?: boolean;
+    hasAppleSubscription?: boolean;
     proAccess: {
       isPro: boolean;
       isPaidPro: boolean;

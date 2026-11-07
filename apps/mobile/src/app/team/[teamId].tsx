@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,31 +18,41 @@ export default function TeamRidesScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const requestId = useRef(0);
 
   const load = useCallback(async () => {
     if (!token || !teamId) return;
+    const id = ++requestId.current;
 
     setError(null);
     try {
       const [teamData, ridesData] = await Promise.all([
         adminGet<TeamDetailResponse>(`/api/admin/teams/${teamId}`, token),
-        adminGet<RideListResponse>(`/api/admin/teams/${teamId}/rides?perPage=50`, token),
+        adminGet<RideListResponse>(`/api/admin/teams/${teamId}/rides?perPage=20&page=${page}`, token),
       ]);
+      if (id !== requestId.current) return;
       setTeamName(teamData.team.teamName);
       setRides(ridesData.rides);
+      setTotalPages(ridesData.totalPages);
     } catch (loadError) {
+      if (id !== requestId.current) return;
       const message = loadError instanceof Error ? loadError.message : '配車一覧を取得できませんでした。';
       setError(message);
     } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      if (id === requestId.current) {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
     }
-  }, [teamId, token]);
+  }, [page, teamId, token]);
 
   useFocusEffect(
     useCallback(() => {
       setIsLoading(true);
       load();
+      return () => { requestId.current += 1; };
     }, [load]),
   );
 
@@ -77,7 +87,8 @@ export default function TeamRidesScreen() {
               })
             }
           />
-          <AppButton label="チーム一覧へ" onPress={() => router.back()} variant="secondary" />
+          <AppButton label="家族を登録・確認" onPress={() => router.push({ pathname: '/team/[teamId]/members', params: { teamId } })} variant="secondary" />
+          <AppButton label="チーム一覧へ" onPress={() => router.replace('/')} variant="secondary" />
         </View>
 
         {isLoading ? (
@@ -123,6 +134,13 @@ export default function TeamRidesScreen() {
             ))}
           </View>
         )}
+        {!isLoading && !error && totalPages > 1 ? (
+          <View style={styles.actions}>
+            <Text>{page} / {totalPages}ページ</Text>
+            <AppButton label="前のページ" disabled={page <= 1} onPress={() => setPage(page - 1)} variant="secondary" />
+            <AppButton label="次のページ" disabled={page >= totalPages} onPress={() => setPage(page + 1)} variant="secondary" />
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

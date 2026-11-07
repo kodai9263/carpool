@@ -4,11 +4,14 @@
     "slug": "carpool-admin",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/carpool-logo.png",
     "scheme": "carpool",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/carpool-logo.png",
+      "deploymentTarget": "16.4",
+      "appleTeamId": "6F83KW7546",
+      "bundleIdentifier": "app.carpool.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,12 +28,14 @@
     },
     "plugins": [
       "expo-router",
+      "expo-iap",
+      "./plugins/with-async-storage-resource-target",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/carpool-logo.png",
+          "imageWidth": 176
         }
       ]
     ],

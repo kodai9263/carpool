@@ -18,6 +18,7 @@ export interface RideDetailResponse {
   status: "OK";
   ride: {
     id: number;
+    updatedAt?: string;
     date: string;
     destination: string;
     meetingPlace?: string | null;

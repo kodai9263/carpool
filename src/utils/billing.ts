@@ -1,3 +1,5 @@
+import { isAppleEnvironmentAllowed } from "./appleEnvironment";
+
 export const FREE_TEAM_LIMIT = 1;
 export const AUTO_ASSIGN_FREE_TRIAL_LIMIT = 3;
 export const PRO_MONTHLY_PRICE_JPY = 300;
@@ -45,11 +47,34 @@ export function createProTrialPeriod(now = new Date()) {
   };
 }
 
+export type ProEntitlementInput = {
+  billingPlan?: string | null;
+  proTrialEndsAt?: Date | string | null;
+  appleProExpiresAt?: Date | string | null;
+  appleProEnvironment?: string | null;
+  appleProAccountToken?: string | null;
+  supabaseUid?: string | null;
+};
+
+export const appleProSelect = {
+  appleProExpiresAt: true,
+  appleProEnvironment: true,
+  appleProAccountToken: true,
+  supabaseUid: true,
+} as const;
+
+export function hasAppleProAccess(input: ProEntitlementInput, now = new Date()) {
+  const expiresAt = input.appleProExpiresAt ? new Date(input.appleProExpiresAt).getTime() : 0;
+  // 担当者の引継ぎでAdminの所有者が変わっても、元の購入者の契約を渡さない。
+  return isAppleEnvironmentAllowed(input.appleProEnvironment, input.supabaseUid) && Boolean(input.supabaseUid) &&
+    input.appleProAccountToken === input.supabaseUid && expiresAt > now.getTime();
+}
+
 export function getProEntitlement(
-  input: { billingPlan?: string | null; proTrialEndsAt?: Date | string | null },
+  input: ProEntitlementInput,
   now = new Date(),
 ): ProEntitlement {
-  const isPaidPro = isProPlan(input.billingPlan);
+  const isPaidPro = isProPlan(input.billingPlan) || hasAppleProAccess(input, now);
   const parsedTrialEndsAt = input.proTrialEndsAt ? new Date(input.proTrialEndsAt) : null;
   const trialEndsAt = parsedTrialEndsAt && !Number.isNaN(parsedTrialEndsAt.getTime())
     ? parsedTrialEndsAt

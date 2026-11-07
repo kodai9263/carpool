@@ -22,7 +22,7 @@ export default function PrivacyPage() {
       </header>
       <main className="mx-auto max-w-3xl px-5 py-10 sm:py-14">
         <h1 className="text-2xl font-bold leading-relaxed sm:text-3xl">プライバシーポリシー</h1>
-        <p className="mt-3 text-sm text-slate-500">制定日：2026年9月17日</p>
+        <p className="mt-3 text-sm text-slate-500">制定日：2026年9月17日 ／ 更新日：2026年11月7日</p>
         <p className="mt-6 leading-8">
           Carpool運営者（以下「運営者」）は、配車管理サービス「Carpool」における情報の取扱いを、以下のとおり定めます。
         </p>
@@ -35,6 +35,7 @@ export default function PrivacyPage() {
               <li>配車の日程・目的地・集合場所、参加や車出しの可否、乗車の割り当て、コメントなど</li>
               <li>遠征費精算の費用、負担額、入金・返金の記録、および精算時点の参加者・配車情報など</li>
               <li>有料プランの契約状況、決済サービスの顧客・契約識別子、支払いに関する記録</li>
+              <li>Appleのアプリ内購入に関する商品・取引・契約の識別子、有効期限、購入・更新・失効・返金などの状態、および購入とCarpoolアカウントとの対応を確認する識別子</li>
               <li>お問い合わせやフィードバックの内容、返信用メールアドレス、送信者に関連する情報</li>
               <li>アクセスしたページ、操作・利用状況、ブラウザや端末に関する情報、Cookie等の識別子、アクセスに伴う通信情報</li>
             </ul>
@@ -50,12 +51,14 @@ export default function PrivacyPage() {
           </section>
           <section aria-labelledby="service-providers">
             <h2 id="service-providers">4. 外部サービスと第三者への提供</h2>
-            <p>運営者は、サービス提供に必要な範囲で外部サービスを利用します。認証・データ保管にSupabase、サイト配信にVercel、決済にStripe、アクセス解析にGoogle Analyticsを利用しています。クレジットカード情報はStripeの決済画面で入力され、Carpoolのデータベースにはカード番号全体を保存しません。</p>
+            <p>運営者は、サービス提供に必要な範囲で外部サービスを利用します。認証・データ保管にSupabase、サイト配信にVercel、Web版の決済にStripe、iPhoneアプリ内の決済にApple、アクセス解析にGoogle Analyticsを利用します。Web版のクレジットカード情報はStripeの決済画面で入力され、Carpoolのデータベースにはカード番号全体を保存しません。</p>
+            <p className="mt-3">iPhoneアプリ内の購入では、Appleが支払い情報を管理し、Carpoolはカード番号などのお支払い方法の詳細を取得しません。Carpoolは、Appleから提供される購入情報の署名と現在の契約状態を確認し、取引・契約の識別子、有効期限、購入状態をCarpoolアカウントに対応づけて保存します。購入時にCarpoolアカウントの識別子をAppleへ渡し、同じアカウントでのProの利用、購入の復元、更新・失効・返金の反映に使用します。</p>
             <p className="mt-3">チーム内の共有、サービス提供に必要な委託・外部サービスの利用、本人の同意がある場合、法令に基づく場合などを除き、個人情報を第三者へ提供しません。外部サービスでは国外で情報が取り扱われる場合があります。各事業者の取扱いは、以下をご確認ください。</p>
             <ul className="mt-3">
               <li><a href="https://supabase.com/privacy" className={externalLinkClass}>Supabaseのプライバシーポリシー</a></li>
               <li><a href="https://vercel.com/legal/privacy-policy" className={externalLinkClass}>Vercelのプライバシーポリシー</a></li>
               <li><a href="https://stripe.com/jp/privacy" className={externalLinkClass}>Stripeのプライバシーポリシー</a></li>
+              <li><a href="https://www.apple.com/legal/privacy/jp/" className={externalLinkClass}>Appleのプライバシーポリシー</a></li>
               <li><a href="https://policies.google.com/privacy?hl=ja" className={externalLinkClass}>Googleのプライバシーポリシー</a></li>
             </ul>
           </section>

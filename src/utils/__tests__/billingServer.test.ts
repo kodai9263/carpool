@@ -60,3 +60,26 @@ test("無料体験中は自動割り当ての従来無料回数を消費しな�
 
   expect(prisma.admin.update).not.toHaveBeenCalled();
 });
+
+test("Apple契約のある管理者はWebも有料Proになり、無料回数を消費しない", async () => {
+  (prisma.admin.findUnique as jest.Mock).mockResolvedValue({
+    billingPlan: "free", proTrialEndsAt: null, autoAssignTrialUsed: 3,
+    supabaseUid: "owner", appleProAccountToken: "owner",
+    appleProEnvironment: process.env.APPLE_IAP_ENVIRONMENT ?? "Production",
+    appleProExpiresAt: new Date(Date.now() + 86400000),
+  });
+  await expect(consumeAutoAssignFreeUse(9)).resolves.toMatchObject({
+    isPaidPro: true, isPro: true, accessSource: "paid", canUseAutoAssign: true,
+  });
+  expect(prisma.admin.update).not.toHaveBeenCalled();
+});
+
+test("引継ぎ前の購入者のApple契約を新しい管理者へ渡さない", async () => {
+  (prisma.admin.findUnique as jest.Mock).mockResolvedValue({
+    billingPlan: "free", autoAssignTrialUsed: 3,
+    supabaseUid: "new-owner", appleProAccountToken: "old-owner",
+    appleProEnvironment: process.env.APPLE_IAP_ENVIRONMENT ?? "Production",
+    appleProExpiresAt: new Date(Date.now() + 86400000),
+  });
+  await expect(getAutoAssignBillingStatus(9)).resolves.toMatchObject({ isPaidPro: false, canUseAutoAssign: false });
+});

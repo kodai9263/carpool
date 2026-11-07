@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "simulator": {
+      "distribution": "internal",
+      "environment": "preview",
+      "ios": {
+        "simulator": true,
+        "image": "sdk-57"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "environment": "production",
+      "autoIncrement": true,
+      "ios": {
+        "image": "sdk-57"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6831953729",
+        "appleTeamId": "6F83KW7546"
+      }
+    }
+  }
+}

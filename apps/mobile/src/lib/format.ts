@@ -12,5 +12,9 @@ export function toRideDateInput(dateText: string) {
 
   const date = new Date(`${trimmed}T00:00:00+09:00`);
   if (Number.isNaN(date.getTime())) return null;
+  const japanDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  if (japanDate !== trimmed) return null;
   return date.toISOString();
 }
