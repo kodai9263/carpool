@@ -14,12 +14,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppButton, Card, EmptyState, LoadingState, ScreenHeader } from '@/components/ui';
+import { MobileAccessScreen } from '@/components/mobile-access-screen';
 import { useAuth } from '@/contexts/auth';
+import { useMobileAccess } from '@/contexts/mobile-access';
 import { adminGet } from '@/lib/api';
 import type { TeamsListResponse } from '@/types/api';
 
 export default function HomeScreen() {
   const { session, token, isLoading, error, retry, signIn, signOut, isPasswordRecovery } = useAuth();
+  const { hasOpened } = useMobileAccess();
 
   if (isLoading) {
     return <LoadingState label="ログイン状態を確認しています" />;
@@ -30,6 +33,8 @@ export default function HomeScreen() {
   if (!session || !token) {
     return <LoginScreen onSubmit={signIn} authError={error} onRetry={retry} />;
   }
+
+  if (!hasOpened) return <MobileAccessScreen />;
 
   return <TeamsScreen token={token} email={session.user.email ?? ''} onSignOut={signOut} />;
 }
@@ -184,6 +189,9 @@ function TeamsScreen({
             <Text style={styles.signOutText}>ログアウト</Text>
           </Pressable>
         </View>
+
+        <AppButton label="Proの購入・復元・契約管理" variant="secondary" onPress={() => router.push('/billing')} style={{ marginBottom: 16 }} />
+        <AppButton label="アカウント設定・削除" variant="secondary" onPress={() => router.push('/account')} style={{ marginBottom: 16 }} />
 
         {teams.length > 0 ? <AppButton label="チームを作成" onPress={() => router.push('/teams/new')} style={{ marginBottom: 16 }} /> : null}
 

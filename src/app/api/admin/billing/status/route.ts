@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-export const GET = (request: NextRequest) =>
-  withAuth(request, async (adminId) => {
+export const GET = async (request: NextRequest) => {
+  const response = await withAuth(request, async (adminId) => {
     try {
       const autoAssign = await getAutoAssignBillingStatus(adminId);
 
@@ -16,6 +16,7 @@ export const GET = (request: NextRequest) =>
             plan: autoAssign.plan,
             isPro: autoAssign.isPro,
             isPaidPro: autoAssign.isPaidPro,
+            mobileAccess: autoAssign.isPaidPro === true,
             isTrialActive: autoAssign.isTrialActive,
             accessSource: autoAssign.accessSource,
             trialEndsAt: autoAssign.trialEndsAt,
@@ -32,3 +33,7 @@ export const GET = (request: NextRequest) =>
       );
     }
   });
+
+  response.headers.set("Cache-Control", "private, no-store");
+  return response;
+};

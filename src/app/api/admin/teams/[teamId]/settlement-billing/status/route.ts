@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isSettlementSubscriptionActive, SETTLEMENT_MONTHLY_PRICE_JPY } from "@/utils/settlementAccess";
-import { getProEntitlement } from "@/utils/billing";
+import { getProEntitlement, appleProSelect } from "@/utils/billing";
 import { withAuthTeam } from "@/utils/withAuth";
 
 export const runtime = "nodejs";
@@ -14,6 +14,7 @@ export const GET = (request: NextRequest, ctx: { params: { teamId: string } }) =
         admin: {
           select: {
             billingPlan: true,
+            ...appleProSelect,
             proTrialEndsAt: true,
             stripeCustomerId: true,
             supabaseUid: true,

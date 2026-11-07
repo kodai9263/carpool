@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/utils/withAuth";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { getProEntitlement } from "@/utils/billing";
+import { getProEntitlement, hasAppleProAccess, appleProSelect } from "@/utils/billing";
 
 export const runtime = "nodejs";
 
@@ -27,18 +27,20 @@ export const GET = (request: NextRequest) =>
           autoAssignTrialUsed: true,
           stripeSubscriptionStatus: true,
           stripeCustomerId: true,
+          ...appleProSelect,
         },
       });
       if (!admin) {
         return NextResponse.json({ message: "管理者が見つかりません"}, { status: 404 });
       }
-      const { stripeCustomerId, ...publicAdmin } = admin;
+      const { stripeCustomerId, supabaseUid, appleProAccountToken, appleProEnvironment, appleProExpiresAt, ...publicAdmin } = admin;
       const entitlement = getProEntitlement(admin);
       return NextResponse.json({
         status: "OK",
         admin: {
           ...publicAdmin,
           hasBillingCustomer: Boolean(stripeCustomerId),
+          hasAppleSubscription: hasAppleProAccess({ appleProExpiresAt, appleProEnvironment, appleProAccountToken, supabaseUid }),
           proAccess: {
             isPro: entitlement.isPro,
             isPaidPro: entitlement.isPaidPro,

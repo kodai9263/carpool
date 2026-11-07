@@ -6,7 +6,7 @@ import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
-import { getProEntitlement } from "@/utils/billing";
+import { getProEntitlement, hasAppleProAccess } from "@/utils/billing";
 
 export const runtime = "nodejs";
 
@@ -27,6 +27,9 @@ export const POST = (request: NextRequest) => withAuth(request, async (adminId) 
     const result = await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT "id" FROM "Admin" WHERE "id" = ${adminId} FOR UPDATE`;
       const admin = await tx.admin.findUniqueOrThrow({ where: { id: adminId } });
+      if (hasAppleProAccess(admin)) {
+        throw Object.assign(new Error("Apple subscription already exists"), { code: "APPLE_SUBSCRIPTION_ACTIVE" });
+      }
       const entitlement = getProEntitlement(admin);
       let customerId = admin.stripeCustomerId;
       if (customerId) {
@@ -105,6 +108,9 @@ export const POST = (request: NextRequest) => withAuth(request, async (adminId) 
     if (result.created) await trackServerEvent("checkout_started", { source, interval, plan: "pro" }, { adminId, request });
     return NextResponse.json({ status: "OK", url: result.url, destination: result.destination });
   } catch (error) {
+    if ((error as { code?: string }).code === "APPLE_SUBSCRIPTION_ACTIVE") {
+      return NextResponse.json({ message: "AppleでProをご契約中です。お支払い・解約はAppleのサブスクリプション設定で管理してください。" }, { status: 409 });
+    }
     console.error("Stripe Checkout error:", error);
     if ((error as { code?: string }).code === "BILLING_UNAVAILABLE") {
       return NextResponse.json({ message: "現在、決済を利用できません。時間をおいて再度お試しください。" }, { status: 503 });

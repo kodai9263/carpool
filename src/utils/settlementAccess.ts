@@ -1,5 +1,5 @@
 import type { Prisma, TeamSettlementAccess } from "@prisma/client";
-import { getProEntitlement, PRO_MONTHLY_PRICE_JPY, type ProAccessSource } from "@/utils/billing";
+import { getProEntitlement, appleProSelect, PRO_MONTHLY_PRICE_JPY, type ProAccessSource, type ProEntitlementInput } from "@/utils/billing";
 
 export const LEGACY_SETTLEMENT_MONTHLY_PRICE_JPY = 980;
 export const SETTLEMENT_MONTHLY_PRICE_JPY = PRO_MONTHLY_PRICE_JPY;
@@ -14,13 +14,13 @@ export type SettlementAccessReason = "trial_in_use" | "trial_used";
 type AccessRecord = Pick<
   TeamSettlementAccess,
   "id" | "teamId" | "freeTrialSettlementId" | "freeTrialConsumedAt"
-> & {
+> & ProEntitlementInput & {
   subscriptionStatus?: string | null;
   billingPlan?: string | null;
   proTrialEndsAt?: Date | null;
 };
 
-type SettlementEntitlementInput = Pick<AccessRecord, "subscriptionStatus" | "billingPlan" | "proTrialEndsAt">;
+type SettlementEntitlementInput = ProEntitlementInput & Pick<AccessRecord, "subscriptionStatus">;
 
 export function getSettlementAccessSource(access: SettlementEntitlementInput): ProAccessSource | "legacy" {
   const entitlement = getProEntitlement(access);
@@ -85,10 +85,11 @@ export async function lockTeamSettlementAccess(
   });
   const team = await tx.team.findUniqueOrThrow({
     where: { id: teamId },
-    select: { admin: { select: { billingPlan: true, proTrialEndsAt: true } } },
+    select: { admin: { select: { billingPlan: true, proTrialEndsAt: true, ...appleProSelect } } },
   });
   return {
     ...access,
+    ...team.admin,
     subscriptionStatus: subscription?.stripeSubscriptionStatus ?? null,
     billingPlan: team.admin.billingPlan,
     proTrialEndsAt: team.admin.proTrialEndsAt,
@@ -176,7 +177,7 @@ export function buildSettlementAccessView(
     team: {
       settlementAccess: Pick<TeamSettlementAccess, "freeTrialSettlementId" | "freeTrialConsumedAt"> | null;
       settlementSubscription?: { stripeSubscriptionStatus: string | null } | null;
-      admin?: { billingPlan: string | null; proTrialEndsAt: Date | null } | null;
+      admin?: ProEntitlementInput | null;
     };
   },
 ) {
@@ -193,6 +194,7 @@ export function buildSettlementAccessView(
   const subscriptionStatus = settlement.team?.settlementSubscription?.stripeSubscriptionStatus ?? null;
   const entitlementInput = {
     ...access,
+    ...settlement.team?.admin,
     subscriptionStatus,
     billingPlan: settlement.team?.admin?.billingPlan ?? null,
     proTrialEndsAt: settlement.team?.admin?.proTrialEndsAt ?? null,

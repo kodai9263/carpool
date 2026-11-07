@@ -1,7 +1,7 @@
 import { CreateTeamResponse, TeamsListResponse } from "@/app/_types/response/teamResponse"; 
 import { TeamFormValues } from "@/app/_types/Team";
 import { prisma } from "@/lib/prisma";
-import { FREE_TEAM_LIMIT, getProEntitlement } from "@/utils/billing";
+import { FREE_TEAM_LIMIT, getProEntitlement, appleProSelect } from "@/utils/billing";
 import { trackServerEvent } from "@/utils/serverAnalytics";
 import { withAuth } from "@/utils/withAuth";
 import bcrypt from "bcryptjs";
@@ -76,12 +76,13 @@ export const POST = (request: NextRequest) => {
       const [admin, currentTeamCount] = await Promise.all([
         prisma.admin.findUnique({
           where: { id: adminId },
-          select: { billingPlan: true, proTrialEndsAt: true },
+          select: { billingPlan: true, proTrialEndsAt: true, ...appleProSelect },
         }),
         prisma.team.count({ where: { adminId } }),
       ]);
 
       const entitlement = getProEntitlement({
+        ...admin,
         billingPlan: admin?.billingPlan,
         proTrialEndsAt: admin?.proTrialEndsAt,
       });

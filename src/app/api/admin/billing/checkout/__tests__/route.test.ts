@@ -154,3 +154,16 @@ test("契約一覧取得後に別タブで成立した契約を見つけたら�
   expect(await response.json()).toMatchObject({ destination: "portal" });
   expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
 });
+
+test("Appleの有効契約があるとStripeの追加契約を作成しない", async () => {
+  (prisma.admin.findUniqueOrThrow as jest.Mock).mockResolvedValue({
+    ...admin, supabaseUid: "account", appleProAccountToken: "account",
+    appleProEnvironment: process.env.APPLE_IAP_ENVIRONMENT ?? "Production",
+    appleProExpiresAt: new Date(Date.now() + 86400000),
+  });
+  const response = await POST(request());
+  expect(response.status).toBe(409);
+  expect(stripe.customers.retrieve).not.toHaveBeenCalled();
+  expect(stripe.customers.create).not.toHaveBeenCalled();
+  expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
+});

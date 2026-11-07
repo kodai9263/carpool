@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
   AUTO_ASSIGN_FREE_TRIAL_LIMIT,
+  appleProSelect,
   getAutoAssignRemainingFreeUses,
   getProEntitlement,
   type ProAccessSource,
@@ -36,10 +37,11 @@ function isExcludedBillingAdmin(adminId: number) {
 export async function getAutoAssignBillingStatus(adminId: number): Promise<AutoAssignBillingStatus> {
   const admin = await prisma.admin.findUnique({
     where: { id: adminId },
-    select: { billingPlan: true, proTrialEndsAt: true, autoAssignTrialUsed: true },
+    select: { billingPlan: true, proTrialEndsAt: true, autoAssignTrialUsed: true, ...appleProSelect },
   });
 
   const entitlement = getProEntitlement({
+    ...admin,
     billingPlan: admin?.billingPlan,
     proTrialEndsAt: admin?.proTrialEndsAt,
   });
